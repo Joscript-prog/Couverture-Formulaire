@@ -14,7 +14,7 @@
             background: #f0f4f8;
         }
 
-        /* ====== ÉCRAN DE LOGIN ====== */
+        /* ====== ÉCRAN DE LOGIN ADMIN ====== */
         #adminLoginScreen {
             min-height: 100vh;
             background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
@@ -25,45 +25,68 @@
             background: #fff;
             border-radius: 14px;
             padding: 44px 38px;
-            width: 100%; max-width: 440px;
+            width: 100%; max-width: 420px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
         }
         .admin-login-card h1 {
             margin: 0 0 10px 0;
             color: #1f4e79;
-            font-size: 1.55rem;
-            letter-spacing: 0.3px;
+            font-size: 1.5rem;
+            text-align: center;
         }
         .admin-login-card .subtitle {
-            margin: 0 0 32px 0;
+            margin: 0 0 28px 0;
             color: #666;
-            font-size: 0.95rem;
-            line-height: 1.5;
+            font-size: 0.92rem;
+            text-align: center;
         }
-        .ms-login-btn {
-            display: inline-flex; align-items: center; justify-content: center; gap: 12px;
-            background: #2f2f2f; color: #fff;
-            padding: 14px 28px;
-            border: none; border-radius: 6px;
-            font-size: 1rem; font-weight: 600; cursor: pointer;
+        .admin-login-card label {
+            display: block;
+            margin: 16px 0 8px 0;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.9rem;
+        }
+        .admin-login-card input[type="password"] {
             width: 100%;
-            transition: background 0.15s, transform 0.1s;
+            padding: 12px 14px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-family: inherit;
         }
-        .ms-login-btn:hover { background: #000; }
-        .ms-login-btn:active { transform: scale(0.98); }
-        .ms-login-btn svg { flex-shrink: 0; }
+        .admin-login-card input[type="password"]:focus {
+            outline: none;
+            border-color: #2e75b6;
+            box-shadow: 0 0 0 3px rgba(46, 117, 182, 0.15);
+        }
+        .admin-login-btn {
+            width: 100%;
+            margin-top: 22px;
+            padding: 13px;
+            background: #2e75b6;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .admin-login-btn:hover { background: #1f4e79; }
         #loginErrorBox {
             display: none;
-            margin-top: 18px;
-            padding: 12px 14px;
-            background: #fde8e8; color: #c0392b;
-            border-radius: 6px; font-size: 0.88rem;
+            margin-top: 16px;
+            padding: 11px 14px;
+            background: #fde8e8;
+            color: #c0392b;
+            border-radius: 6px;
+            font-size: 0.88rem;
             border: 1px solid #f5c6c6;
-            text-align: left;
         }
         .login-footer {
-            margin-top: 28px;
+            margin-top: 26px;
+            text-align: center;
             font-size: 0.78rem;
             color: #999;
         }
@@ -389,23 +412,23 @@
 <body>
 
 <!-- ============================================================
-     ÉCRAN DE LOGIN ADMIN
+     ÉCRAN DE LOGIN ADMIN (mot de passe simple)
      ============================================================ -->
 <div id="adminLoginScreen">
     <div class="admin-login-card">
         <h1>🔐 Gestion des Rapports TECHCOUV</h1>
-        <p class="subtitle">Dashboard administrateur<br>Connectez-vous avec votre compte Outlook professionnel.</p>
-        <button id="msLoginBtn" class="ms-login-btn">
-            <svg width="20" height="20" viewBox="0 0 23 23" xmlns="http://www.w3.org/2000/svg">
-                <rect x="1"  y="1"  width="10" height="10" fill="#f25022"/>
-                <rect x="12" y="1"  width="10" height="10" fill="#7fba00"/>
-                <rect x="1"  y="12" width="10" height="10" fill="#00a4ef"/>
-                <rect x="12" y="12" width="10" height="10" fill="#ffb900"/>
-            </svg>
-            Se connecter avec Outlook
-        </button>
+        <p class="subtitle">Dashboard administrateur</p>
+
+        <label for="adminPassword">Mot de passe administrateur</label>
+        <input type="password" id="adminPassword" placeholder="Tapez votre mot de passe" autocomplete="off">
+
+        <button id="adminLoginBtn" class="admin-login-btn" type="button">Se connecter</button>
+
         <div id="loginErrorBox"></div>
-        <div class="login-footer">IPKONEKT / Bouygues Telecom — Accès réservé</div>
+
+        <div class="login-footer">
+            <a href="./" style="color:#2e75b6; text-decoration:none;">← Retour au portail</a>
+        </div>
     </div>
 </div>
 
@@ -420,7 +443,7 @@
             <p class="sub">Tableau de bord administrateur</p>
         </div>
         <div class="user-info">
-            <span class="user-badge" id="adminUserBadge">—</span>
+            <span class="user-badge">👤 Admin</span>
             <button class="header-btn" id="adminLogoutBtn">⎋ Déconnexion</button>
         </div>
     </div>
@@ -442,7 +465,7 @@
             <div class="stat-card" id="storageCard">
                 <div class="label">💾 Stockage utilisé</div>
                 <div class="value" id="statStorage">—</div>
-                <div class="sub" id="statStorageSub">sur 5 GB disponibles</div>
+                <div class="sub" id="statStorageSub">sur 1 GB disponibles</div>
                 <div class="storage-progress">
                     <div class="storage-progress-bar" id="storageBar" style="width:0%"></div>
                 </div>
@@ -452,7 +475,7 @@
         <!-- ALERTE STOCKAGE -->
         <div class="storage-alert" id="storageAlert">
             <strong id="storageAlertTitle">⚠️ Stockage en approche de la limite</strong>
-            <span id="storageAlertText">Vous approchez de la limite de 5 GB. Pensez à supprimer les anciens rapports.</span>
+            <span id="storageAlertText">Vous approchez de la limite. Pensez à supprimer les anciens rapports.</span>
             <div class="bulk-form">
                 <label for="bulkDeleteDate" style="font-weight:600;">Supprimer les rapports avant :</label>
                 <input type="date" id="bulkDeleteDate">
@@ -518,9 +541,6 @@
      TOAST
      ============================================================ -->
 <div id="toast"></div>
-
-<!-- MSAL.js (Microsoft Authentication Library) -->
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
 
 <!-- Script principal du dashboard admin -->
 <script type="module" src="admin.js"></script>
