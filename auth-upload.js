@@ -16,7 +16,7 @@
 import {
     supabase, BUCKET_NAME, TABLE_NAME,
     TECHNICIENS, MOT_DE_PASSE_TECH
-} from "../supabaseConfig.js";
+} from "./supabaseConfig.js";
 
 // =================================================================
 //  CLÉ SESSIONSTORAGE
