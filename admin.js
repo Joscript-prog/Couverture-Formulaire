@@ -1,21 +1,20 @@
 // =================================================================
-//  ADMIN.JS — Dashboard administrateur (version Supabase)
-//   - Authentification OAuth Microsoft (MSAL.js via window.msal)
+//  ADMIN.JS — Dashboard administrateur (auth par mot de passe simple)
+//   - Login : mot de passe défini dans supabaseConfig.js
 //   - Lecture / suppression Supabase Storage + table rapports
 //   - Filtres, recherche, tri, suppression simple et en masse
 // =================================================================
 
 import {
     supabase, BUCKET_NAME, TABLE_NAME,
-    msalConfig, ADMIN_EMAIL,
+    MOT_DE_PASSE_ADMIN,
     STORAGE_WARNING_BYTES, STORAGE_LIMIT_BYTES
 } from "./supabaseConfig.js";
 
 // =================================================================
 //  ÉTAT GLOBAL
 // =================================================================
-let msalInstance     = null;
-let currentAccount   = null;
+const SESSION_KEY = "techcouv_admin_logged_in";
 let rapports         = [];
 let filteredRapports = [];
 
@@ -43,49 +42,68 @@ function clearLoginError() {
 }
 
 // =================================================================
-//  INITIALISATION MSAL
+//  AU CHARGEMENT
 // =================================================================
-async function initMsal() {
-    if (!window.msal) {
-        showLoginError("MSAL.js non chargé. Vérifiez votre connexion internet.");
-        return false;
+document.addEventListener("DOMContentLoaded", () => {
+    // Vérifier si l'admin est déjà connecté (sessionStorage)
+    if (sessionStorage.getItem(SESSION_KEY) === "yes") {
+        enterDashboard();
+        return;
     }
-    try {
-        msalInstance = new window.msal.PublicClientApplication(msalConfig);
-        if (typeof msalInstance.initialize === "function") {
-            await msalInstance.initialize();
+
+    // Brancher le bouton login
+    $("adminLoginBtn").addEventListener("click", onLoginClick);
+
+    // Soumission par "Entrée" sur le champ mot de passe
+    $("adminPassword").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            onLoginClick();
         }
-        return true;
-    } catch (err) {
-        console.error("Erreur init MSAL :", err);
-        showLoginError("Erreur d'initialisation MSAL : " + err.message);
-        return false;
+    });
+
+    // Auto-focus sur le champ mot de passe
+    setTimeout(() => $("adminPassword").focus(), 100);
+});
+
+// =================================================================
+//  CONNEXION
+// =================================================================
+function onLoginClick() {
+    clearLoginError();
+    const pwd = $("adminPassword").value || "";
+
+    if (!pwd) {
+        showLoginError("Veuillez saisir le mot de passe.");
+        return;
     }
+
+    if (pwd !== MOT_DE_PASSE_ADMIN) {
+        showLoginError("Mot de passe incorrect.");
+        // On efface le champ pour réessayer
+        $("adminPassword").value = "";
+        $("adminPassword").focus();
+        return;
+    }
+
+    sessionStorage.setItem(SESSION_KEY, "yes");
+    enterDashboard();
+}
+
+function onLogoutClick() {
+    if (!confirm("Voulez-vous vous déconnecter ?")) return;
+    sessionStorage.removeItem(SESSION_KEY);
+    location.reload();
 }
 
 // =================================================================
-//  AU CHARGEMENT
+//  ENTRÉE DANS LE DASHBOARD
 // =================================================================
-document.addEventListener("DOMContentLoaded", async () => {
-    const ok = await initMsal();
-    if (!ok) return;
+async function enterDashboard() {
+    $("adminLoginScreen").style.display = "none";
+    $("dashboardScreen").style.display = "block";
 
-    // Vérifier si un compte est déjà en cache
-    const accounts = msalInstance.getAllAccounts();
-    if (accounts && accounts.length > 0) {
-        currentAccount = accounts[0];
-        msalInstance.setActiveAccount(currentAccount);
-        if (isAdminAccount(currentAccount)) {
-            await enterDashboard();
-            return;
-        } else {
-            try { await msalInstance.logoutPopup({ account: currentAccount }); } catch {}
-            showLoginError(`Le compte ${currentAccount.username} n'est pas autorisé. Seul ${ADMIN_EMAIL} a accès.`);
-        }
-    }
-
-    // Brancher les boutons
-    $("msLoginBtn").addEventListener("click", onLoginClick);
+    // Brancher les boutons du dashboard
     $("adminLogoutBtn").addEventListener("click", onLogoutClick);
     $("modalCloseBtn").addEventListener("click", closeModal);
     $("detailsModal").addEventListener("click", (e) => {
@@ -98,60 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Suppression en masse
     $("bulkDeleteBtn").addEventListener("click", onBulkDeleteClick);
-});
 
-// =================================================================
-//  CONNEXION
-// =================================================================
-function isAdminAccount(account) {
-    if (!account || !account.username) return false;
-    return account.username.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-}
-
-async function onLoginClick() {
-    clearLoginError();
-    try {
-        const loginResp = await msalInstance.loginPopup({
-            scopes: ["User.Read"],
-            prompt: "select_account"
-        });
-        currentAccount = loginResp.account;
-        msalInstance.setActiveAccount(currentAccount);
-
-        if (!isAdminAccount(currentAccount)) {
-            await msalInstance.logoutPopup({ account: currentAccount });
-            currentAccount = null;
-            showLoginError(`Le compte sélectionné n'est pas autorisé. Seul ${ADMIN_EMAIL} a accès au dashboard.`);
-            return;
-        }
-
-        await enterDashboard();
-    } catch (err) {
-        console.error("Erreur login MSAL :", err);
-        if (err && err.errorCode === "user_cancelled") return;
-        showLoginError("Échec de la connexion : " + (err.message || err));
-    }
-}
-
-async function onLogoutClick() {
-    if (!confirm("Voulez-vous vous déconnecter ?")) return;
-    try {
-        await msalInstance.logoutPopup({ account: currentAccount });
-    } catch (err) {
-        console.warn("Erreur logout :", err);
-    }
-    currentAccount = null;
-    $("dashboardScreen").style.display = "none";
-    $("adminLoginScreen").style.display = "flex";
-}
-
-// =================================================================
-//  ENTRÉE DANS LE DASHBOARD
-// =================================================================
-async function enterDashboard() {
-    $("adminLoginScreen").style.display = "none";
-    $("dashboardScreen").style.display = "block";
-    $("adminUserBadge").textContent = "👤 " + (currentAccount?.username || "Admin");
     await refreshData();
 }
 
@@ -454,7 +419,6 @@ async function onBulkDeleteClick() {
     }
     showToast(`Suppression en cours de ${toDelete.length} rapport(s)...`, "info");
 
-    // Préparer les chemins de fichiers à supprimer en lot
     const allPaths = [];
     const allIds   = [];
     toDelete.forEach(r => {
@@ -464,13 +428,11 @@ async function onBulkDeleteClick() {
 
     let ok = 0, ko = 0;
     try {
-        // Suppression en masse des fichiers (1 seul appel API)
         const { error: errStorage } = await supabase.storage
             .from(BUCKET_NAME)
             .remove(allPaths);
         if (errStorage) console.warn("Suppression Storage partielle :", errStorage);
 
-        // Suppression en masse des lignes table (1 seul appel API)
         const { error: errDb } = await supabase
             .from(TABLE_NAME)
             .delete()
