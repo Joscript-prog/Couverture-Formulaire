@@ -6,9 +6,6 @@
 //   - starlink/index.html    (via auth-upload.js)
 //   - admin.html             (via admin.js)
 //
-//  ⚠️  REMPLACER LES 2 VALEURS CI-DESSOUS PAR LES VÔTRES
-//      (URL du projet + clé publishable, depuis Supabase →
-//       Project Settings → API)
 // =================================================================
 
 // Import du SDK Supabase v2 via CDN (ES module officiel)
@@ -18,9 +15,11 @@ import { createClient }
 // =====================================================
 //  VOS CLÉS SUPABASE
 //  (Supabase → ⚙️ Project Settings → API)
+//  ⚠️  L'URL doit être SANS "/rest/v1/" à la fin !
+//      Le SDK l'ajoute automatiquement.
 // =====================================================
 export const SUPABASE_URL = "https://pjkidklafhpohwkihoqa.supabase.co";
-export const SUPABASE_KEY = "sb_publishable_8fMZTxNqRIFAgm4fdWFAFw_dMy1Ufre"
+export const SUPABASE_KEY = "sb_publishable_8fMZTxNqRIFAgm4fdWFAFw_dMy1Ufre";
 
 // =====================================================
 //  NOM DU BUCKET ET DE LA TABLE (créés dans Supabase)
@@ -29,28 +28,14 @@ export const BUCKET_NAME  = "rapports";
 export const TABLE_NAME   = "rapports";
 
 // =====================================================
-//  EMAIL ADMIN (utilisé pour valider l'accès au dashboard)
-//  ⚠️  L'email doit correspondre EXACTEMENT au compte
-//      Outlook utilisé pour se connecter au dashboard.
+//  AUTHENTIFICATION ADMIN (mot de passe simple)
+//  ⚠️  À garder DIFFÉRENT du mot de passe technicien.
+//      Si vous avez 1 seul admin, c'est largement suffisant.
+//      Pour une vraie sécurité d'entreprise (multi-admin,
+//      OAuth Outlook, etc.), voir la version MSAL plus
+//      complexe.
 // =====================================================
-export const ADMIN_EMAIL = "admin@votre-domaine.com";
-
-// =====================================================
-//  CONFIGURATION OAUTH MICROSOFT (MSAL) pour l'admin
-//  → créer une application dans Azure AD :
-//    https://portal.azure.com → App registrations
-// =====================================================
-export const msalConfig = {
-    auth: {
-        clientId:    "REMPLACEZ_PAR_VOTRE_CLIENT_ID_AZURE",
-        authority:   "https://login.microsoftonline.com/common",
-        redirectUri: window.location.origin + window.location.pathname
-    },
-    cache: {
-        cacheLocation: "sessionStorage",
-        storeAuthStateInCookie: false
-    }
-};
+export const MOT_DE_PASSE_ADMIN = "AdminIPKCouv2026!";
 
 // =====================================================
 //  AUTHENTIFICATION TECHNICIEN
