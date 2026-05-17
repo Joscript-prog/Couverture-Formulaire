@@ -19,7 +19,7 @@ import { createClient }
 //  VOS CLÉS SUPABASE
 //  (Supabase → ⚙️ Project Settings → API)
 // =====================================================
-export const SUPABASE_URL = "https://pjkidklafhpohwkihoqa.supabase.co/rest/v1/"
+export const SUPABASE_URL = "https://pjkidklafhpohwkihoqa.supabase.co";
 export const SUPABASE_KEY = "sb_publishable_8fMZTxNqRIFAgm4fdWFAFw_dMy1Ufre"
 
 // =====================================================
