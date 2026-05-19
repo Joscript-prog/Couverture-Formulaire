@@ -1,0 +1,1569 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Formulaire PICO / Cel-Fi Quatra — IPKONEKT / Bouygues Telecom</title>
+    <script>
+        function loadWithFallback(localSrc, fallbackSrc, globalCheck) {
+            return new Promise((resolve) => {
+                const tryLoad = (src, isFallback) => {
+                    const s = document.createElement("script");
+                    s.src = src;
+                    s.onload = () => {
+                        if (typeof window[globalCheck] !== "undefined") resolve(true);
+                        else if (!isFallback) tryLoad(fallbackSrc, true);
+                        else resolve(false);
+                    };
+                    s.onerror = () => {
+                        if (!isFallback) tryLoad(fallbackSrc, true);
+                        else resolve(false);
+                    };
+                    document.head.appendChild(s);
+                };
+                tryLoad(localSrc, false);
+            });
+        }
+        window.__libsLoaded = Promise.all([
+            loadWithFallback("docx.umd.js", "https://unpkg.com/docx@8.5.0/build/index.umd.js", "docx"),
+            loadWithFallback("FileSaver.min.js", "https://unpkg.com/file-saver@2.0.5/dist/FileSaver.min.js", "saveAs")
+        ]);
+    </script>
+    <style>
+        /* ... (votre style existant, inchangé) ... */
+        * { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        body {
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            margin: 0;
+            background: #f0f4f8;
+            color: #222;
+            -webkit-tap-highlight-color: rgba(46, 117, 182, 0.2);
+        }
+        header {
+            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            color: white;
+            padding: 20px 30px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        header h1 { margin: 0; font-size: 1.5rem; }
+        header p { margin: 5px 0 0 0; opacity: 0.9; font-size: 0.9rem; }
+
+        .mode-selector {
+            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            padding: 20px 20px 25px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+        .mode-selector h3 {
+            color: #fff;
+            margin: 0 0 12px 0;
+            font-size: 0.95rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            opacity: 0.95;
+        }
+        .mode-buttons {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .mode-btn {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 2px solid rgba(255,255,255,0.5);
+            padding: 14px 32px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 8px;
+            cursor: pointer;
+            min-width: 180px;
+            min-height: 50px;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+            touch-action: manipulation;
+        }
+        .mode-btn:hover { background: rgba(255,255,255,0.25); transform: translateY(-1px); }
+        .mode-btn:active { transform: scale(0.98); }
+        .mode-btn.active {
+            background: #fff;
+            color: #1f4e79;
+            border-color: #fff;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.2);
+        }
+        .mode-btn .mode-icon { font-size: 1.2rem; margin-right: 6px; }
+
+        .container { max-width: 1100px; margin: 20px auto; padding: 0 20px 80px 20px; }
+        .section {
+            background: white;
+            border-radius: 8px;
+            padding: 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+        .section h2 {
+            color: #1f4e79;
+            border-bottom: 2px solid #2e75b6;
+            padding-bottom: 8px;
+            margin-top: 0;
+            font-size: 1.18rem;
+        }
+        .section h3 {
+            color: #2e75b6;
+            font-size: 1rem;
+            margin-top: 18px;
+            margin-bottom: 10px;
+        }
+        .collapsible {
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+        .collapsible.active-pico { border-color: #5cb85c; }
+        .collapsible.active-quatra { border-color: #9b59b6; }
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            padding: 4px 0;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .collapsible-header:hover h2 { color: #2e75b6; }
+        .collapsible-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .collapsible-arrow {
+            font-size: 1.4rem;
+            color: #2e75b6;
+            transition: transform 0.2s;
+        }
+        .collapsible.collapsed .collapsible-arrow { transform: rotate(-90deg); }
+        .collapsible.collapsed .collapsible-content { display: none; }
+        .collapsible-badge {
+            background: #e6ecf2;
+            color: #555;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+        }
+        .collapsible.active-pico .collapsible-badge {
+            background: #d4edda;
+            color: #155724;
+        }
+        .collapsible.active-quatra .collapsible-badge {
+            background: #ead5f3;
+            color: #4a235a;
+        }
+        .activate-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.88rem;
+            color: #444;
+            cursor: pointer;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border: 1px solid #e0e6ed;
+            border-radius: 4px;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .activate-toggle input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            margin: 0;
+            cursor: pointer;
+        }
+        .field-row {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 12px;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .field-row.full { grid-template-columns: 1fr; }
+        label { font-weight: 600; color: #1f4e79; font-size: 0.92rem; }
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="number"],
+        input[type="email"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: inherit;
+            font-size: 16px;
+            min-height: 44px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #fff;
+        }
+        select {
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3e%3cpath fill='%231f4e79' d='M6 8L0 0h12z'/%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+        textarea { min-height: 80px; resize: vertical; }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #2e75b6;
+            box-shadow: 0 0 0 2px rgba(46, 117, 182, 0.2);
+        }
+        button {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+            touch-action: manipulation;
+            min-height: 44px;
+        }
+        button:active { transform: scale(0.97); }
+        .btn-primary { background: #2e75b6; color: white; }
+        .btn-primary:hover { background: #1f4e79; }
+        .btn-secondary { background: #e6e6e6; color: #333; }
+        .btn-secondary:hover { background: #ccc; }
+        .btn-success { background: #5cb85c; color: white; }
+        .btn-success:hover { background: #449d44; }
+        .actions {
+            position: sticky;
+            bottom: 0;
+            background: white;
+            padding: 15px 20px;
+            padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
+            border-top: 2px solid #2e75b6;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            z-index: 10;
+        }
+        #status {
+            margin: 12px 20px 0;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 0.92rem;
+            display: none;
+        }
+        #status.success { background: #d4edda; color: #155724; display: block; }
+        #status.error   { background: #f8d7da; color: #721c24; display: block; }
+        #status.info    { background: #d1ecf1; color: #0c5460; display: block; }
+        .measures-table {
+            width: 100%;
+            min-width: 1100px;
+            border-collapse: collapse;
+            margin-top: 10px;
+            font-size: 0.88rem;
+        }
+        .measures-table th {
+            background: #2e75b6;
+            color: white;
+            padding: 8px 6px;
+            font-weight: 600;
+            text-align: center;
+            font-size: 0.78rem;
+            white-space: nowrap;
+        }
+        .measures-table td {
+            padding: 4px;
+            border-bottom: 1px solid #e6ecf2;
+        }
+        .measures-table input {
+            min-height: 36px;
+            padding: 5px 7px;
+            font-size: 0.88rem;
+            width: 100%;
+        }
+        .measures-table .col-zone { min-width: 130px; }
+        .measures-table .col-rsrp { width: 14%; }
+        .measures-table .col-rsrq { width: 12%; }
+        .measures-table .col-band { width: 10%; }
+        .measures-table .col-spd { width: 14%; }
+        .measures-table .col-action { width: 8%; }
+        .add-row-btn {
+            margin-top: 10px;
+            background: #5cb85c;
+            color: white;
+            border: none;
+            padding: 9px 16px;
+            border-radius: 4px;
+            font-size: 0.88rem;
+            cursor: pointer;
+            font-weight: 600;
+            min-height: 38px;
+            touch-action: manipulation;
+        }
+        .add-row-btn:hover { background: #449d44; }
+        .row-del {
+            background: #d9534f;
+            color: white;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 3px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            min-height: 32px;
+        }
+        .row-del:hover { background: #c9302c; }
+        .qualite-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .qualite-item {
+            padding: 10px;
+            border-radius: 6px;
+            color: white;
+            text-align: center;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .qualite-item .label { display: block; font-size: 0.95rem; margin-bottom: 2px; }
+        .qualite-item .seuil { opacity: 0.9; font-size: 0.78rem; font-weight: normal; }
+        .forfait-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 10px;
+        }
+        .forfait-card {
+            background: #f8fafc;
+            border: 2px solid #cfdce9;
+            border-radius: 6px;
+            padding: 12px 14px;
+            cursor: pointer;
+            transition: all 0.15s;
+            user-select: none;
+            touch-action: manipulation;
+        }
+        .forfait-card:hover {
+            background: #eef4fa;
+            border-color: #2e75b6;
+        }
+        .forfait-card input[type="radio"] {
+            display: none;
+        }
+        .forfait-card.selected {
+            background: #2e75b6;
+            border-color: #1f4e79;
+            color: white;
+        }
+        .forfait-card .ref {
+            font-size: 0.75rem;
+            font-weight: 700;
+            opacity: 0.7;
+            letter-spacing: 0.5px;
+        }
+        .forfait-card .name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            margin: 4px 0;
+        }
+        .forfait-card .desc {
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+        .forfait-card .crit {
+            font-size: 0.78rem;
+            font-weight: 600;
+            margin-top: 6px;
+            padding-top: 6px;
+            border-top: 1px solid rgba(0,0,0,0.08);
+            opacity: 0.85;
+        }
+        .forfait-card.selected .crit {
+            border-top-color: rgba(255,255,255,0.3);
+        }
+        .pico-list { margin-top: 10px; }
+        .pico-item {
+            background: #f8fafc;
+            border: 1px solid #e0e6ed;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 10px;
+            display: grid;
+            grid-template-columns: 60px 1fr 1fr auto;
+            gap: 10px;
+            align-items: center;
+        }
+        .pico-item .num {
+            background: #2e75b6;
+            color: white;
+            font-weight: 700;
+            font-size: 0.9rem;
+            text-align: center;
+            padding: 6px;
+            border-radius: 4px;
+        }
+        .pico-item input { min-height: 38px; }
+        .pico-item .row-del { align-self: center; }
+        .fournitures-cat {
+            background: #f8fafc;
+            border: 1px solid #e0e6ed;
+            border-radius: 6px;
+            padding: 12px 14px;
+            margin-bottom: 12px;
+        }
+        .fournitures-cat h4 {
+            margin: 0 0 10px 0;
+            color: #1f4e79;
+            font-size: 0.95rem;
+            border-bottom: 1px solid #e0e6ed;
+            padding-bottom: 6px;
+        }
+        .fournitures-list {
+            display: grid;
+            gap: 6px;
+        }
+        .fourn-item {
+            display: grid;
+            grid-template-columns: 26px 1fr 80px 50px;
+            gap: 10px;
+            align-items: center;
+            padding: 8px;
+            background: white;
+            border-radius: 4px;
+            border: 1px solid transparent;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .fourn-item:has(input[type="checkbox"]:checked) {
+            border-color: #5cb85c;
+            background: #f0f9ee;
+        }
+        .fourn-item input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            margin: 0;
+            accent-color: #2e75b6;
+        }
+        .fourn-item label {
+            font-weight: normal;
+            color: #333;
+            cursor: pointer;
+            font-size: 0.9rem;
+            line-height: 1.35;
+        }
+        .fourn-item .qty-input {
+            width: 100%;
+            min-height: 36px;
+            padding: 6px 8px;
+            border: 1px solid #cfdce9;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-align: right;
+        }
+        .fourn-item .unit-tag {
+            font-size: 0.78rem;
+            color: #555;
+            font-weight: 600;
+            text-align: center;
+        }
+        .photo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 14px;
+            margin-top: 10px;
+        }
+        .photo-block {
+            background: #f8fafc;
+            border: 1px solid #e0e6ed;
+            border-radius: 6px;
+            padding: 10px;
+        }
+        .photo-block label.photo-label {
+            display: block;
+            font-size: 0.88rem;
+            color: #1f4e79;
+            margin-bottom: 6px;
+        }
+        .photo-block input[type="file"] {
+            font-size: 0.85rem;
+            min-height: 38px;
+            padding: 6px;
+            background: white;
+        }
+        .photo-preview {
+            width: 100%;
+            margin-top: 8px;
+            border-radius: 4px;
+            display: none;
+            max-height: 240px;
+            object-fit: contain;
+            background: #fff;
+        }
+        .photo-preview.shown { display: block; }
+        .photo-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .photo-actions button {
+            min-height: 36px;
+            padding: 8px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            touch-action: manipulation;
+        }
+        .annotate-btn { background: #5cb85c; color: white; }
+        .annotate-btn:hover { background: #449d44; }
+        .annotate-btn:disabled { background: #aaa; cursor: not-allowed; }
+        .clear-photo { background: #d9534f; color: white; }
+        .clear-photo:hover { background: #c9302c; }
+        .evac-upload-area {
+            border: 2px dashed #2e75b6;
+            border-radius: 6px;
+            padding: 20px;
+            text-align: center;
+            background: #f8fafc;
+            cursor: pointer;
+            min-height: 130px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #2e75b6;
+        }
+        .evac-upload-area:hover { background: #eef4fa; }
+        .evac-upload-area .icon { font-size: 2rem; margin-bottom: 6px; }
+        .evac-point {
+            position: absolute;
+            border-radius: 50%;
+            cursor: move;
+            user-select: none;
+            touch-action: none;
+            transform: translate(-50%, -50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+        .evac-point .evac-halo {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .evac-point .evac-dot {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: #dc2626;
+            border: 3px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            pointer-events: none;
+        }
+        .evac-point .evac-label {
+            position: absolute;
+            top: -18px; left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            color: #1f4e79;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 7px;
+            border-radius: 4px;
+            border: 1px solid #1f4e79;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.15);
+        }
+        .evac-point .evac-del {
+            position: absolute;
+            top: -10px; right: -10px;
+            background: #d9534f;
+            border: 2px solid white;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 5;
+            font-weight: bold;
+        }
+        .evac-point .evac-resize {
+            position: absolute;
+            bottom: -10px; right: -10px;
+            background: #2e75b6;
+            border: 2px solid white;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 11px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: nwse-resize;
+            z-index: 5;
+            touch-action: none;
+            font-weight: bold;
+        }
+        .add-evac-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .add-evac-controls input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        /* --- Cartes multi-plans (un par étage) --- */
+        .evac-plan-card {
+            border: 1px solid #c9d6e2;
+            border-left: 4px solid #2e75b6;
+            border-radius: 8px;
+            padding: 14px 14px 16px;
+            margin-top: 14px;
+            background: #ffffff;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .evac-plan-card:first-child { margin-top: 0; }
+        .evac-plan-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8ee;
+        }
+        .evac-plan-card-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+        .evac-plan-card-icon {
+            font-size: 1.1rem;
+            color: #1f4e79;
+            flex-shrink: 0;
+        }
+        .evac-plan-card-title-input {
+            flex: 1;
+            min-width: 120px;
+            padding: 6px 10px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #1f4e79;
+            border: 1px solid #d8e2ec;
+            border-radius: 4px;
+            background: #f9fbfd;
+        }
+        .evac-plan-card-title-input:focus {
+            outline: none;
+            border-color: #2e75b6;
+            background: #ffffff;
+        }
+        .evac-plan-card-remove-btn {
+            background: #d9534f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .evac-plan-card-remove-btn:hover { background: #c9302c; }
+        .evac-plan-card .plan-evac-container {
+            position: relative;
+            margin-top: 10px;
+            display: none;
+            user-select: none;
+        }
+        .evac-plan-card .plan-evac-container.shown { display: block; }
+        .evac-plan-card .plan-evac-img {
+            width: 100%;
+            display: block;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        }
+        @media (max-width: 700px) {
+            .evac-plan-card { padding: 10px 10px 14px; }
+            .evac-plan-card-title-input { font-size: 0.9rem; }
+            .evac-plan-card-remove-btn { padding: 5px 10px; font-size: 0.8rem; }
+        }
+        .info-banner {
+            background: #d9edf7;
+            border-left: 4px solid #2e75b6;
+            padding: 10px 14px;
+            border-radius: 4px;
+            font-size: 0.88rem;
+            color: #31708f;
+            margin: 10px 0;
+        }
+        @media (max-width: 700px) {
+            header { padding: 16px 18px; }
+            header h1 { font-size: 1.15rem; }
+            .container { padding: 0 12px 60px 12px; }
+            .section { padding: 16px 14px; }
+            .field-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+            .photo-grid { grid-template-columns: 1fr !important; }
+            .forfait-list { grid-template-columns: 1fr; }
+            .pico-item {
+                grid-template-columns: 1fr;
+                gap: 8px;
+            }
+            .pico-item .num { width: 50px; }
+            .mode-buttons { flex-direction: column; gap: 10px; }
+            .mode-btn { width: 100%; min-width: 0; padding: 14px 20px; }
+            .editor-body { flex-direction: column; }
+            .editor-toolbar { width: 100%; max-height: 40%; padding: 8px; border-right: none; border-bottom: 1px solid #ddd; }
+            .editor-canvas-wrap { height: 60%; min-height: 300px; }
+            .handle { width: 28px; height: 28px; border-width: 3px; }
+            .handle.resize { bottom: -14px; right: -14px; }
+            .handle.rotate { top: -36px; width: 28px; height: 28px; }
+            .handle.delete { top: -14px; right: -14px; width: 28px; height: 28px; font-size: 18px; line-height: 22px; }
+            .handle.arrow-end { width: 28px; height: 28px; }
+            .measures-table { font-size: 0.82rem; }
+            .measures-table th, .measures-table td { padding: 4px; }
+        }
+        @media (max-width: 480px) {
+            .actions { flex-direction: column-reverse; padding: 12px; }
+            .actions button { width: 100%; }
+            .fourn-item {
+                grid-template-columns: 26px 1fr;
+                gap: 8px 10px;
+            }
+            .fourn-item .qty-input,
+            .fourn-item .unit-tag {
+                grid-column: 2 / 3;
+            }
+            .fourn-item .qty-input { margin-top: 4px; }
+            .editor-footer { flex-direction: column; align-items: stretch; }
+            .editor-footer > div { width: 100%; }
+            .editor-footer > div button { flex: 1; }
+        }
+        .editor-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.75);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .editor-overlay.shown { display: flex; }
+        .editor-modal {
+            background: #f0f4f8;
+            border-radius: 8px;
+            width: min(95vw, 1200px);
+            height: min(95vh, 850px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        .editor-header {
+            background: #1f4e79;
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .editor-header h2 { margin: 0; font-size: 1.1rem; }
+        .editor-close {
+            background: transparent;
+            border: 1px solid white;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            min-height: 36px;
+            touch-action: manipulation;
+            transition: background 0.15s;
+        }
+        .editor-close:hover { background: rgba(255, 255, 255, 0.15); }
+        .editor-close:active { transform: scale(0.97); }
+        .editor-body {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            min-height: 0;
+        }
+        .editor-toolbar {
+            width: 220px;
+            background: #fff;
+            border-right: 1px solid #ddd;
+            padding: 12px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            flex-shrink: 0;
+        }
+        .editor-toolbar h3 {
+            margin: 0 0 8px 0;
+            font-size: 0.85rem;
+            color: #1f4e79;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .editor-toolbar .tool-group {
+            margin-bottom: 18px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
+        }
+        .tool-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            background: #f8fafc;
+            border: 1px solid #d0dae5;
+            padding: 8px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            margin-bottom: 6px;
+            color: #1f4e79;
+            text-align: left;
+            font-weight: 600;
+            touch-action: manipulation;
+        }
+        .tool-btn:hover {
+            background: #eef4fa;
+            border-color: #2e75b6;
+        }
+        .tool-btn img {
+            width: 28px;
+            height: 28px;
+            object-fit: contain;
+        }
+        .editor-canvas-wrap {
+            flex: 1;
+            position: relative;
+            background: #cfd8e3;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            touch-action: pan-x pan-y;
+        }
+        .editor-stage {
+            position: relative;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+            transform-origin: center;
+            max-width: 100%;
+            max-height: 100%;
+        }
+        .editor-stage img.bg-photo {
+            display: block;
+            max-width: 100%;
+            user-select: none;
+            pointer-events: none;
+            width: 100%;
+            height: auto;
+        }
+        .editor-element {
+            position: absolute;
+            cursor: grab;
+            user-select: none;
+            touch-action: none;
+        }
+        .editor-element.selected {
+            outline: 2px dashed #2e75b6;
+            outline-offset: 2px;
+        }
+        .editor-element img {
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-drag: none;
+            display: block;
+        }
+        .editor-element.text-element {
+            padding: 2px 6px;
+            white-space: nowrap;
+            line-height: 1;
+        }
+        .handle {
+            position: absolute;
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border: 2px solid #2e75b6;
+            border-radius: 50%;
+            z-index: 10;
+            touch-action: none;
+        }
+        .handle::after {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+        }
+        .handle.resize {
+            bottom: -7px;
+            right: -7px;
+            cursor: se-resize;
+        }
+        .handle.rotate {
+            top: -22px;
+            left: 50%;
+            transform: translateX(-50%);
+            cursor: grab;
+            background: #f0ad4e;
+            border-color: #c77700;
+        }
+        .handle.delete {
+            top: -7px;
+            right: -7px;
+            background: #d9534f;
+            border-color: #a82c2c;
+            color: #fff;
+            font-size: 12px;
+            line-height: 10px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .editor-footer {
+            background: #fff;
+            padding: 12px 20px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            border-top: 1px solid #ddd;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .editor-footer > div {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .editor-footer .hint {
+            color: #777;
+            font-size: 0.82rem;
+            font-style: italic;
+        }
+        .text-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .text-controls input[type="text"] {
+            font-size: 0.85rem;
+            padding: 6px;
+        }
+        .text-controls .row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .text-controls label {
+            font-size: 0.78rem;
+            color: #555;
+        }
+        .text-controls select,
+        .text-controls input[type="color"],
+        .text-controls input[type="number"] {
+            width: 100%;
+            padding: 4px;
+            font-size: 0.82rem;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .text-controls input[type="color"] {
+            padding: 1px;
+            height: 28px;
+        }
+        .style-preview {
+            padding: 6px 8px;
+            background: #fafafa;
+            border: 1px dashed #ccc;
+            border-radius: 4px;
+            text-align: center;
+            margin-top: 4px;
+            min-height: 30px;
+        }
+        .swatch-row {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 3px;
+        }
+        .swatch {
+            height: 22px;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid rgba(0, 0, 0, 0.2);
+        }
+        .swatch:hover {
+            transform: scale(1.1);
+        }
+        .arrow-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .arrow-controls .row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+        .arrow-controls label {
+            font-size: 0.78rem;
+            color: #555;
+            flex: 1;
+        }
+        .arrow-controls input[type="number"],
+        .arrow-controls input[type="color"] {
+            width: 100%;
+            padding: 4px;
+            font-size: 0.82rem;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+        }
+        .arrow-controls input[type="color"] {
+            padding: 1px;
+            height: 28px;
+        }
+        .selection-panel {
+            display: none;
+            background: #fff8e6;
+            border: 1px solid #f0ad4e;
+            border-radius: 4px;
+            padding: 8px;
+            margin-bottom: 12px;
+        }
+        .selection-panel h3 {
+            margin: 0 0 6px 0 !important;
+            color: #b8860b !important;
+        }
+        .flip-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        .flip-btn {
+            flex: 1;
+            padding: 8px 6px;
+            background: #fff;
+            border: 1px solid #d0dae5;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            color: #1f4e79;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            touch-action: manipulation;
+        }
+        .flip-btn:hover {
+            background: #eef4fa;
+            border-color: #2e75b6;
+        }
+        .flip-btn.active {
+            background: #2e75b6;
+            color: #fff;
+            border-color: #1f4e79;
+        }
+        .flip-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        .handle.arrow-end {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            cursor: move;
+        }
+        .handle.arrow-delete {
+            cursor: pointer;
+        }
+        .editor-element.arrow-element {
+            pointer-events: none;
+        }
+        .editor-element.arrow-element svg {
+            pointer-events: none;
+        }
+        .editor-element.arrow-element .handle {
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <!-- ============================================================
+         ÉCRAN DE LOGIN TECHNICIEN (overlay plein écran)
+         Masqué automatiquement par auth-upload.js si déjà connecté.
+         ============================================================ -->
+    <style>
+        body.locked { overflow: hidden; }
+        body.locked > *:not(#loginOverlay) { filter: blur(3px); pointer-events: none; user-select: none; }
+        #loginOverlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        #loginOverlay .login-card {
+            background: #fff; border-radius: 14px; padding: 36px 32px;
+            width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        #loginOverlay h2 { margin: 0 0 8px 0; color: #1f4e79; font-size: 1.4rem; }
+        #loginOverlay .subtitle { margin: 0 0 24px 0; color: #666; font-size: 0.9rem; }
+        #loginOverlay label { display:block; margin: 14px 0 6px 0; font-weight: 600; color: #333; font-size: 0.88rem; }
+        #loginOverlay select, #loginOverlay input {
+            width: 100%; padding: 11px 14px; border: 1px solid #ccc;
+            border-radius: 6px; font-size: 1rem; font-family: inherit;
+        }
+        #loginOverlay select:focus, #loginOverlay input:focus {
+            outline: none; border-color: #2e75b6; box-shadow: 0 0 0 3px rgba(46,117,182,0.15);
+        }
+        #loginOverlay #loginBtn {
+            width: 100%; margin-top: 22px; padding: 13px;
+            background: #2e75b6; color: #fff; border: none;
+            border-radius: 6px; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: background 0.15s;
+        }
+        #loginOverlay #loginBtn:hover { background: #1f4e79; }
+        #loginOverlay #loginError {
+            display: none; margin-top: 14px; padding: 10px 12px;
+            background: #fde8e8; color: #c0392b; border-radius: 6px;
+            font-size: 0.88rem; border: 1px solid #f5c6c6;
+        }
+        #loginOverlay .login-footer { margin-top: 20px; text-align: center; font-size: 0.78rem; color: #999; }
+    </style>
+    <div id="loginOverlay" style="display:none;">
+        <div class="login-card">
+            <h2>🔐 Connexion technicien</h2>
+            <p class="subtitle">Espace IPKONEKT / Bouygues Telecom</p>
+            <label for="loginTechSelect">Identifiant technicien</label>
+            <select id="loginTechSelect">
+                <option value="">-- Sélectionner --</option>
+            </select>
+            <label for="loginPassword">Mot de passe</label>
+            <input type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
+            <div id="loginError"></div>
+            <button id="loginBtn" type="button">Se connecter</button>
+            <div class="login-footer">Formulaire PICO / Cel-Fi Quatra</div>
+        </div>
+    </div>
+
+    <header>
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
+            <div>
+                <h1>📋 Formulaire PICO / Cel-Fi Quatra — IPKONEKT / Bouygues Telecom</h1>
+                <p>Renseignez les informations ci-dessous, puis générez le rapport Word.</p>
+            </div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+                <span id="loggedUserBadge" style="display:none; background:rgba(255,255,255,0.22); color:#fff; padding:8px 14px; border-radius:20px; font-size:0.85rem; font-weight:600;"></span>
+                <button id="logoutBtn" type="button" onclick="logout()" style="display:none; background:#c0392b; color:#fff; border:none; padding:10px 16px; border-radius:6px; font-size:0.9rem; font-weight:600; cursor:pointer;">⎋ Déconnexion</button>
+                <a href="../" style="background: rgba(255,255,255,0.18); color:#fff; text-decoration:none; padding:10px 16px; border-radius:6px; border:1px solid rgba(255,255,255,0.4); font-size:0.9rem; font-weight:600; white-space:nowrap;">← Retour au portail</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="mode-selector">
+        <h3>Type d'intervention</h3>
+        <div class="mode-buttons">
+            <button type="button" class="mode-btn active" id="modeAuditBtn" onclick="setMode('audit')">
+                <span class="mode-icon">🔍</span>AUDIT
+            </button>
+            <button type="button" class="mode-btn" id="modeTravauxBtn" onclick="setMode('travaux')">
+                <span class="mode-icon">🛠️</span>TRAVAUX
+            </button>
+        </div>
+        <input type="hidden" id="modeIntervention" value="audit">
+    </div>
+
+    <div id="status"></div>
+
+    <div class="container">
+
+        <!-- EN-TÊTE -->
+        <div class="section">
+            <h2>En-tête du rapport</h2>
+            <div class="field-row"><label>Numéro d'OT</label><input type="text" id="numero_ot" placeholder="Ex : 12863216"></div>
+            <div class="field-row"><label>Numéro de ticket <span style="color:#c0392b;">*</span></label><input type="text" id="numero_ticket" placeholder="Ex : 63573" required></div>
+            <div class="field-row"><label>CDP Bytel (nom + tél)</label><input type="text" id="cdp_bytel" placeholder="Ex : MARTY Scarlett 01.41.09.50.34"></div>
+            <div class="field-row"><label>Auditeur / Intervenant</label><input type="text" id="auditeur" placeholder="Nom du technicien IPKONEKT"></div>
+            <div class="field-row"><label>Direction / Service</label><input type="text" id="direction" placeholder="Ex : Direction des Opérations Île-de-France"></div>
+            <div class="field-row"><label>Date d'intervention</label><input type="date" id="date_audit"></div>
+        </div>
+
+        <!-- 1. INFOS CLIENT -->
+        <div class="section">
+            <h2>1. Informations administratives du client</h2>
+            <div class="field-row"><label>Raison sociale</label><input type="text" id="raison_sociale"></div>
+            <div class="field-row"><label>Adresse</label><input type="text" id="adresse"></div>
+            <div class="field-row"><label>Code postal</label><input type="text" id="code_postal"></div>
+            <div class="field-row"><label>Ville</label><input type="text" id="ville"></div>
+            <div class="field-row"><label>Horaire d'ouverture</label><input type="text" id="horaire"></div>
+            <div class="field-row"><label>Procédure d'accès</label><input type="text" id="procedure_acces"></div>
+            <div class="field-row"><label>Téléphone du site</label><input type="text" id="tel_site"></div>
+            <div class="field-row"><label>Nom du contact</label><input type="text" id="contact_nom"></div>
+            <div class="field-row"><label>Fonction du contact</label><input type="text" id="contact_fonction"></div>
+            <div class="field-row"><label>Téléphone du contact</label><input type="text" id="contact_tel"></div>
+            <div class="field-row"><label>Mail du contact</label><input type="email" id="contact_mail"></div>
+        </div>
+
+        <!-- 2. INFOS TECHNIQUES -->
+        <div class="section">
+            <h2>2. Informations techniques client</h2>
+            <div class="field-row"><label>Bâtiment classé ?</label><div><label style="font-weight: normal; margin-right: 14px;"><input type="radio" name="batiment_classe" value="Oui"> Oui</label><label style="font-weight: normal;"><input type="radio" name="batiment_classe" value="Non"> Non</label></div></div>
+            <div class="field-row"><label>Localisation de la baie informatique</label><input type="text" id="loc_baie"></div>
+            <div class="field-row"><label>Nb de prises électriques disponibles</label><input type="number" id="nb_prises_elec" min="0"></div>
+            <div class="field-row"><label>Prise RJ45 à l'emplacement optimal ?</label><div><label style="font-weight: normal; margin-right: 14px;"><input type="radio" name="rj45_optimal" value="Oui"> Oui</label><label style="font-weight: normal;"><input type="radio" name="rj45_optimal" value="Non"> Non</label></div></div>
+            <div class="field-row"><label>Devis desserte à prévoir ?</label><div><label style="font-weight: normal; margin-right: 14px;"><input type="radio" name="devis_desserte" value="Oui"> Oui</label><label style="font-weight: normal;"><input type="radio" name="devis_desserte" value="Non"> Non</label></div></div>
+            <div class="field-row"><label>Besoin VLAN ?</label><div><label style="font-weight: normal; margin-right: 14px;"><input type="radio" name="vlan_besoin" value="Oui"> Oui</label><label style="font-weight: normal;"><input type="radio" name="vlan_besoin" value="Non"> Non</label></div></div>
+            <div class="field-row"><label>Si VLAN, sur quel port ?</label><input type="text" id="vlan_port" placeholder="Ex : Port 12 ou N/A"></div>
+        </div>
+
+        <!-- 3. MESURES RADIO -->
+        <div class="section" id="mesures-section">
+            <h2 id="measuresTitle">3. Mesures radio (avant intervention)</h2>
+            <div class="info-banner">Tests réalisés avec l'application <b>Network Cell Info Lite</b>. Saisir RSRP, SNR, RSRQ, Band et Speedtest pour chaque zone.</div>
+            <h3>Grille de qualité radio (référence)</h3>
+            <div class="qualite-grid" id="qualiteGrid"></div>
+            <h3>Points de mesure</h3>
+            <p style="font-size: 0.85rem; color: #555;">Saisir au minimum la zone, RSRP (dBm) et SNR (dB) pour déclencher l'analyse automatique de qualité.</p>
+            <div style="overflow-x: auto;">
+                <table class="measures-table">
+                    <thead><tr><th class="col-zone">Zone / Pièce</th><th>RSRP (dBm)</th><th>SNR (dB)</th><th>RSRQ</th><th>Band</th><th>5G (RSRP/RSRQ/Band)</th><th>↓ Mb</th><th>↑ Mb</th><th>Analyse auto</th><th></th></tr></thead>
+                    <tbody id="measuresBody"></tbody>
+                </table>
+            </div>
+            <button type="button" class="add-row-btn" onclick="addMeasureRow()">➕ Ajouter un point de mesure</button>
+            <div class="field-row full" style="margin-top: 18px;"><label>Note de synthèse sur les mesures</label><textarea id="mesures_note" placeholder="Ex : Données mobiles montrent un faible réseau, appels passent mal, valeurs Speedtest médiocres..."></textarea></div>
+        </div>
+
+        <!-- 4. PLAN(S) D'ÉVACUATION -->
+        <div class="section">
+            <h2>4. Plan(s) d'implantation / d'évacuation</h2>
+            <p style="font-size: 0.9rem; color: #555;">
+                Importez une ou plusieurs photos de plan (utile pour les sites à plusieurs étages : un plan par niveau).
+                Ajoutez les emplacements PICO ou CU sur chaque plan, et liez-les à une mesure pour récupérer automatiquement la couleur de l'analyse RSRP/SNR.<br>
+                <b>💡 Une même mesure ne peut être placée que sur un seul plan</b> (si elle est placée sur le plan d'un étage, elle devient indisponible sur les autres).
+            </p>
+
+            <!-- Conteneur des plans (généré dynamiquement par app.js) -->
+            <div id="evacPlansContainer"></div>
+
+            <!-- Bouton pour ajouter un nouveau plan d'évacuation (étage / niveau supplémentaire) -->
+            <button type="button" class="add-row-btn" id="addEvacPlanBtn" style="margin-top:14px;">
+                ➕ Ajouter un plan d'évacuation (étage / niveau supplémentaire)
+            </button>
+        </div>
+
+        <!-- PICO -->
+        <div class="section collapsible" id="sectionPico">
+            <div class="collapsible-header" onclick="toggleSection('Pico')">
+                <div class="collapsible-toggle"><span class="collapsible-arrow">▼</span><h2 style="border:none; padding:0; margin:0;">📡 Section PICO BTS</h2></div>
+                <span class="collapsible-badge" id="picoBadge">Non activée</span>
+            </div>
+            <div class="collapsible-content">
+                <div style="margin-top: 12px;"><label class="activate-toggle"><input type="checkbox" id="activePico" onchange="updateSectionState()"><span>Cocher pour activer cette section dans le rapport</span></label></div>
+                <div id="picoFields" style="margin-top: 18px;">
+                    <h3>5.1 — Choix du forfait PICO</h3>
+                    <p style="font-size: 0.88rem; color: #555;">Sélectionnez le forfait correspondant à l'intervention selon les critères BPU.</p>
+                    <div class="forfait-list" id="picoForfaitList"></div>
+                    <h3 id="picoPosesTitle" style="margin-top: 22px;">5.2 — Pico à installer</h3>
+                    <p style="font-size: 0.88rem; color: #555;">Listez chaque PICO avec sa zone d'installation.</p>
+                    <div class="pico-list" id="picoPosesList"></div>
+                    <button type="button" class="add-row-btn" onclick="addPicoPose()">➕ Ajouter un PICO</button>
+                    <h3 style="margin-top: 22px;">5.3 — Métré câble & hauteur</h3>
+                    <div class="field-row"><label>Linéaire câble Ethernet total (ml)</label><input type="number" id="pico_metrage" min="0" step="1" placeholder="Ex : 150"></div>
+                    <div class="field-row"><label>Hauteur de pose des PICO (m)</label><input type="number" id="pico_hauteur" min="0" step="0.1" placeholder="Ex : 5"></div>
+                    <h3 style="margin-top: 22px;">5.4 — Photos PICO & cheminement câbles</h3>
+                    <p style="font-size: 0.88rem; color: #555;">Ajoutez les photos. Le bouton « Annoter » permet d'ajouter flèches, repères, texte sur la photo.</p>
+                    <div class="photo-grid" id="picoPhotoGrid"></div>
+                    <button type="button" class="add-row-btn" onclick="addPicoPhotoBlock()">➕ Ajouter une photo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- QUATRA -->
+        <div class="section collapsible" id="sectionQuatra">
+            <div class="collapsible-header" onclick="toggleSection('Quatra')">
+                <div class="collapsible-toggle"><span class="collapsible-arrow">▼</span><h2 style="border:none; padding:0; margin:0;">📶 Section Cel-Fi Quatra</h2></div>
+                <span class="collapsible-badge" id="quatraBadge">Non activée</span>
+            </div>
+            <div class="collapsible-content">
+                <div style="margin-top: 12px;"><label class="activate-toggle"><input type="checkbox" id="activeQuatra" onchange="updateSectionState()"><span>Cocher pour activer cette section dans le rapport</span></label></div>
+                <div id="quatraFields" style="margin-top: 18px;">
+                    <h3>6.1 — Choix du forfait Quatra</h3>
+                    <p style="font-size: 0.88rem; color: #555;">Sélectionnez le forfait Quatra selon le nombre de CU et le câblage.</p>
+                    <div class="forfait-list" id="quatraForfaitList"></div>
+                    <h3 id="quatraEquipTitle" style="margin-top: 22px;">6.2 — Equipements à installer</h3>
+                    <div class="field-row"><label>Nombre de NU</label><input type="number" id="quatra_nb_nu" min="0" step="1"></div>
+                    <div class="field-row"><label>Nombre de CU</label><input type="number" id="quatra_nb_cu" min="0" step="1"></div>
+                    <div class="field-row"><label>Linéaire câble RJ45 par CU (m)</label><input type="number" id="quatra_metrage_cu" min="0" step="1" placeholder="0, 25 ou 50"></div>
+                    <h3 style="margin-top: 22px;">6.3 — Photos Quatra</h3>
+                    <p style="font-size: 0.88rem; color: #555;">Photos NU/CU, baie, cheminement câble.</p>
+                    <div class="photo-grid" id="quatraPhotoGrid"></div>
+                    <button type="button" class="add-row-btn" onclick="addQuatraPhotoBlock()">➕ Ajouter une photo</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOURNITURES -->
+        <div class="section">
+            <h2>7. Fournitures & matériel posé</h2>
+            <p style="font-size: 0.9rem; color: #555;">Cochez les fournitures utilisées et indiquez les quantités. Liste extraite du BPU.</p>
+            <div id="fournituresContainer"></div>
+            <div class="field-row full"><label>Autres fournitures (texte libre)</label><textarea id="fournitures_libre" placeholder="Vis et chevilles, embases et colsons, silicone blanc, etc."></textarea></div>
+            <div class="field-row full"><label>Outils nécessaires (texte libre)</label><textarea id="outils_libre" placeholder="Échelle 4 m, perceuse, mèches, tournevis, pince, aiguille..."></textarea></div>
+        </div>
+
+        <!-- MISE EN ŒUVRE -->
+        <div class="section">
+            <h2>8. Mise en œuvre</h2>
+            <div class="field-row"><label>Hauteur de travail max (m)</label><input type="number" id="hauteur_max" min="0" step="0.1"></div>
+            <div class="field-row"><label>Nombre d'intervenants</label><input type="number" id="nb_techniciens" min="1" step="1"></div>
+            <div class="field-row"><label id="dureeLabel">Temps de travaux estimé</label><input type="text" id="duree_totale" placeholder="Ex : 2 journées"></div>
+            <div class="field-row"><label id="nacelleLabel">Nacelle à prévoir ?</label><div><label style="font-weight: normal; margin-right: 14px;"><input type="radio" name="nacelle_prevoir" value="Oui"> Oui</label><label style="font-weight: normal;"><input type="radio" name="nacelle_prevoir" value="Non"> Non</label></div></div>
+            <div class="field-row"><label>Échelle / échafaudage ?</label><div><label style="font-weight: normal; margin-right: 14px;"><input type="radio" name="echelle_prevoir" value="Oui"> Oui</label><label style="font-weight: normal;"><input type="radio" name="echelle_prevoir" value="Non"> Non</label></div></div>
+        </div>
+
+        <!-- SYNTHÈSE / ACCÈS -->
+        <div class="section">
+            <h2 id="section9Title">9. Accès site & prérequis</h2>
+            <div class="field-row full" id="accesFieldRow"><label>Conditions d'accès / contraintes</label><textarea id="acces_site" placeholder="Ex : Accès libre, badge requis, RDV obligatoire avec le contact..."></textarea></div>
+            <div class="field-row full"><label>Solution validée par</label><input type="text" id="solution_validee_par" placeholder="Nom + téléphone du décideur côté client"></div>
+            <div class="field-row full"><label>Observations / Commentaires complémentaires</label><textarea id="observations"></textarea></div>
+            <div class="field-row"><label>Nom du signataire</label><input type="text" id="signataire_nom"></div>
+            <div class="field-row"><label>Date de signature</label><input type="date" id="signataire_date"></div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button type="button" class="btn-secondary" onclick="resetForm()">🔄 Réinitialiser</button>
+        <button type="button" class="btn-secondary" onclick="exportToJSON()">⬇ Export JSON</button>
+        <button type="button" class="btn-secondary" onclick="document.getElementById('importJsonInput').click()">⬆ Import JSON</button>
+        <input type="file" id="importJsonInput" accept=".json" style="display:none;" onchange="importFromJSON(this.files[0])">
+        <button type="button" class="btn-primary" onclick="generateReport()">📄 Générer le rapport Word</button>
+        <button type="button" id="sendToServerBtn" class="btn-success" onclick="sendToServer()" style="background:#16a34a; color:#fff;">📧 Envoyer au serveur</button>
+    </div>
+
+<div class="editor-overlay" id="editorOverlay">
+    <div class="editor-modal">
+        <div class="editor-header">
+            <h2>✏ Annoter la photo — <span id="editorTitle"></span></h2>
+            <button class="editor-close" onclick="closeEditor()">Fermer sans enregistrer</button>
+        </div>
+        <div class="editor-body">
+            <div class="editor-toolbar">
+                <div class="selection-panel tool-group" id="selectionPanel">
+                    <h3>✎ Élément sélectionné</h3>
+                    <div id="selPanelImage">
+                        <div class="flip-buttons">
+                            <button class="flip-btn" id="flipHBtn" title="Retourner horizontalement">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12h18"/><path d="M7 8l-4 4 4 4"/><path d="M17 8l4 4-4 4"/></svg> Miroir H
+                            </button>
+                            <button class="flip-btn" id="flipVBtn" title="Retourner verticalement">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v18"/><path d="M8 7l4-4 4 4"/><path d="M8 17l4 4 4-4"/></svg> Miroir V
+                            </button>
+                        </div>
+                        <div class="small-help">Cliquez à nouveau pour annuler le retournement.</div>
+                    </div>
+                    <div id="selPanelArrow">
+                        <div class="row">
+                            <label style="flex:1; font-size:0.78rem; color:#555;">Couleur
+                                <input type="color" id="selArrowColor" value="#FF0000" style="width:100%; padding:1px; height:28px; border:1px solid #ccc; border-radius:3px;">
+                            </label>
+                        </div>
+                        <div class="swatch-row sel-arrow-swatches" style="display:grid; grid-template-columns:repeat(6,1fr); gap:3px; margin-top:4px;">
+                            <div class="swatch sel-arrow-swatch" style="background:#FF0000" data-color="#FF0000"></div>
+                            <div class="swatch sel-arrow-swatch" style="background:#FFFFFF" data-color="#FFFFFF"></div>
+                            <div class="swatch sel-arrow-swatch" style="background:#FFFF00" data-color="#FFFF00"></div>
+                            <div class="swatch sel-arrow-swatch" style="background:#00B050" data-color="#00B050"></div>
+                            <div class="swatch sel-arrow-swatch" style="background:#0070C0" data-color="#0070C0"></div>
+                            <div class="swatch sel-arrow-swatch" style="background:#000000" data-color="#000000"></div>
+                        </div>
+                        <div class="row" style="margin-top:6px;">
+                            <label style="flex:1; font-size:0.78rem; color:#555;">Épaisseur
+                                <input type="number" id="selArrowThickness" min="2" max="40" value="6" style="width:100%; padding:4px; font-size:0.82rem; border:1px solid #ccc; border-radius:3px;">
+                            </label>
+                            <label style="flex:1; font-size:0.78rem; color:#555;">Taille pointe
+                                <input type="number" id="selArrowHeadSize" min="8" max="80" value="18" style="width:100%; padding:4px; font-size:0.82rem; border:1px solid #ccc; border-radius:3px;">
+                            </label>
+                        </div>
+                        <div class="small-help">Tirez les poignées d'extrémité pour allonger / orienter la flèche.</div>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <h3>Outils d'annotation</h3>
+                    <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche</button>
+                    <button class="tool-btn" id="toolAddCircle">⭕ Ajouter un cercle</button>
+                    <button class="tool-btn" id="toolAddText">🅰️ Ajouter du texte</button>
+                    <button class="tool-btn" id="toolAddMeasurePoint">📍 Ajouter un point de mesure</button>
+                </div>
+
+                <div class="tool-group">
+                    <h3>Texte</h3>
+                    <div class="text-controls">
+                        <input type="text" id="textInput" placeholder="Tapez votre texte…">
+                        <div class="row">
+                            <label style="flex:1;">Police
+                                <select id="textFont">
+                                    <option value="Arial Black, sans-serif">Arial Black</option>
+                                    <option value="Impact, sans-serif">Impact</option>
+                                    <option value="Georgia, serif">Georgia</option>
+                                    <option value="Arial, sans-serif">Arial</option>
+                                    <option value="Verdana, sans-serif">Verdana</option>
+                                </select>
+                            </label>
+                            <label style="width:65px;">Taille
+                                <input type="number" id="textSize" value="20" min="10" max="80">
+                            </label>
+                        </div>
+                        <div class="row">
+                            <label style="flex:1;">Couleur
+                                <input type="color" id="textColor" value="#FF0000">
+                            </label>
+                            <label style="flex:1;">Contour
+                                <input type="color" id="textStroke" value="#FFFFFF">
+                            </label>
+                        </div>
+                        <div class="row" style="gap:4px;">
+                            <label style="flex:1; display:flex; align-items:center; gap:4px; font-size:0.78rem;"><input type="checkbox" id="textBold" checked> Gras</label>
+                            <label style="flex:1; display:flex; align-items:center; gap:4px; font-size:0.78rem;"><input type="checkbox" id="textShadow" checked> Ombre</label>
+                        </div>
+                        <div class="swatch-row">
+                            <div class="swatch" style="background:#FF0000" data-color="#FF0000"></div>
+                            <div class="swatch" style="background:#FFFFFF" data-color="#FFFFFF"></div>
+                            <div class="swatch" style="background:#FFFF00" data-color="#FFFF00"></div>
+                            <div class="swatch" style="background:#00B050" data-color="#00B050"></div>
+                            <div class="swatch" style="background:#0070C0" data-color="#0070C0"></div>
+                            <div class="swatch" style="background:#000000" data-color="#000000"></div>
+                        </div>
+                        <div class="style-preview" id="textPreview">Aperçu</div>
+                        <button class="tool-btn" id="btnAddText" style="background:#2e75b6; color:white; border-color:#1f4e79; justify-content:center; margin-top:6px;">➕ Ajouter le texte</button>
+                    </div>
+                </div>
+
+                <div class="tool-group">
+                    <h3>Conseils</h3>
+                    <p style="font-size:0.78rem; color:#555; margin:4px 0;">
+                        • Glissez un élément pour le déplacer.<br>
+                        • Coin bleu (bas-droite) : redimensionner.<br>
+                        • Pastille orange (en haut) : pivoter.<br>
+                        • Pastille rouge : supprimer.<br>
+                        • Touche <b>Suppr</b> : supprime aussi.
+                    </p>
+                </div>
+            </div>
+            <div class="editor-canvas-wrap" id="editorCanvasWrap">
+                <div class="editor-stage" id="editorStage">
+                    <img class="bg-photo" id="editorBgPhoto" alt="Photo de fond">
+                </div>
+            </div>
+        </div>
+        <div class="editor-footer">
+            <span class="hint">💡 Astuce : double-cliquez sur un texte pour le modifier.</span>
+            <div>
+                <button class="btn-secondary" onclick="closeEditor()" style="padding:8px 16px;">Annuler</button>
+                <button class="btn-primary" onclick="saveAnnotation()" style="padding:8px 16px;">✅ Enregistrer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <script src="logos.js"></script>
+    <script src="assets.js"></script>
+    <script src="data.js"></script>
+    <script src="editor.js"></script>
+    <script src="app.js"></script>
+
+    <!-- =========================================================
+         HOOKS FIREBASE
+         - On expose 2 fonctions au script partagé (auth-upload.js) :
+           __GET_DOCX_BLOB() et __GET_JSON_BLOB()
+         - app.js n'est PAS modifié : on réutilise ses fonctions
+           internes via window pour produire les Blobs.
+         ========================================================= -->
+    <script>
+        // Dossier courant (utilisé pour les métadonnées Firestore)
+        window.__DOSSIER = "pico-quatra";
+
+        // Génère le Word EN MÉMOIRE (Blob) sans déclencher de téléchargement.
+        // Pour cela, on remplace temporairement saveAs() par un capteur.
+        window.__GET_DOCX_BLOB = async function () {
+            return await captureSaveAs(() => window.generateReport());
+        };
+
+        // Idem pour le JSON.
+        window.__GET_JSON_BLOB = async function () {
+            return await captureSaveAs(() => window.exportToJSON());
+        };
+
+        // Utilitaire : exécute fn() qui appelle saveAs(blob, name) en interne,
+        // et renvoie le Blob sans déclencher le téléchargement.
+        function captureSaveAs(fn) {
+            return new Promise((resolve, reject) => {
+                const originalSaveAs = window.saveAs;
+                let captured = null;
+                window.saveAs = function (blob /*, name */) {
+                    captured = blob;
+                };
+                Promise.resolve()
+                    .then(fn)
+                    .then(() => {
+                        window.saveAs = originalSaveAs;
+                        if (!captured) reject(new Error("Aucun fichier généré."));
+                        else resolve(captured);
+                    })
+                    .catch(err => {
+                        window.saveAs = originalSaveAs;
+                        reject(err);
+                    });
+            });
+        }
+    </script>
+
+    <!-- Script PARTAGÉ : login / logout / sendToServer -->
+    <script type="module" src="../auth-upload.js"></script>
+</body>
+</html>
