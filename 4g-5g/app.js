@@ -505,15 +505,15 @@ function addMeasurePoint(tech) {
         <div class="mp-measures">
             <div class="mp-measure-cell">
                 <label>RSRP <span class="unit">(dBm)</span></label>
-                <input type="number" step="0.1" class="measure-rsrp" placeholder="ex: -82">
+                <input type="text" inputmode="text" class="measure-rsrp" placeholder="ex: -82">
             </div>
             <div class="mp-measure-cell">
                 <label>RSRQ <span class="unit">(dB)</span></label>
-                <input type="number" step="0.1" class="measure-rsrq" placeholder="ex: -10">
+                <input type="text" inputmode="text" class="measure-rsrq" placeholder="ex: -10">
             </div>
             <div class="mp-measure-cell">
                 <label>SNR / SINR <span class="unit">(dB)</span></label>
-                <input type="number" step="0.1" class="measure-sinr" placeholder="ex: 18">
+                <input type="text" inputmode="text" class="measure-sinr" placeholder="ex: 18">
             </div>
             <div class="mp-measure-cell">
                 <label>↓ Débit desc. <span class="unit">(Mbps)</span></label>
