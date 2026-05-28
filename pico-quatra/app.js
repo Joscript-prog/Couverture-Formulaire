@@ -266,8 +266,8 @@ function addMeasureRow() {
     tr.dataset.measureId = id;
     tr.innerHTML = `
         <td><input type="text" id="${id}_zone" placeholder="Foyer, Bureau..."></td>
-        <td><input type="text" id="${id}_rsrp" inputmode="numeric" placeholder="-110"></td>
-        <td><input type="text" id="${id}_snr" inputmode="numeric" placeholder="8"></td>
+        <td><input type="text" id="${id}_rsrp" inputmode="text" placeholder="-110"></td>
+        <td><input type="text" id="${id}_snr" inputmode="text" placeholder="8"></td>
         <td><input type="text" id="${id}_rsrq" placeholder="-8"></td>
         <td><input type="text" id="${id}_band" placeholder="20"></td>
         <td><input type="text" id="${id}_5g" placeholder="-112/-10/28"></td>
