@@ -7,14 +7,21 @@
 
 import {
     supabase, BUCKET_NAME, TABLE_NAME,
-    MOT_DE_PASSE_ADMIN,
     STORAGE_WARNING_BYTES, STORAGE_LIMIT_BYTES
 } from "./supabaseConfig.js";
 
 // =================================================================
+//  COMPTE ADMIN (Supabase Auth)
+//  Cet email doit correspondre EXACTEMENT au compte créé dans
+//  Supabase → Authentication → Users.
+//  L'email n'est pas un secret ; le mot de passe, lui, est géré
+//  par Supabase et n'apparaît JAMAIS dans le code.
+// =================================================================
+const ADMIN_EMAIL = "thanajo008@gmail.com";
+
+// =================================================================
 //  ÉTAT GLOBAL
 // =================================================================
-const SESSION_KEY = "techcouv_admin_logged_in";
 let rapports         = [];
 let filteredRapports = [];
 
@@ -44,14 +51,8 @@ function clearLoginError() {
 // =================================================================
 //  AU CHARGEMENT
 // =================================================================
-document.addEventListener("DOMContentLoaded", () => {
-    // Vérifier si l'admin est déjà connecté (sessionStorage)
-    if (sessionStorage.getItem(SESSION_KEY) === "yes") {
-        enterDashboard();
-        return;
-    }
-
-    // Brancher le bouton login
+document.addEventListener("DOMContentLoaded", async () => {
+    // Brancher le bouton login (toujours)
     $("adminLoginBtn").addEventListener("click", onLoginClick);
 
     // Soumission par "Entrée" sur le champ mot de passe
@@ -62,6 +63,14 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // Vérifier si une session Supabase Auth est déjà active
+    // (l'admin reste connecté entre les rechargements de page)
+    const { data } = await supabase.auth.getSession();
+    if (data && data.session) {
+        enterDashboard();
+        return;
+    }
+
     // Auto-focus sur le champ mot de passe
     setTimeout(() => $("adminPassword").focus(), 100);
 });
@@ -69,7 +78,7 @@ document.addEventListener("DOMContentLoaded", () => {
 // =================================================================
 //  CONNEXION
 // =================================================================
-function onLoginClick() {
+async function onLoginClick() {
     clearLoginError();
     const pwd = $("adminPassword").value || "";
 
@@ -78,21 +87,33 @@ function onLoginClick() {
         return;
     }
 
-    if (pwd !== MOT_DE_PASSE_ADMIN) {
+    const btn = $("adminLoginBtn");
+    const oldLabel = btn ? btn.textContent : "";
+    if (btn) { btn.disabled = true; btn.textContent = "Connexion..."; }
+
+    // Authentification RÉELLE via Supabase Auth.
+    // L'admin obtient le rôle "authenticated" → ses requêtes peuvent
+    // lire et supprimer les rapports (cf. policies SQL).
+    const { error } = await supabase.auth.signInWithPassword({
+        email: ADMIN_EMAIL,
+        password: pwd
+    });
+
+    if (btn) { btn.disabled = false; btn.textContent = oldLabel; }
+
+    if (error) {
         showLoginError("Mot de passe incorrect.");
-        // On efface le champ pour réessayer
         $("adminPassword").value = "";
         $("adminPassword").focus();
         return;
     }
 
-    sessionStorage.setItem(SESSION_KEY, "yes");
     enterDashboard();
 }
 
-function onLogoutClick() {
+async function onLogoutClick() {
     if (!confirm("Voulez-vous vous déconnecter ?")) return;
-    sessionStorage.removeItem(SESSION_KEY);
+    await supabase.auth.signOut();
     location.reload();
 }
 
