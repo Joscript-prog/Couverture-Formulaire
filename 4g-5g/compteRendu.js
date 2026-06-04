@@ -244,9 +244,12 @@
             html += `<div class="cr-category" data-cat="${cat.cat}">`;
             html += `<h4><span class="cr-cat-icon">${cat.icon}</span>${cat.cat}</h4>`;
 
+            // MOD 4 : items disposés en grille (colonnes) plutôt qu'en pile verticale
+            html += `<div class="cr-items-grid">`;
             cat.items.forEach(it => {
                 html += renderItem(it);
             });
+            html += `</div>`;
             html += `</div>`;
         });
 
