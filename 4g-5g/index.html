@@ -1216,6 +1216,29 @@
             flex-wrap: wrap;
             margin-top: 6px;
         }
+        /* --- MOD 2 : retour visuel de la lecture automatique (OCR) --- */
+        .mp-photo-hint {
+            font-weight: 400;
+            color: #6b7c8f;
+            font-size: 0.78rem;
+        }
+        .ocr-status {
+            margin-top: 6px;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+        .ocr-status[data-state="working"] { color: #2e75b6; }
+        .ocr-status[data-state="ok"]      { color: #166534; }
+        .ocr-status[data-state="warn"]    { color: #8a6d1f; }
+        /* Surlignage temporaire d'un champ pré-rempli par l'OCR */
+        @keyframes ocrFlash {
+            0%   { background: #fff7cc; }
+            100% { background: #ffffff; }
+        }
+        .ocr-filled {
+            animation: ocrFlash 2.5s ease-out;
+            border-color: #e0b400 !important;
+        }
         .clear-btn {
             background: #dc3545;
             color: white;
@@ -1558,6 +1581,62 @@
             display: block;
         }
 
+        /* --- MOD 1 : carte d'un NIVEAU / ÉTAGE (contient bloc 4G + bloc 5G) --- */
+        .measure-level-card {
+            border: 1px solid #c7d6e6;
+            border-radius: 10px;
+            padding: 14px 16px 18px;
+            margin-top: 18px;
+            background: #f5f9fd;
+            position: relative;
+        }
+        .measure-level-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-bottom: 6px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #d0dae5;
+        }
+        .measure-level-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 0;
+        }
+        .measure-level-icon { font-size: 1.2rem; }
+        .measure-level-title-input {
+            flex: 1;
+            min-width: 0;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #1f4e79;
+            padding: 8px 10px;
+            border: 1px solid #c7d6e6;
+            border-radius: 6px;
+            background: #fff;
+        }
+        .measure-level-remove-btn {
+            background: transparent;
+            border: 1px solid #f5b1b1;
+            color: #c53030;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            min-height: 36px;
+            white-space: nowrap;
+            touch-action: manipulation;
+        }
+        .measure-level-remove-btn:hover { background: #ffe5e5; }
+        @media (max-width: 700px) {
+            .measure-level-header { flex-wrap: wrap; }
+            .measure-level-remove-btn { width: 100%; }
+        }
+
         /* --- Plan d'évacuation : label CENTRÉ près du cercle --- */
         .evac-pin {
             position: absolute;
@@ -1782,6 +1861,28 @@
         }
         .cr-category > h4 .cr-cat-icon {
             font-size: 1.1rem;
+        }
+        /* --- MOD 4 : liste des travaux disposée en colonnes pour réduire le scroll ---
+           Les items NON cochés (compacts : case + libellé) sont répartis dans une
+           grille auto-remplie. Dès qu'un item est coché, ses options (métrage,
+           int/ext, état, hauteur...) apparaissent : il reprend alors toute la
+           largeur (grid-column: 1/-1) pour rester lisible. Aucune logique JS
+           modifiée — c'est purement visuel. */
+        .cr-items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 8px;
+            align-items: start;
+        }
+        .cr-items-grid .cr-item {
+            margin-bottom: 0; /* le gap de la grille gère l'espacement */
+        }
+        .cr-items-grid .cr-item.checked {
+            grid-column: 1 / -1; /* item ouvert = pleine largeur */
+        }
+        .cr-items-grid .cr-subcategory {
+            grid-column: 1 / -1; /* une sous-catégorie occupe une ligne entière */
+            margin-top: 4px;
         }
         .cr-subcategory {
             margin: 10px 0 6px 0;
@@ -2194,439 +2295,4 @@
             <div class="field-row audit-only">
                 <label>Présence d'une prise RJ45 à l'emplacement optimal</label>
                 <div class="checkbox-group">
-                    <label><input type="radio" name="rj45" value="Oui"> Oui</label>
-                    <label><input type="radio" name="rj45" value="Non"> Non</label>
-                </div>
-            </div>
-            <div class="field-row">
-                <label>Si non, devis desserte à prévoir</label>
-                <div class="checkbox-group">
-                    <label><input type="radio" name="devis_desserte" value="Oui"> Oui</label>
-                    <label><input type="radio" name="devis_desserte" value="Non"> Non</label>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== SECTION 3 - MESURES RADIO ===== -->
-        <div class="section">
-            <h2>3. Mesures radio 4G/5G</h2>
-            <div class="info-box audit-only">
-                Les tests sont réalisés avec l'application <b>Network Cell Info Lite</b>.<br>
-                Réaliser <b>3 points de mesures en 4G</b> et <b>3 points de mesures en 5G</b> :<br>
-                • Emplacement souhaité par le client<br>
-                • Emplacement préconisé par le technicien<br>
-                • À l'extérieur du bâtiment
-            </div>
-            <div class="info-box travaux-only">
-                Les tests sont réalisés avec l'application <b>Network Cell Info Lite</b>.<br>
-                Effectuer <b>une mesure 4G</b> et <b>une mesure 5G</b> après installation, à l'emplacement définitif du routeur.
-            </div>
-
-            <!-- Matrice d'interprétation officielle -->
-            <div class="matrix-title">Matrice d'interprétation des résultats</div>
-            <p class="matrix-caption">Grille de lecture officielle appliquée automatiquement dans le rapport.</p>
-            <div class="quality-matrix-wrapper">
-            <table class="quality-matrix">
-                <thead>
-                    <tr>
-                        <th style="text-align:left; padding-left:14px;">RSRP <span style="color:#9ca3af; font-weight:400;">(Puissance)</span></th>
-                        <th>SNR &gt; 15</th>
-                        <th>SNR 5 à 15</th>
-                        <th>SNR 0 à 5</th>
-                        <th>SNR &lt; 0</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <th>≥ −85 dBm <em>(Excellent)</em></th>
-                        <td><span class="q-pill q-green">Optimal</span></td>
-                        <td><span class="q-pill q-green">Très bon</span></td>
-                        <td><span class="q-pill q-orange">Correct</span></td>
-                        <td><span class="q-pill q-gray">Dégradé</span></td>
-                    </tr>
-                    <tr>
-                        <th>−85 à −100 dBm <em>(Bon)</em></th>
-                        <td><span class="q-pill q-green">Très bon</span></td>
-                        <td><span class="q-pill q-green">Bon</span></td>
-                        <td><span class="q-pill q-orange">Acceptable</span></td>
-                        <td><span class="q-pill q-gray">Problématique</span></td>
-                    </tr>
-                    <tr>
-                        <th>−100 à −115 dBm <em>(Faible)</em></th>
-                        <td><span class="q-pill q-green">Bon</span></td>
-                        <td><span class="q-pill q-orange">Acceptable</span></td>
-                        <td><span class="q-pill q-gray">Limite</span></td>
-                        <td><span class="q-pill q-red">Très dégradé</span></td>
-                    </tr>
-                    <tr>
-                        <th>&lt; −115 dBm <em>(Critique)</em></th>
-                        <td><span class="q-pill q-gray">Utilisable</span></td>
-                        <td><span class="q-pill q-gray">Limite</span></td>
-                        <td><span class="q-pill q-red">Critique</span></td>
-                        <td><span class="q-pill q-red">Inutilisable</span></td>
-                    </tr>
-                </tbody>
-            </table>
-            </div>
-
-            <!-- ========== 4G ========== -->
-            <div class="tech-block" data-tech="4g">
-                <div class="tech-header">
-                    <h3 class="tech-title">📡 Mesures 4G</h3>
-                </div>
-                <div id="measurePointsContainer4G" class="measure-points-container"></div>
-                <button class="btn-secondary add-mp-btn audit-only" id="addMeasurePointBtn4G" style="margin-top:10px;">
-                    ➕ Ajouter un point de mesure 4G
-                </button>
-            </div>
-
-            <!-- ========== 5G ========== -->
-            <div class="tech-block" data-tech="5g" style="margin-top:24px;">
-                <div class="tech-header">
-                    <h3 class="tech-title">🛰️ Mesures 5G</h3>
-                </div>
-                <div id="measurePointsContainer5G" class="measure-points-container"></div>
-                <button class="btn-secondary add-mp-btn audit-only" id="addMeasurePointBtn5G" style="margin-top:10px;">
-                    ➕ Ajouter un point de mesure 5G
-                </button>
-            </div>
-
-            <!-- ========== PHOTO INSTALLATION ROUTEUR (mode TRAVAUX uniquement) ========== -->
-            <div class="tech-block travaux-only" data-tech="4g" style="margin-top:24px;">
-                <div class="tech-header">
-                    <h3 class="tech-title">📷 Photo de l'installation du routeur 4G</h3>
-                </div>
-                <p style="margin:6px 0 12px; color:#555; font-size:0.92rem;">
-                    Importez une photo montrant l'installation physique du routeur. La photo est annotable (flèches, cercles, texte) pour mettre en avant les points importants.
-                </p>
-                <div class="mp-photo-block" style="max-width:520px;">
-                    <input type="file" accept="image/*" id="routeurPhotoInput">
-                    <img id="preview_routeur_install" class="photo-preview">
-                    <div class="mp-photo-actions">
-                        <button class="annotate-btn" data-annotate="routeur_install" disabled>✏ Annoter</button>
-                        <button class="clear-btn" data-clear="routeur_install">🗑 Effacer</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ===== SECTION 4 - PLAN(S) D'ÉVACUATION INTERACTIF(S) ===== -->
-        <div class="section">
-            <h2>4. Plan(s) d'évacuation</h2>
-            <div class="info-box audit-only">
-                Importez une ou plusieurs photos du plan d'évacuation (utile pour les sites à plusieurs étages : un plan par niveau). Pour chaque plan importé, choisissez dans la liste les points de mesure (issus de la section 3) à placer dessus. Les points sont automatiquement colorés selon la qualité radio globale.<br>
-                <b>💡 Un même point ne peut être placé que sur un seul plan</b> (s'il est placé sur le plan d'un étage, il devient grisé sur tous les autres plans).
-            </div>
-            <div class="info-box travaux-only">
-                Importez une ou plusieurs photos du plan d'évacuation (utile pour les sites à plusieurs étages). Pour chaque plan, annotez le <b>cheminement complet entre l'antenne et le routeur</b> : passage de câble, percements, traversées, direction de cheminement, etc.<br>
-                Placez les repères <b>Antenne</b> et <b>Routeur</b>, ainsi que les mesures <b>4G</b> et <b>5G</b> réalisées après installation, sur le plan adéquat. Utilisez l'outil d'annotation pour tracer flèches, cercles, textes et dessins libres.
-            </div>
-
-            <!-- Cas particulier : site sans plan d'évacuation -->
-            <div class="no-evac-wrap" style="margin: 8px 0 14px 0; padding: 10px 12px; background: #fff8e1; border: 1px solid #ffe0a3; border-radius: 6px;">
-                <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer; font-weight:500;">
-                    <input type="checkbox" id="noEvacPlan" style="margin-top:3px; flex-shrink:0;">
-                    <span>
-                        ☐ <strong>Aucun plan d'évacuation disponible sur le site</strong><br>
-                        <span style="font-weight:400; font-size:0.9em; color:#666;">
-                            Cochez cette case si le site ne dispose pas de plan d'évacuation. Dans ce cas, la génération du rapport ne nécessitera pas le positionnement des points sur un plan, mais les 12 photos (6 lieux + 6 écrans) restent obligatoires.
-                        </span>
-                    </span>
-                </label>
-                <textarea id="noEvacPlanComment" placeholder="Optionnel : précisez la raison (ex : plan non affiché, site en cours de construction...)" style="margin-top:8px; width:100%; min-height:50px; padding:6px; display:none;"></textarea>
-            </div>
-
-            <!-- Conteneur des plans d'évacuation (généré dynamiquement par app.js) -->
-            <div id="evacPlansContainer"></div>
-
-            <!-- Bouton pour ajouter un plan d'évacuation supplémentaire (étage suivant, autre bâtiment, etc.) -->
-            <button type="button" class="btn-secondary" id="addEvacPlanBtn" style="margin-top:14px;">
-                ➕ Ajouter un plan d'évacuation (étage / niveau supplémentaire)
-            </button>
-        </div>
-
-        <!-- Popup info plan d'évacuation -->
-        <div id="evacPopup" class="evac-popup-overlay">
-            <div class="evac-popup-modal">
-                <div class="evac-popup-icon">⚠️</div>
-                <p class="evac-popup-text" id="evacPopupText">Vous n'avez plus de points de mesure disponibles à ajouter.</p>
-                <button class="btn-primary" onclick="closeEvacPopup()">OK</button>
-            </div>
-        </div>
-
-        <!-- ===== SECTION 5 - CHEMINEMENT / INSTALLATION ===== -->
-      <div class="section">
-    <h2>5. Cheminement câble / Installation</h2>
-    <div class="info-box">
-        Ajoutez des photos du cheminement, de l'installation et des points de pénétration. Utilisez l'éditeur pour annoter (flèches, cercles, texte).
-    </div>
-    <div id="cheminementContainer">
-        <!-- Les cheminements sont ajoutés dynamiquement par app.js -->
-    </div>
-    <button class="btn-secondary" id="addCheminementBtn">➕ Ajouter une photo de cheminement</button>
-</div>
-        <!-- ===== SECTION 6 - SYNTHÈSE ===== -->
-        <div class="section">
-            <h2>6. Synthèse de l'intervention</h2>
-            <div class="field-row">
-                <label>Heure de début d'intervention</label>
-                <input type="time" id="heure_debut">
-            </div>
-            <div class="field-row">
-                <label>Heure de fin d'intervention</label>
-                <input type="time" id="heure_fin">
-            </div>
-            <div class="field-row">
-                <label class="audit-only">Durée totale à prévoir</label>
-                <label class="travaux-only">Durée des travaux réalisés</label>
-                <input type="text" id="duree_totale" placeholder="ex: 4h30">
-            </div>
-            <div class="field-row">
-                <label>Nombre de techniciens</label>
-                <input type="number" id="nb_techniciens" min="1" max="10">
-            </div>
-            <div class="field-row">
-                <label class="audit-only">Nacelle à prévoir</label>
-                <label class="travaux-only">Nacelle utilisée ?</label>
-                <div class="checkbox-group">
-                    <label><input type="radio" name="nacelle_prevoir" value="Oui"> Oui</label>
-                    <label><input type="radio" name="nacelle_prevoir" value="Non"> Non</label>
-                </div>
-            </div>
-            <div class="field-row">
-                <label class="audit-only">Besoin d'une échelle</label>
-                <label class="travaux-only">Échelle / échafaudage ?</label>
-                <div class="checkbox-group">
-                    <label><input type="radio" name="echelle_prevoir" value="Oui"> Oui</label>
-                    <label><input type="radio" name="echelle_prevoir" value="Non"> Non</label>
-                </div>
-            </div>
-            <div class="field-row full">
-                <label style="font-size:1rem; color:#1f4e79; margin-bottom:8px;">📝 Compte rendu principal</label>
-                <div class="cr-info-banner">
-                    Cochez les éléments concernés. Pour les équipements pouvant déjà exister sur site, choisissez <b>« Déjà présent »</b> ou <b>« À installer »</b>. Le compte rendu rédigé en bas se met à jour automatiquement et reste éditable avant export.
-                </div>
-                <div id="compteRenduCheckboxes"></div>
-
-                <div class="cr-preview-header">
-                    <h3>📄 Compte rendu rédigé (modifiable)</h3>
-                    <button type="button" class="cr-regen-btn" onclick="regenererCompteRendu()">🔄 Régénérer depuis les cases</button>
-                </div>
-                <textarea id="compteRenduPreview" placeholder="Cochez les éléments ci-dessus pour générer automatiquement le compte rendu..."></textarea>
-            </div>
-
-            <div class="field-row full">
-                <label>Observations / Commentaires complémentaires</label>
-                <textarea id="observations" style="min-height: 90px;" placeholder="Remarques libres, contraintes spécifiques, demandes du client..."></textarea>
-            </div>
-            <div class="field-row">
-                <label>Nom du signataire</label>
-                <input type="text" id="signataire_nom">
-            </div>
-            <div class="field-row">
-                <label>Date de signature</label>
-                <input type="date" id="signataire_date">
-            </div>
-        </div>
-
-        <div id="status" class="status"></div>
-    </div>
-
-    <!-- Bandeau d'avertissement validation (mis à jour en temps réel) -->
-    <div id="validationBanner" style="max-width: 1200px; margin: 0 auto 10px auto; padding: 12px 16px; border-radius: 6px; display: none;"></div>
-
-    <div class="actions">
-        <button class="btn-secondary" onclick="resetForm()">🔄 Réinitialiser</button>
-        <button class="btn-secondary" id="btnExportJSON" onclick="exportJSON()">⬇ Export JSON</button>
-        <button class="btn-secondary" onclick="document.getElementById('importJSONInput').click()">⬆ Import JSON</button>
-        <input type="file" id="importJSONInput" accept=".json" style="display:none" onchange="importJSON(event)">
-        <button class="btn-primary" id="btnGenerateWord" onclick="generateDocument()">📄 Générer le rapport Word</button>
-        <button class="btn-primary" id="btnGeneratePDF" onclick="generatePDFReport()" style="background:#b91c1c;">📄 Générer le rapport PDF</button>
-        <button type="button" id="sendToServerBtn" class="btn-success" onclick="sendToServer()" style="background:#16a34a; color:#fff;">📧 Envoyer au serveur</button>
-    </div>
-
-    <!-- ===== ÉDITEUR D'ANNOTATION ===== -->
-    <div class="editor-overlay" id="editorOverlay">
-        <div class="editor-modal">
-            <div class="editor-header">
-                <h2>✏ Annoter la photo — <span id="editorTitle"></span></h2>
-                <button class="editor-close" onclick="closeEditor()">Fermer sans enregistrer</button>
-            </div>
-            <div class="editor-body">
-                <div class="editor-toolbar">
-                    <div class="selection-panel tool-group" id="selectionPanel">
-                        <h3>✎ Élément sélectionné</h3>
-                        <div id="selPanelImage">
-                            <div class="flip-buttons">
-                                <button class="flip-btn" id="flipHBtn" title="Retourner horizontalement">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"/><path d="M7 8l-4 4 4 4"/><path d="M17 8l4 4-4 4"/></svg> Miroir H
-                                </button>
-                                <button class="flip-btn" id="flipVBtn" title="Retourner verticalement">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M8 7l4-4 4 4"/><path d="M8 17l4 4 4-4"/></svg> Miroir V
-                                </button>
-                            </div>
-                            <div class="small-help">Cliquez à nouveau pour annuler le retournement.</div>
-                        </div>
-                        <div id="selPanelArrow">
-                            <div class="row" style="display:flex; gap:6px; align-items:center;">
-                                <label style="flex:1; font-size:0.78rem; color:#555;">Couleur
-                                    <input type="color" id="selArrowColor" value="#FF0000" style="width:100%; padding:1px; height:28px; border:1px solid #ccc; border-radius:3px;">
-                                </label>
-                            </div>
-                            <div class="swatch-row sel-arrow-swatches" style="display:grid; grid-template-columns:repeat(6,1fr); gap:3px; margin-top:4px;">
-                                <div class="swatch sel-arrow-swatch" style="background:#FF0000" data-color="#FF0000"></div>
-                                <div class="swatch sel-arrow-swatch" style="background:#FFFFFF" data-color="#FFFFFF"></div>
-                                <div class="swatch sel-arrow-swatch" style="background:#FFFF00" data-color="#FFFF00"></div>
-                                <div class="swatch sel-arrow-swatch" style="background:#00B050" data-color="#00B050"></div>
-                                <div class="swatch sel-arrow-swatch" style="background:#0070C0" data-color="#0070C0"></div>
-                                <div class="swatch sel-arrow-swatch" style="background:#000000" data-color="#000000"></div>
-                            </div>
-                            <div class="row" style="display:flex; gap:6px; align-items:center; margin-top:6px;">
-                                <label style="flex:1; font-size:0.78rem; color:#555;">Épaisseur
-                                    <input type="number" id="selArrowThickness" min="2" max="40" value="6" style="width:100%; padding:4px; font-size:0.82rem; border:1px solid #ccc; border-radius:3px;">
-                                </label>
-                                <label style="flex:1; font-size:0.78rem; color:#555;">Taille pointe
-                                    <input type="number" id="selArrowHeadSize" min="8" max="80" value="18" style="width:100%; padding:4px; font-size:0.82rem; border:1px solid #ccc; border-radius:3px;">
-                                </label>
-                            </div>
-                            <div class="small-help">Tirez les poignées d'extrémité pour allonger / orienter la flèche.</div>
-                        </div>
-                    </div>
-
-                    <div class="tool-group">
-                        <h3>Outils d'annotation</h3>
-                        <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche</button>
-                        <button class="tool-btn" id="toolAddCircle">⭕ Ajouter un cercle</button>
-                        <button class="tool-btn" id="toolAddText">🅰️ Ajouter du texte</button>
-                        <button class="tool-btn" id="toolAddMeasurePoint">📍 Ajouter un point de mesure</button>
-                    </div>
-
-                    <div class="tool-group">
-                        <h3>Texte</h3>
-                        <div class="text-controls">
-                            <input type="text" id="textInput" placeholder="Tapez votre texte…">
-                            <div class="row">
-                                <label style="flex:1;">Police
-                                    <select id="textFont">
-                                        <option value="Arial Black, sans-serif">Arial Black</option>
-                                        <option value="Impact, sans-serif">Impact</option>
-                                        <option value="Georgia, serif">Georgia</option>
-                                        <option value="Arial, sans-serif">Arial</option>
-                                        <option value="Verdana, sans-serif">Verdana</option>
-                                    </select>
-                                </label>
-                                <label style="width:65px;">Taille
-                                    <input type="number" id="textSize" value="20" min="10" max="80">
-                                </label>
-                            </div>
-                            <div class="row">
-                                <label style="flex:1;">Couleur
-                                    <input type="color" id="textColor" value="#FF0000">
-                                </label>
-                                <label style="flex:1;">Contour
-                                    <input type="color" id="textStroke" value="#FFFFFF">
-                                </label>
-                            </div>
-                            <div class="row" style="gap:4px;">
-                                <label style="flex:1; display:flex; align-items:center; gap:4px; font-size:0.78rem;"><input type="checkbox" id="textBold" checked> Gras</label>
-                                <label style="flex:1; display:flex; align-items:center; gap:4px; font-size:0.78rem;"><input type="checkbox" id="textShadow" checked> Ombre</label>
-                            </div>
-                            <div class="swatch-row">
-                                <div class="swatch" style="background:#FF0000" data-color="#FF0000"></div>
-                                <div class="swatch" style="background:#FFFFFF" data-color="#FFFFFF"></div>
-                                <div class="swatch" style="background:#FFFF00" data-color="#FFFF00"></div>
-                                <div class="swatch" style="background:#00B050" data-color="#00B050"></div>
-                                <div class="swatch" style="background:#0070C0" data-color="#0070C0"></div>
-                                <div class="swatch" style="background:#000000" data-color="#000000"></div>
-                            </div>
-                            <div class="style-preview" id="textPreview">Aperçu</div>
-                            <button class="tool-btn" id="btnAddText" style="background:#2e75b6; color:white; border-color:#1f4e79; justify-content:center; margin-top:6px;">➕ Ajouter le texte</button>
-                        </div>
-                    </div>
-
-                    <div class="tool-group">
-                        <h3>Conseils</h3>
-                        <p style="font-size:0.78rem; color:#555; margin:4px 0;">
-                            • Glissez un élément pour le déplacer.<br>
-                            • Coin bleu (bas-droite) : redimensionner.<br>
-                            • Pastille orange (en haut) : pivoter.<br>
-                            • Pastille rouge : supprimer.<br>
-                            • Touche <b>Suppr</b> : supprime aussi.
-                        </p>
-                    </div>
-                </div>
-                <div class="editor-canvas-wrap" id="editorCanvasWrap">
-                    <div class="editor-stage" id="editorStage">
-                        <img class="bg-photo" id="editorBgPhoto" alt="Photo de fond">
-                    </div>
-                </div>
-            </div>
-            <div class="editor-footer">
-                <span class="hint">💡 Astuce : double-cliquez sur un texte pour le modifier.</span>
-                <div>
-                    <button class="btn-secondary" onclick="closeEditor()" style="padding:8px 16px;">Annuler</button>
-                    <button class="btn-primary" onclick="saveAnnotation()" style="padding:8px 16px;">✅ Enregistrer</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="logos.js"></script>
-<script src="assets.js"></script> 
-<script src="editor.js"></script>
-<script src="compteRendu.js"></script>
-<script src="app.js"></script>
-<script src="pdfReport.js"></script>
-
-    <!-- =========================================================
-         HOOKS FIREBASE
-         - Expose __GET_DOCX_BLOB et __GET_JSON_BLOB au script
-           partagé (auth-upload.js).
-         - app.js n'est PAS modifié : on réutilise generateDocument()
-           et exportJSON() en interceptant saveAs().
-         ========================================================= -->
-    <script>
-        // Dossier courant (utilisé pour les métadonnées Firestore)
-        window.__DOSSIER = "4g-5g";
-
-        // Génère le Word EN MÉMOIRE sans déclencher de téléchargement.
-        window.__GET_DOCX_BLOB = async function () {
-            return await captureSaveAs(() => window.generateDocument());
-        };
-
-        // Génère le JSON EN MÉMOIRE sans téléchargement.
-        window.__GET_JSON_BLOB = async function () {
-            return await captureSaveAs(() => window.exportJSON());
-        };
-
-        // Utilitaire : exécute fn() qui appelle saveAs(blob, name) en interne,
-        // et renvoie le Blob sans déclencher le téléchargement.
-        function captureSaveAs(fn) {
-            return new Promise((resolve, reject) => {
-                const originalSaveAs = window.saveAs;
-                let captured = null;
-                window.saveAs = function (blob /*, name */) {
-                    captured = blob;
-                };
-                // On bloque aussi alert() pour ne pas perturber l'envoi
-                // (le 4G/5G affiche un alert si validation échoue → on relaiera).
-                Promise.resolve()
-                    .then(fn)
-                    .then(() => {
-                        window.saveAs = originalSaveAs;
-                        if (!captured) reject(new Error("Aucun fichier généré (validation incomplète ?)."));
-                        else resolve(captured);
-                    })
-                    .catch(err => {
-                        window.saveAs = originalSaveAs;
-                        reject(err);
-                    });
-            });
-        }
-    </script>
-
-    <!-- Script PARTAGÉ : login / logout / sendToServer -->
-    <script type="module" src="../auth-upload.js"></script>
-
-</body>
-</html>
+            
