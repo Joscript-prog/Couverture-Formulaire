@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Portail des outils d'audit et de travaux IPKONEKT — Bouygues Telecom / Bretagne Telecom">
+    <title>Portail Audits & Travaux — IPKONEKT</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        html {
+            -webkit-text-size-adjust: 100%;
+            text-size-adjust: 100%;
+        }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+            color: #222;
+            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            display: flex;
+            flex-direction: column;
+            -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
+        }
+
+        header {
+            color: #fff;
+            padding: 36px 24px 8px;
+            text-align: center;
+        }
+        header h1 {
+            margin: 0 0 10px;
+            font-size: 1.7rem;
+            letter-spacing: 0.3px;
+        }
+        header .subtitle {
+            margin: 0;
+            font-size: 1rem;
+            opacity: 0.92;
+        }
+
+        .intro {
+            color: #fff;
+            text-align: center;
+            padding: 18px 28px 8px;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+        .intro p {
+            margin: 0;
+            font-size: 0.95rem;
+            line-height: 1.55;
+            opacity: 0.93;
+        }
+        .badges {
+            display: inline-flex;
+            gap: 10px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .badge {
+            background: rgba(255,255,255,0.18);
+            color: #fff;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.3);
+            letter-spacing: 0.3px;
+        }
+        .badge .icon {
+            margin-right: 4px;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px 40px;
+        }
+
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 880px;
+        }
+
+        .card {
+            display: flex;
+            flex-direction: column;
+            background: #fff;
+            border-radius: 14px;
+            padding: 30px 28px 26px;
+            text-decoration: none;
+            color: inherit;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            min-height: 280px;
+            position: relative;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: #2e75b6;
+        }
+        .card.starlink::before {
+            background: #f0ad4e;
+        }
+        .card.pico::before {
+            background: #5cb85c;
+        }
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
+        }
+        .card:active {
+            transform: translateY(-1px) scale(0.99);
+        }
+        .card:focus-visible {
+            outline: 3px solid #fff;
+            outline-offset: 4px;
+        }
+
+        .card-icon {
+            font-size: 2.6rem;
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        .card h2 {
+            margin: 0 0 10px;
+            color: #1f4e79;
+            font-size: 1.25rem;
+        }
+        .card-desc {
+            margin: 0 0 14px;
+            color: #555;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+        .card-features {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 18px;
+            flex: 1;
+        }
+        .card-features li {
+            padding: 4px 0 4px 22px;
+            font-size: 0.86rem;
+            color: #444;
+            position: relative;
+            line-height: 1.4;
+        }
+        .card-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            top: 4px;
+            color: #2e75b6;
+            font-weight: bold;
+        }
+        .card.starlink .card-features li::before {
+            color: #d68910;
+        }
+        .card.pico .card-features li::before {
+            color: #5cb85c;
+        }
+        .card-cta {
+            align-self: flex-start;
+            background: #2e75b6;
+            color: #fff;
+            padding: 11px 22px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            min-height: 44px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.15s;
+        }
+        .card.starlink .card-cta {
+            background: #d68910;
+        }
+        .card.pico .card-cta {
+            background: #449d44;
+        }
+        .card:hover .card-cta {
+            background: #1f4e79;
+        }
+        .card.starlink:hover .card-cta {
+            background: #b87708;
+        }
+        .card.pico:hover .card-cta {
+            background: #357935;
+        }
+
+        footer {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.85);
+            padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
+            font-size: 0.82rem;
+        }
+
+        @media (max-width: 480px) {
+            header {
+                padding: 26px 18px 6px;
+            }
+            header h1 {
+                font-size: 1.35rem;
+            }
+            header .subtitle {
+                font-size: 0.9rem;
+            }
+            .intro {
+                padding: 14px 18px 4px;
+            }
+            .intro p {
+                font-size: 0.88rem;
+            }
+            .badge {
+                font-size: 0.78rem;
+                padding: 5px 12px;
+            }
+            main {
+                padding: 16px 16px 24px;
+            }
+            .cards {
+                gap: 16px;
+            }
+            .card {
+                padding: 24px 22px 22px;
+                min-height: auto;
+            }
+            .card-cta {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>📋 Portail Audits & Travaux</h1>
+        <p class="subtitle">IPKONEKT — Bouygues Telecom / Bretagne Telecom</p>
+    </header>
+
+    <div class="intro">
+        <p>Sélectionnez le formulaire correspondant à votre intervention. Chaque outil permet de basculer entre <strong>AUDIT</strong> ou <strong>TRAVAUX</strong> à l'intérieur du formulaire ; le rapport Word généré sera adapté en conséquence.</p>
+        <div class="badges">
+            <span class="badge"><span class="icon">🔍</span>Mode Audit</span>
+            <span class="badge"><span class="icon">🛠️</span>Mode Travaux</span>
+        </div>
+    </div>
+
+    <main>
+        <div class="cards">
+            <a class="card" href="4g-5g/" aria-label="Ouvrir le formulaire 4G / 5G">
+                <span class="card-icon" aria-hidden="true">📡</span>
+                <h2>Antenne 4G / 5G</h2>
+                <p class="card-desc">Audit ou travaux d'installation d'antenne 4G/5G chez le client.</p>
+                <ul class="card-features">
+                    <li>Mesures radio (RSRP, SNR) avec interprétation auto</li>
+                    <li>Plan d'évacuation avec points de mesure</li>
+                    <li>Photos annotées (flèches, repères, texte)</li>
+                    <li>Compte rendu généré à partir de cases à cocher</li>
+                </ul>
+                <span class="card-cta">Ouvrir le formulaire →</span>
+            </a>
+
+            <a class="card starlink" href="starlink/" aria-label="Ouvrir le formulaire Starlink">
+                <span class="card-icon" aria-hidden="true">🛰️</span>
+                <h2>Antenne Starlink</h2>
+                <p class="card-desc">Audit ou travaux d'installation d'une antenne Starlink.</p>
+                <ul class="card-features">
+                    <li>Repérage de l'emplacement et test d'obstruction</li>
+                    <li>Cheminement câble et point de pénétration</li>
+                    <li>Photos annotées avec éléments dédiés (mâts, antennes)</li>
+                    <li>Suivi des EPI requis pour l'intervention</li>
+                </ul>
+                <span class="card-cta">Ouvrir le formulaire →</span>
+            </a>
+
+            <a class="card pico" href="pico-quatra/" aria-label="Ouvrir le formulaire PICO BTS / Cel-Fi Quatra">
+                <span class="card-icon" aria-hidden="true">📶</span>
+                <h2>PICO BTS / Cel-Fi Quatra</h2>
+                <p class="card-desc">Audit ou travaux pour solution PICO BTS et/ou Cel-Fi Quatra (sections cumulables).</p>
+                <ul class="card-features">
+                    <li>Mesures radio RSRP/RSRQ/Band + Speedtest</li>
+                    <li>Choix manuel du forfait selon le BPU (PICO 1-4, Quatra 1-6)</li>
+                    <li>Décompte des PICO/CU posés et plan d'implantation</li>
+                    <li>Liste de fournitures détaillée avec quantités</li>
+                </ul>
+                <span class="card-cta">Ouvrir le formulaire →</span>
+            </a>
+        </div>
+    </main>
+
+    <footer>
+        © IPKONEKT — Outils d'audit et de travaux terrain
+    </footer>
+</body>
+</html>
