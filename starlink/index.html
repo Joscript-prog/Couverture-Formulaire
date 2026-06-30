@@ -115,6 +115,12 @@
   body[data-mode="audit"]   .mode-travaux-only { display: none !important; }
   body[data-mode="travaux"] .mode-audit-only   { display: none !important; }
 
+  /* Champs spécifiques au client final BLUEWIRELESS — masqués par défaut,
+     affichés uniquement quand le client sélectionné est Bluewireless. */
+  .bw-only { display: none; }
+  body[data-client="bluewireless"] .bw-only { display: block; }
+  body[data-client="bluewireless"] tr.bw-only { display: table-row; }
+
   .container { max-width: 1100px; margin: 20px auto; padding: 0 20px 60px 20px; }
   .section {
     background: white;
@@ -914,6 +920,55 @@
       <input type="text" id="contact_mail">
     </div>
 
+    <!-- ===== Champs spécifiques BLUEWIRELESS ===== -->
+    <div class="bw-only">
+      <h3>Informations complémentaires (Bluewireless)</h3>
+      <div class="field-row">
+        <label>Coordonnées GPS du site (lat, long)</label>
+        <input type="text" id="bw_gps" placeholder="Ex : 48.9857076, 2.532698791">
+      </div>
+      <div class="field-row">
+        <label>Type de bâtiment</label>
+        <div class="checkbox-group">
+          <label><input type="radio" name="bw_building_type" value="Indépendant (standalone)"> Indépendant</label>
+          <label><input type="radio" name="bw_building_type" value="Commercial"> Commercial</label>
+          <label><input type="radio" name="bw_building_type" value="Commerce / Retail"> Retail</label>
+          <label><input type="radio" name="bw_building_type" value="Industriel"> Industriel</label>
+          <label><input type="radio" name="bw_building_type" value="Temporaire"> Temporaire</label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>Matériau de construction du bâtiment</label>
+        <input type="text" id="bw_building_material" placeholder="Ex : brique, béton, métal, pierre…">
+      </div>
+      <div class="field-row">
+        <label>Propriété du bâtiment</label>
+        <div class="checkbox-group">
+          <label><input type="radio" name="bw_ownership" value="Client"> Client</label>
+          <label><input type="radio" name="bw_ownership" value="Bailleur (Landlord)"> Bailleur</label>
+        </div>
+      </div>
+
+      <h3>Contacts (rôles & responsabilités) — Bluewireless</h3>
+      <div class="field-row">
+        <label>Gestion bâtiment / Bailleur — contact (mail & tél.)</label>
+        <input type="text" id="bw_contact_landlord" placeholder="Mail / téléphone">
+      </div>
+      <div class="field-row">
+        <label>Approbation travaux civils — contact (si différent)</label>
+        <input type="text" id="bw_contact_civils" placeholder="Mail / téléphone">
+      </div>
+      <div class="field-row">
+        <label>Responsable Facilities (client) — contact</label>
+        <input type="text" id="bw_contact_facilities" placeholder="Mail / téléphone">
+      </div>
+      <div class="field-row">
+        <label>Accès / escorte sur site — contact</label>
+        <input type="text" id="bw_contact_escort" placeholder="Mail / téléphone">
+      </div>
+    </div>
+    <!-- ===== Fin champs BLUEWIRELESS (section 1) ===== -->
+
     <h3>Photo : Vue Façade Extérieur</h3>
     <div class="photo-upload">
       <div class="photo-upload-label">
@@ -982,6 +1037,19 @@
           <button class="clear-photo" data-clear="empl_detail">✕</button>
         </div>
         <img class="photo-preview" id="preview_empl_detail">
+      </div>
+    </div>
+
+    <!-- ===== Image satellite / plan (Bluewireless) ===== -->
+    <div class="bw-only">
+      <div class="photo-upload">
+        <div class="photo-upload-label">
+          📷 Vue satellite / plan de localisation du site
+          <input type="file" accept="image/*" data-photo-key="bw_satellite" style="margin-left:8px;">
+          <button class="annotate-btn" data-annotate="bw_satellite" disabled>✏ Annoter</button>
+          <button class="clear-photo" data-clear="bw_satellite">✕</button>
+        </div>
+        <img class="photo-preview" id="preview_bw_satellite">
       </div>
     </div>
 
@@ -1140,6 +1208,143 @@
         </div>
         <img class="photo-preview" id="preview_routeur">
       </div>
+    </div>
+
+    <!-- ===== Champs spécifiques BLUEWIRELESS (section 3) ===== -->
+    <div class="bw-only">
+      <h3>3.3 - Pénétration, équipement indoor & alimentation (Bluewireless)</h3>
+      <div class="field-row">
+        <label>Point de pénétration (ingress) existant ?</label>
+        <div class="checkbox-group">
+          <label><input type="radio" name="bw_ingress_exist" value="Oui"> Oui</label>
+          <label><input type="radio" name="bw_ingress_exist" value="Non - à créer"> Non — à créer</label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>Si nouvel ingress : emplacement & matériau</label>
+        <input type="text" id="bw_ingress_detail" placeholder="Localisation du percement, matériau (brique, métal…)">
+      </div>
+      <div class="field-row">
+        <label>Emplacement de l'équipement indoor (salle / rack / n°)</label>
+        <input type="text" id="bw_indoor_placement" placeholder="Ex : Salle IT — Rack LTP1-1">
+      </div>
+      <div class="field-row">
+        <label>Liaison RJ-45 dispo entre alim Starlink et routeur (si séparés) ?</label>
+        <div class="checkbox-group">
+          <label><input type="radio" name="bw_rj45" value="Oui"> Oui</label>
+          <label><input type="radio" name="bw_rj45" value="Non"> Non</label>
+          <label><input type="radio" name="bw_rj45" value="N/A"> N/A</label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>2 prises électriques disponibles (routeur + Starlink) ?</label>
+        <div class="checkbox-group">
+          <label><input type="radio" name="bw_power_2sockets" value="Oui"> Oui</label>
+          <label><input type="radio" name="bw_power_2sockets" value="Non"> Non</label>
+        </div>
+      </div>
+      <div class="field-row">
+        <label>Type de prise &amp; voltage</label>
+        <input type="text" id="bw_power_type" placeholder="Ex : C14 en rack / 230V / prise EU">
+      </div>
+      <div class="field-row">
+        <label>Problèmes d'alimentation (coupures, micro-coupures) ?</label>
+        <input type="text" id="bw_power_issues" placeholder="Décrire si applicable, sinon Aucun">
+      </div>
+      <div class="field-row">
+        <label>Onduleur / UPS disponible sur site ?</label>
+        <div class="checkbox-group">
+          <label><input type="radio" name="bw_ups" value="Oui"> Oui</label>
+          <label><input type="radio" name="bw_ups" value="Non"> Non</label>
+        </div>
+      </div>
+    </div>
+    <!-- ===== Fin champs BLUEWIRELESS (section 3) ===== -->
+  </div>
+
+  <!-- ========== SECTION BLUEWIRELESS (client final = Bluewireless) ========== -->
+  <div class="section bw-only">
+    <h2>BW. Conclusions, équipement &amp; périmètre (Bluewireless)</h2>
+
+    <h3>Conclusion &amp; recommandations</h3>
+    <div class="field-row">
+      <label>Solution techniquement faisable sur le site ?</label>
+      <div class="checkbox-group">
+        <label><input type="radio" name="bw_faisable" value="Oui"> Oui</label>
+        <label><input type="radio" name="bw_faisable" value="Non"> Non</label>
+      </div>
+    </div>
+    <div class="field-row">
+      <label>Emplacement retenu</label>
+      <input type="text" id="bw_emplacement_retenu" placeholder="Ex : Toiture / Roof">
+    </div>
+    <div class="field-row">
+      <label>Équipement recommandé &amp; considérations</label>
+      <textarea id="bw_reco" rows="4" placeholder="Ex : Starlink High Performance Kit ; routeur Cradlepoint E300 en salle IT ; EPI travail en hauteur ; adaptateurs C14…"></textarea>
+    </div>
+
+    <h3>Bill of Materials — Blue Wireless</h3>
+    <div class="field-row">
+      <label>Dish Starlink (type)</label>
+      <input type="text" id="bw_bom_dish" placeholder="Ex : Flat High Performance">
+    </div>
+    <div class="field-row">
+      <label>Routeur (modèle)</label>
+      <input type="text" id="bw_bom_router" placeholder="Ex : Cradlepoint E300">
+    </div>
+    <div class="field-row">
+      <label>Longueur câble antenne Starlink</label>
+      <input type="text" id="bw_bom_cable_ant" placeholder="Ex : 25m (High Performance Kit)">
+    </div>
+    <div class="field-row">
+      <label>Longueur câble Starlink → Ethernet</label>
+      <input type="text" id="bw_bom_cable_eth" placeholder="Ex : 5m">
+    </div>
+    <div class="field-row">
+      <label>Type de mât / support</label>
+      <input type="text" id="bw_bom_mount" placeholder="Ex : Wedge mount + Pipe Adapter">
+    </div>
+    <div class="field-row">
+      <label>Infra pôle / sol / fixations</label>
+      <input type="text" id="bw_bom_infra" placeholder="Ex : Mât auto-stable + 4x dalles béton">
+    </div>
+    <div class="field-row">
+      <label>Consommables d'installation</label>
+      <input type="text" id="bw_bom_consumables" placeholder="Ex : Équipement de base + 2x adaptateurs C14→EU">
+    </div>
+
+    <h3>Scope of Work — Blue Wireless</h3>
+    <div class="field-row">
+      <label>Périmètre des travaux Blue Wireless</label>
+      <textarea id="bw_sow_bw" rows="4" placeholder="Ex : Pose du support ; pose du dish ; cheminement câble ; pose des équipements ; tests & mise en service…"></textarea>
+    </div>
+
+    <h3>Risques &amp; mitigations</h3>
+    <div class="field-row">
+      <label>Risques / dangers identifiés et mitigations</label>
+      <textarea id="bw_risques" rows="3" placeholder="Ex : Travail en hauteur → EPI adaptés…"></textarea>
+    </div>
+
+    <h3>Périmètre &amp; fournitures Client</h3>
+    <div class="field-row">
+      <label>Matériel à fournir par le client (BoM client)</label>
+      <textarea id="bw_bom_customer" rows="2" placeholder="Le cas échéant"></textarea>
+    </div>
+    <div class="field-row">
+      <label>Travaux préparatoires à la charge du client (SoW client)</label>
+      <textarea id="bw_sow_customer" rows="3" placeholder="Ex : Confirmer l'emplacement proposé ; confirmer l'utilisation de l'ingress identifié…"></textarea>
+    </div>
+
+    <h3>Approbations &amp; accès</h3>
+    <div class="field-row">
+      <label>Approbation / clearance spéciale requise (property management) ?</label>
+      <input type="text" id="bw_approbation" placeholder="Oui / Non — préciser">
+    </div>
+
+    <h3>Prochaines étapes (Next Steps)</h3>
+    <div class="field-row">
+      <label>Étapes pour engager l'installation</label>
+      <textarea id="bw_next_steps" rows="3" placeholder="Ex : Validation client équipement/périmètre ; validation surcoûts éventuels ; confirmation de la disponibilité du site ; planification…"></textarea>
     </div>
   </div>
 
