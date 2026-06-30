@@ -452,6 +452,14 @@ async function generateDocument() {
 
     const FONT = "Calibri";
 
+    // ========== Langue du rapport ==========
+    // Pour Bluewireless, l'utilisateur peut choisir FR/EN via #bw_lang.
+    // Pour les autres clients, le rapport reste en français.
+    const LANG = ((val("client_final") === "bluewireless") && (val("bw_lang") === "en")) ? "en" : "fr";
+    // tr() : traduit un texte FR vers la langue du rapport (via i18n.js).
+    // Sécurisé même si t() n'est pas chargé (renvoie le FR par défaut).
+    const tr = (s) => (typeof t === "function" ? t(s, LANG) : s);
+
     const border = { style: BorderStyle.SINGLE, size: 4, color: COLOR_BORDER };
     const borders = { top: border, bottom: border, left: border, right: border };
 
@@ -490,7 +498,7 @@ async function generateDocument() {
     function cb(label, checked) {
       const symbol = checked ? "☒ " : "☐ ";
       return new TextRun({
-        text: symbol + label,
+        text: symbol + tr(label),
         bold: checked,
         size: 20,
         color: checked ? COLOR_PRIMARY : COLOR_TEXT,
@@ -626,7 +634,7 @@ async function generateDocument() {
                   new Paragraph({
                     alignment: AlignmentType.CENTER,
                     children: [new TextRun({
-                      text: (getMode() === "travaux"
+                      text: tr(getMode() === "travaux"
                         ? "RAPPORT DE TRAVAUX - INSTALLATION STARLINK"
                         : "RAPPORT D'AUDIT - INSTALLATION STARLINK"),
                       bold: true, size: 32, color: "FFFFFF", font: FONT
@@ -655,9 +663,9 @@ async function generateDocument() {
           new TableRow({
             tableHeader: true,
             children: [
-              cell("Référence commande", { width: 3120, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
-              cell("Auditeur / Intervenant", { width: 3120, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
-              cell("Date d'audit",          { width: 3120, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
+              cell(tr("Référence commande"), { width: 3120, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+              cell(tr("Auditeur / Intervenant"), { width: 3120, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+              cell(tr("Date d'audit"),          { width: 3120, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
             ]
           }),
           new TableRow({
@@ -681,7 +689,7 @@ async function generateDocument() {
         children: [
           new TextRun({ text: `${numText}.`, bold: true, size: 26, color: COLOR_PRIMARY, font: FONT }),
           new TextRun({ text: "\t", font: FONT }),
-          new TextRun({ text: titleText, bold: true, size: 26, color: COLOR_PRIMARY, font: FONT })
+          new TextRun({ text: tr(titleText), bold: true, size: 26, color: COLOR_PRIMARY, font: FONT })
         ]
       });
     }
@@ -689,7 +697,7 @@ async function generateDocument() {
       return new Paragraph({
         spacing: { before: 200, after: 100 },
         children: [
-          new TextRun({ text: text, bold: true, italics: true, size: 22, color: COLOR_ACCENT, font: FONT })
+          new TextRun({ text: tr(text), bold: true, italics: true, size: 22, color: COLOR_ACCENT, font: FONT })
         ]
       });
     }
@@ -700,43 +708,43 @@ async function generateDocument() {
       columnWidths: [3120, 1560, 1560, 3120],
       rows: [
         new TableRow({ children: [
-          cell("Raison sociale du site audité", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Raison sociale du site audité"), { width: 3120, textOpts: { bold: true } }),
           cell(val("raison_sociale"), { width: 6240, columnSpan: 3 })
         ]}),
         new TableRow({ children: [
-          cell("Adresse", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Adresse"), { width: 3120, textOpts: { bold: true } }),
           cell(val("adresse"), { width: 6240, columnSpan: 3 })
         ]}),
         new TableRow({ children: [
-          cell("Code postal", { width: 3120, textOpts: { bold: true } }),
-          cell("CP : " + val("code_postal"), { width: 1560 }),
-          cell("Ville", { width: 1560, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+          cell(tr("Code postal"), { width: 3120, textOpts: { bold: true } }),
+          cell(tr("CP : ") + val("code_postal"), { width: 1560 }),
+          cell(tr("Ville"), { width: 1560, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
           cell(val("ville"), { width: 3120 })
         ]}),
         new TableRow({ children: [
-          cell("Horaire d'ouverture du site", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Horaire d'ouverture du site"), { width: 3120, textOpts: { bold: true } }),
           cell(val("horaire"), { width: 6240, columnSpan: 3 })
         ]}),
         new TableRow({ children: [
-          cell("Procédure d'accès", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Procédure d'accès"), { width: 3120, textOpts: { bold: true } }),
           cell(val("procedure_acces"), { width: 6240, columnSpan: 3 })
         ]}),
         new TableRow({ children: [
-          cell("Téléphone site", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Téléphone site"), { width: 3120, textOpts: { bold: true } }),
           cell(val("tel_site"), { width: 6240, columnSpan: 3 })
         ]}),
         new TableRow({ children: [
-          cell("Nom du contact client sur site", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Nom du contact client sur site"), { width: 3120, textOpts: { bold: true } }),
           cell(val("contact_nom"), { width: 6240, columnSpan: 3 })
         ]}),
         new TableRow({ children: [
-          cell("Fonction", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Fonction"), { width: 3120, textOpts: { bold: true } }),
           cell(val("contact_fonction"), { width: 6240, columnSpan: 3 })
         ]}),
         new TableRow({ children: [
-          cell("Téléphone / Mail contact", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Téléphone / Mail contact"), { width: 3120, textOpts: { bold: true } }),
           cell(val("contact_tel"), { width: 1560 }),
-          cell("Mail", { width: 1560, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+          cell(tr("Mail"), { width: 1560, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
           cell(val("contact_mail"), { width: 3120 })
         ]})
       ]
@@ -752,7 +760,7 @@ async function generateDocument() {
       columnWidths: [3120, 6240],
       rows: [
         new TableRow({ children: [
-          cell("Type d'emplacement", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Type d'emplacement"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -765,15 +773,15 @@ async function generateDocument() {
           })
         ]}),
         new TableRow({ children: [
-          cell("Description détaillée", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Description détaillée"), { width: 3120, textOpts: { bold: true } }),
           cell(val("empl_description"), { width: 6240 })
         ]}),
         new TableRow({ children: [
-          cell("Hauteur depuis le sol", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Hauteur depuis le sol"), { width: 3120, textOpts: { bold: true } }),
           cell(val("empl_hauteur"), { width: 6240 })
         ]}),
         new TableRow({ children: [
-          cell("Accessibilité", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Accessibilité"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -785,7 +793,7 @@ async function generateDocument() {
           })
         ]}),
         new TableRow({ children: [
-          cell("Dégagement vers le ciel", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Dégagement vers le ciel"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -805,7 +813,7 @@ async function generateDocument() {
       columnWidths: [3120, 6240],
       rows: [
         new TableRow({ children: [
-          cell("Résultat du test d'obstruction", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Résultat du test d'obstruction"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -821,7 +829,7 @@ async function generateDocument() {
           })
         ]}),
         new TableRow({ children: [
-          cell("Commentaire", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Commentaire"), { width: 3120, textOpts: { bold: true } }),
           cell(val("obstr_commentaire") || " ", { width: 6240 })
         ]})
       ]
@@ -837,7 +845,7 @@ async function generateDocument() {
       columnWidths: [3120, 6240],
       rows: [
         new TableRow({ children: [
-          cell("Type de support installé", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Type de support installé"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -855,11 +863,11 @@ async function generateDocument() {
           })
         ]}),
         new TableRow({ children: [
-          cell("Longueur de câble à prévoir", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Longueur de câble à prévoir"), { width: 3120, textOpts: { bold: true } }),
           cell((val("cable_longueur") || "__") + " M  (câble fourni ≤25m / prolongateur 25-50m)", { width: 6240 })
         ]}),
         new TableRow({ children: [
-          cell("Type de cheminement câble", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Type de cheminement câble"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -876,7 +884,7 @@ async function generateDocument() {
           })
         ]}),
         new TableRow({ children: [
-          cell("Point de pénétration", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Point de pénétration"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -893,7 +901,7 @@ async function generateDocument() {
           })
         ]}),
         new TableRow({ children: [
-          cell("Étanchéité du passage", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Étanchéité du passage"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -905,7 +913,7 @@ async function generateDocument() {
           })
         ]}),
         new TableRow({ children: [
-          cell("Hauteur maximale d'intervention", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Hauteur maximale d'intervention"), { width: 3120, textOpts: { bold: true } }),
           cell((val("hauteur_max") || "__") + " m  (max 2,5m sans sécurité spécifique)", { width: 6240 })
         ]})
       ]
@@ -919,35 +927,35 @@ async function generateDocument() {
         new TableRow({
           tableHeader: true,
           children: [
-            cell("Support",            { width: 2000, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
-            cell("Situation d'usage",  { width: 4000, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
-            cell("Conditions / Contraintes", { width: 3360, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
+            cell(tr("Support"),            { width: 2000, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+            cell(tr("Situation d'usage"),  { width: 4000, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+            cell(tr("Conditions / Contraintes"), { width: 3360, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
           ]
         }),
         new TableRow({ children: [
-          cell("Trépied", { width: 2000, textOpts: { bold: true } }),
-          cell("Toiture plate, dégagement ciel suffisant au ras du toit", { width: 4000 }),
-          cell("Semelle résiliente obligatoire. Dalles gravillonnées.", { width: 3360 })
+          cell(tr("Trépied"), { width: 2000, textOpts: { bold: true } }),
+          cell(tr("Toiture plate, dégagement ciel suffisant au ras du toit"), { width: 4000 }),
+          cell(tr("Semelle résiliente obligatoire. Dalles gravillonnées."), { width: 3360 })
         ]}),
         new TableRow({ children: [
-          cell("Mât auto stable 1m", { width: 2000, textOpts: { bold: true } }),
-          cell("Toiture plate avec obstacles proches nécessitant de rehausser l'antenne pour le pointage", { width: 4000 }),
-          cell("Semelle résiliente obligatoire. Dalles gravillonnées.", { width: 3360 })
+          cell(tr("Mât auto stable 1m"), { width: 2000, textOpts: { bold: true } }),
+          cell(tr("Toiture plate avec obstacles proches nécessitant de rehausser l'antenne pour le pointage"), { width: 4000 }),
+          cell(tr("Semelle résiliente obligatoire. Dalles gravillonnées."), { width: 3360 })
         ]}),
         new TableRow({ children: [
-          cell("Mât en drapeau", { width: 2000, textOpts: { bold: true } }),
-          cell("Façade béton / brique / agglo, ou sur tube / mât existant (adaptateur)", { width: 4000 }),
-          cell("PAS de fixation sur bardage ou paroi métallique.", { width: 3360, textOpts: { color: "C00000", bold: true } })
+          cell(tr("Mât en drapeau"), { width: 2000, textOpts: { bold: true } }),
+          cell(tr("Façade béton / brique / agglo, ou sur tube / mât existant (adaptateur)"), { width: 4000 }),
+          cell(tr("PAS de fixation sur bardage ou paroi métallique."), { width: 3360, textOpts: { color: "C00000", bold: true } })
         ]}),
         new TableRow({ children: [
-          cell("Déport coudé", { width: 2000, textOpts: { bold: true } }),
-          cell("Acrotère ou muret en bord de toit", { width: 4000 }),
-          cell("Étanchéité préservée — aucun perçage du revêtement de toit.", { width: 3360 })
+          cell(tr("Déport coudé"), { width: 2000, textOpts: { bold: true } }),
+          cell(tr("Acrotère ou muret en bord de toit"), { width: 4000 }),
+          cell(tr("Étanchéité préservée — aucun perçage du revêtement de toit."), { width: 3360 })
         ]}),
         new TableRow({ children: [
-          cell("Mât droit 1m (garde-corps)", { width: 2000, textOpts: { bold: true } }),
-          cell("Balcon ou terrasse avec garde-corps en bon état", { width: 4000 }),
-          cell("Colliers de serrage sur garde-corps. Pas de perçage façade.", { width: 3360 })
+          cell(tr("Mât droit 1m (garde-corps)"), { width: 2000, textOpts: { bold: true } }),
+          cell(tr("Balcon ou terrasse avec garde-corps en bon état"), { width: 4000 }),
+          cell(tr("Colliers de serrage sur garde-corps. Pas de perçage façade."), { width: 3360 })
         ]})
       ]
     });
@@ -970,8 +978,8 @@ async function generateDocument() {
             children: [
               new Paragraph({
                 children: [
-                  new TextRun({ text: "⚠ Rappel : ", bold: true, color: "C77700", size: 20, font: FONT }),
-                  new TextRun({ text: "Toute intervention à plus de 2,5 m du sol nécessite un moyen de sécurité (nacelle ou harnais antichute). À déclencher dès la visite de site.", size: 20, color: COLOR_TEXT, font: FONT })
+                  new TextRun({ text: "⚠ " + tr("Rappel : "), bold: true, color: "C77700", size: 20, font: FONT }),
+                  new TextRun({ text: tr("Toute intervention à plus de 2,5 m du sol nécessite un moyen de sécurité (nacelle ou harnais antichute). À déclencher dès la visite de site."), size: 20, color: COLOR_TEXT, font: FONT })
                 ]
               })
             ]
@@ -983,17 +991,17 @@ async function generateDocument() {
     // ========== SECTION 5 EPI ==========
     const epiRows = [
       new TableRow({ tableHeader: true, children: [
-        cell("EPI",              { width: 2400, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
-        cell("Précision / Usage", { width: 4560, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
-        cell("Présent sur intervention", { width: 2400, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
+        cell(tr("EPI"),              { width: 2400, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+        cell(tr("Précision / Usage"), { width: 4560, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+        cell(tr("Présent sur intervention"), { width: 2400, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
       ]})
     ];
     EPI_LIST.forEach(epi => {
       const choix = radioValue("epi_" + epi.key);
       epiRows.push(
         new TableRow({ children: [
-          cell(epi.name, { width: 2400, textOpts: { bold: true } }),
-          cell(epi.desc, { width: 4560 }),
+          cell(tr(epi.name), { width: 2400, textOpts: { bold: true } }),
+          cell(tr(epi.desc), { width: 4560 }),
           new TableCell({
             borders, width: { size: 2400, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -1015,7 +1023,7 @@ async function generateDocument() {
       columnWidths: [9360],
       rows: [
         new TableRow({ children: [
-          cell("Remarques EPI / Sécurité :", { width: 9360, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
+          cell(tr("Remarques EPI / Sécurité :"), { width: 9360, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
         ]}),
         new TableRow({ children: [
           new TableCell({
@@ -1040,11 +1048,11 @@ async function generateDocument() {
 
     const syntheseRows = [
       new TableRow({ children: [
-        cell("Heure de début d'intervention", { width: 3120, textOpts: { bold: true } }),
+        cell(tr("Heure de début d'intervention"), { width: 3120, textOpts: { bold: true } }),
         cell(val("heure_debut"), { width: 6240 })
       ]}),
       new TableRow({ children: [
-        cell("Heure de fin d'intervention", { width: 3120, textOpts: { bold: true } }),
+        cell(tr("Heure de fin d'intervention"), { width: 3120, textOpts: { bold: true } }),
         cell(val("heure_fin"), { width: 6240 })
       ]}),
       new TableRow({ children: [
@@ -1052,7 +1060,7 @@ async function generateDocument() {
         cell(valueDuree, { width: 6240 })
       ]}),
       new TableRow({ children: [
-        cell("Nombre de techniciens", { width: 3120, textOpts: { bold: true } }),
+        cell(tr("Nombre de techniciens"), { width: 3120, textOpts: { bold: true } }),
         cell(val("nb_techniciens"), { width: 6240 })
       ]}),
       new TableRow({ children: [
@@ -1072,7 +1080,7 @@ async function generateDocument() {
     if (isTravaux) {
       syntheseRows.push(
         new TableRow({ children: [
-          cell("Échelle / Échafaud utilisé", { width: 3120, textOpts: { bold: true } }),
+          cell(tr("Échelle / Échafaud utilisé"), { width: 3120, textOpts: { bold: true } }),
           new TableCell({
             borders, width: { size: 6240, type: WidthType.DXA },
             margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -1087,7 +1095,7 @@ async function generateDocument() {
 
     syntheseRows.push(
       new TableRow({ children: [
-        cell("Câblage supplémentaire", { width: 3120, textOpts: { bold: true } }),
+        cell(tr("Câblage supplémentaire"), { width: 3120, textOpts: { bold: true } }),
         new TableCell({
           borders, width: { size: 6240, type: WidthType.DXA },
           margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -1129,7 +1137,7 @@ async function generateDocument() {
       columnWidths: [9360],
       rows: [
         new TableRow({ children: [
-          cell("Signature technicien / auditeur", { width: 9360, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
+          cell(tr("Signature technicien / auditeur"), { width: 9360, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } })
         ]}),
         new TableRow({ children: [
           new TableCell({
@@ -1137,9 +1145,9 @@ async function generateDocument() {
             margins: { top: 200, bottom: 800, left: 120, right: 120 },
             children: [
               emptyP(),
-              P("Nom : " + (val("signataire_nom") || "_______________________________")),
+              P(tr("Nom : ") + (val("signataire_nom") || "_______________________________")),
               emptyP(),
-              P("Date : " + (formatDateFR(val("signataire_date")) || "_______________________________"))
+              P(tr("Date : ") + (formatDateFR(val("signataire_date")) || "_______________________________"))
             ]
           })
         ]})
@@ -1185,7 +1193,7 @@ async function generateDocument() {
                     spacing: { before: 0, after: 80 },
                     children: [
                       new TextRun({ text: "📷 ", size: 20, color: COLOR_PRIMARY, font: FONT }),
-                      new TextRun({ text: label, bold: true, size: 20, color: COLOR_PRIMARY, font: FONT })
+                      new TextRun({ text: tr(label), bold: true, size: 20, color: COLOR_PRIMARY, font: FONT })
                     ]
                   }),
                   new Paragraph({
@@ -1267,8 +1275,8 @@ async function generateDocument() {
         columnWidths: [3744, 5616],
         rows: filtered.map(([label, value]) =>
           new TableRow({ children: [
-            cell(label, { width: 3744, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
-            cell((value || "").toString(), { width: 5616 })
+            cell(tr(label), { width: 3744, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+            cell(tr((value || "").toString()), { width: 5616 })
           ]})
         )
       });
@@ -1395,7 +1403,7 @@ async function generateDocument() {
     }
     cheminementKeysWithPhotos.forEach(k => {
       const num = parseInt(k.split("_")[1], 10);
-      photoPairs.push(["Cheminement câble " + num, k]);
+      photoPairs.push([tr("Cheminement câble ") + num, k]);
     });
 
     // Afficher 2 par ligne via makePhotoRow
@@ -1525,6 +1533,7 @@ function buildExportData() {
       // Champs texte
       numero_ticket: val("numero_ticket"),   // FIX : était perdu à l'export/import !
       client_final: val("client_final") || "bouygues",  // client final (Bouygues / Bretagne)
+      bw_lang: val("bw_lang") || "fr",  // langue du rapport Word (Bluewireless)
       ref_commande: val("ref_commande"),
       auditeur: val("auditeur"),
       date_audit: val("date_audit"),
@@ -1688,6 +1697,8 @@ async function applyImportedData(data) {
       // Le sélecteur de client revient à sa valeur par défaut (Bouygues)
       const selClient = document.getElementById("client_final");
       if (selClient) selClient.value = formData.client_final || "bouygues";
+      const selLang = document.getElementById("bw_lang");
+      if (selLang && formData.bw_lang) selLang.value = formData.bw_lang;
       syncClientAttr();
 
       // Restaurer le mode AUDIT/TRAVAUX si présent (par défaut: audit)
