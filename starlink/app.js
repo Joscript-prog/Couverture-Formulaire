@@ -53,6 +53,8 @@ function setMode(mode) {
   }
   // Recalculer la durée en mode travaux (au cas où des heures sont déjà saisies)
   if (m === "travaux") updateDureeIntervention();
+  // Recalculer les numéros de section affichés (dépendent du mode)
+  if (typeof updateSectionNumbers === "function") updateSectionNumbers();
 }
 // Exposer setMode globalement (appelé via onclick)
 if (typeof window !== "undefined") {
@@ -346,6 +348,29 @@ function syncClientAttr() {
   const sel = document.getElementById("client_final");
   const key = sel && sel.value ? sel.value : "bouygues";
   document.body.setAttribute("data-client", key);
+  updateSectionNumbers();
+}
+
+// Recalcule à l'écran les numéros des dernières sections (Bluewireless & Synthèse)
+// en fonction du mode (EPI = section 5, présente en AUDIT uniquement) et de la
+// présence ou non de la section Bluewireless.
+//   AUDIT  + BW : BW = 6, Synthèse = 7
+//   AUDIT  sans : Synthèse = 6
+//   TRAVAUX + BW : BW = 5, Synthèse = 6
+//   TRAVAUX sans : Synthèse = 5
+function updateSectionNumbers() {
+  const isTravaux = (getMode() === "travaux");
+  const sel = document.getElementById("client_final");
+  const isBW = !!(sel && sel.value === "bluewireless");
+
+  let n = isTravaux ? 5 : 6; // 1er numéro après EPI (ou après la section 4 en TRAVAUX)
+
+  const bwNumEl = document.getElementById("bwSectionNum");
+  if (bwNumEl) {
+    if (isBW) { bwNumEl.textContent = n + "."; n++; }
+  }
+  const synthNumEl = document.getElementById("syntheseSectionNum");
+  if (synthNumEl) synthNumEl.textContent = n + ".";
 }
 
 function resetForm() {
@@ -1249,9 +1274,9 @@ async function generateDocument() {
       });
     }
 
-    function buildBluewirelessChildren() {
+    function buildBluewirelessChildren(numText) {
       const out = [];
-      out.push(sectionHeading("BW", "Conclusions, équipement & périmètre (Bluewireless)"));
+      out.push(sectionHeading(numText, "Conclusions, équipement & périmètre (Bluewireless)"));
 
       // Conclusion & recommandations
       const tConcl = bwKvTable([
@@ -1404,19 +1429,29 @@ async function generateDocument() {
       children.push(tableEPIRemarques);
     }
 
-    // Synthèse : numéro 6 en mode AUDIT, numéro 5 en mode TRAVAUX (EPI supprimée)
-    const syntheseNum = isTravaux ? "5" : "6";
+    // Numérotation dynamique des dernières sections.
+    // EPI = 5 (mode AUDIT uniquement). Puis viennent, dans l'ordre :
+    //   - la section Bluewireless (si client = Bluewireless)
+    //   - la Synthèse de l'intervention
+    // Le compteur démarre après la section 4, +1 si EPI est présent.
+    let nextNum = isTravaux ? 5 : 6; // 1er numéro disponible après EPI (ou après la 4 en TRAVAUX)
+
+    // SECTION BLUEWIRELESS — uniquement si client final = Bluewireless
+    // Placée AVANT la synthèse pour que « Synthèse de l'intervention » et la
+    // signature restent les derniers éléments du rapport.
+    if (isBW) {
+      children.push(...buildBluewirelessChildren(String(nextNum)));
+      nextNum++;
+    }
+
+    // Synthèse de l'intervention (numéro qui suit la section BW si présente)
+    const syntheseNum = String(nextNum);
     children.push(sectionHeading(syntheseNum, "Synthèse de l'intervention"));
     children.push(tableSynthese);
     children.push(emptyP());
     children.push(tableObservations);
     children.push(emptyP());
     children.push(tableSignature);
-
-    // SECTION BLUEWIRELESS — uniquement si client final = Bluewireless
-    if (isBW) {
-      children.push(...buildBluewirelessChildren());
-    }
 
     // ========== Document final ==========
     const doc = new Document({
