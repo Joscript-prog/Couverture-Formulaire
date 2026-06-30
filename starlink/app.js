@@ -89,6 +89,7 @@ const PHOTO_LABELS = {
   cheminement_3: "Cheminement câble 3",
   penetration_facade: "Point de pénétration façade",
   routeur: "Emplacement du routeur Starlink",
+  bw_satellite: "Vue satellite / plan de localisation",
 };
 
 // ============================================================
@@ -117,6 +118,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const initMode = document.getElementById("modeIntervention");
   document.body.setAttribute("data-mode",
     (initMode && initMode.value === "travaux") ? "travaux" : "audit");
+
+  // Initialiser l'attribut data-client du <body> selon le client final courant
+  // (utile pour le CSS conditionnel .bw-only — champs spécifiques Bluewireless)
+  syncClientAttr();
+  const selClientInit = document.getElementById("client_final");
+  if (selClientInit) selClientInit.addEventListener("change", syncClientAttr);
 
   // Calcul automatique de la durée d'intervention (mode TRAVAUX)
   const hDebut = document.getElementById("heure_debut");
@@ -333,6 +340,14 @@ function radioValue(name) {
   return el ? el.value : "";
 }
 
+// Synchronise l'attribut data-client du <body> avec le <select id="client_final">.
+// Permet d'afficher/masquer les champs spécifiques Bluewireless (.bw-only) via CSS.
+function syncClientAttr() {
+  const sel = document.getElementById("client_final");
+  const key = sel && sel.value ? sel.value : "bouygues";
+  document.body.setAttribute("data-client", key);
+}
+
 function resetForm() {
   if (!confirm("Réinitialiser tout le formulaire ? Les photos importées seront perdues.\nLa sauvegarde automatique de cette session sera également effacée.")) return;
   // Effacer aussi la sauvegarde automatique (sinon elle re-remplirait le formulaire au prochain chargement)
@@ -345,6 +360,7 @@ function resetForm() {
   // Client final : retour à la valeur par défaut
   const selClient = document.getElementById("client_final");
   if (selClient) selClient.value = "bouygues";
+  syncClientAttr();
   // Remettre le mode par défaut sur AUDIT
   setMode("audit");
   Object.keys(photoStore).forEach(k => delete photoStore[k]);
@@ -988,6 +1004,7 @@ async function generateDocument() {
 
     // ========== SECTION 6 Synthèse ==========
     const isTravaux = (getMode() === "travaux");
+    const isBW = (val("client_final") === "bluewireless");
 
     // Libellés et valeurs qui changent selon le mode
     const labelDuree   = isTravaux ? "Durée de l'intervention"  : "Durée totale à prévoir";
@@ -1214,6 +1231,93 @@ async function generateDocument() {
       return [ makePhotoBlock(label, key, { tableWidth: 9360, width: 400, height: 260 }), emptyP() ];
     }
 
+    // ========== SECTIONS BLUEWIRELESS (générées seulement si client = Bluewireless) ==========
+    // Construit une table clé/valeur simple à 2 colonnes à partir d'une liste [label, valeur].
+    // Les lignes dont la valeur est vide sont ignorées (rapport plus propre).
+    function bwKvTable(rows) {
+      const filtered = rows.filter(([, v]) => (v || "").toString().trim() !== "");
+      if (filtered.length === 0) return null;
+      return new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        columnWidths: [3744, 5616],
+        rows: filtered.map(([label, value]) =>
+          new TableRow({ children: [
+            cell(label, { width: 3744, shading: COLOR_TABLE_HEADER, textOpts: { bold: true } }),
+            cell((value || "").toString(), { width: 5616 })
+          ]})
+        )
+      });
+    }
+
+    function buildBluewirelessChildren() {
+      const out = [];
+      out.push(sectionHeading("BW", "Conclusions, équipement & périmètre (Bluewireless)"));
+
+      // Conclusion & recommandations
+      const tConcl = bwKvTable([
+        ["Solution techniquement faisable ?", radioValue("bw_faisable")],
+        ["Emplacement retenu", val("bw_emplacement_retenu")],
+        ["Équipement recommandé & considérations", val("bw_reco")],
+        ["Type de bâtiment", radioValue("bw_building_type")],
+        ["Matériau de construction", val("bw_building_material")],
+        ["Propriété du bâtiment", radioValue("bw_ownership")],
+        ["Coordonnées GPS du site", val("bw_gps")],
+      ]);
+      if (tConcl) { out.push(subHeading("Conclusion & recommandations")); out.push(tConcl); out.push(emptyP()); }
+
+      // Image satellite / plan
+      if (photoStore["bw_satellite"]) {
+        out.push(...makeSinglePhoto("Vue satellite / plan de localisation", "bw_satellite"));
+      }
+
+      // Contacts multi-rôles
+      const tContacts = bwKvTable([
+        ["Gestion bâtiment / Bailleur", val("bw_contact_landlord")],
+        ["Approbation travaux civils", val("bw_contact_civils")],
+        ["Responsable Facilities (client)", val("bw_contact_facilities")],
+        ["Accès / escorte sur site", val("bw_contact_escort")],
+      ]);
+      if (tContacts) { out.push(subHeading("Contacts — rôles & responsabilités")); out.push(tContacts); out.push(emptyP()); }
+
+      // Pénétration / indoor / alimentation
+      const tTech = bwKvTable([
+        ["Ingress existant ?", radioValue("bw_ingress_exist")],
+        ["Si nouvel ingress : emplacement & matériau", val("bw_ingress_detail")],
+        ["Emplacement équipement indoor", val("bw_indoor_placement")],
+        ["Liaison RJ-45 alim Starlink ↔ routeur", radioValue("bw_rj45")],
+        ["2 prises électriques disponibles ?", radioValue("bw_power_2sockets")],
+        ["Type de prise & voltage", val("bw_power_type")],
+        ["Problèmes d'alimentation", val("bw_power_issues")],
+        ["Onduleur / UPS disponible ?", radioValue("bw_ups")],
+      ]);
+      if (tTech) { out.push(subHeading("Pénétration, équipement indoor & alimentation")); out.push(tTech); out.push(emptyP()); }
+
+      // Bill of Materials Blue Wireless
+      const tBom = bwKvTable([
+        ["Dish Starlink (type)", val("bw_bom_dish")],
+        ["Routeur (modèle)", val("bw_bom_router")],
+        ["Câble antenne Starlink", val("bw_bom_cable_ant")],
+        ["Câble Starlink → Ethernet", val("bw_bom_cable_eth")],
+        ["Type de mât / support", val("bw_bom_mount")],
+        ["Infra pôle / sol / fixations", val("bw_bom_infra")],
+        ["Consommables d'installation", val("bw_bom_consumables")],
+      ]);
+      if (tBom) { out.push(subHeading("Bill of Materials — Blue Wireless")); out.push(tBom); out.push(emptyP()); }
+
+      // Scope of Work / Risques / Client / Next Steps
+      const tScope = bwKvTable([
+        ["Scope of Work — Blue Wireless", val("bw_sow_bw")],
+        ["Risques & mitigations", val("bw_risques")],
+        ["BoM client", val("bw_bom_customer")],
+        ["Travaux préparatoires client (SoW)", val("bw_sow_customer")],
+        ["Approbation / clearance requise", val("bw_approbation")],
+        ["Prochaines étapes (Next Steps)", val("bw_next_steps")],
+      ]);
+      if (tScope) { out.push(subHeading("Périmètre, risques & prochaines étapes")); out.push(tScope); out.push(emptyP()); }
+
+      return out;
+    }
+
     // ========== Construction du document ==========
     const children = [];
 
@@ -1308,6 +1412,11 @@ async function generateDocument() {
     children.push(tableObservations);
     children.push(emptyP());
     children.push(tableSignature);
+
+    // SECTION BLUEWIRELESS — uniquement si client final = Bluewireless
+    if (isBW) {
+      children.push(...buildBluewirelessChildren());
+    }
 
     // ========== Document final ==========
     const doc = new Document({
@@ -1425,6 +1534,40 @@ function buildExportData() {
       cablage_supp: radioValue("cablage_supp"),
       // EPI (radios dynamiques)
       epi: EPI_LIST.map(epi => ({ key: epi.key, value: radioValue("epi_" + epi.key) })),
+
+      // ===== Champs spécifiques BLUEWIRELESS =====
+      bw_gps: val("bw_gps"),
+      bw_building_type: radioValue("bw_building_type"),
+      bw_building_material: val("bw_building_material"),
+      bw_ownership: radioValue("bw_ownership"),
+      bw_contact_landlord: val("bw_contact_landlord"),
+      bw_contact_civils: val("bw_contact_civils"),
+      bw_contact_facilities: val("bw_contact_facilities"),
+      bw_contact_escort: val("bw_contact_escort"),
+      bw_ingress_exist: radioValue("bw_ingress_exist"),
+      bw_ingress_detail: val("bw_ingress_detail"),
+      bw_indoor_placement: val("bw_indoor_placement"),
+      bw_rj45: radioValue("bw_rj45"),
+      bw_power_2sockets: radioValue("bw_power_2sockets"),
+      bw_power_type: val("bw_power_type"),
+      bw_power_issues: val("bw_power_issues"),
+      bw_ups: radioValue("bw_ups"),
+      bw_faisable: radioValue("bw_faisable"),
+      bw_emplacement_retenu: val("bw_emplacement_retenu"),
+      bw_reco: val("bw_reco"),
+      bw_bom_dish: val("bw_bom_dish"),
+      bw_bom_router: val("bw_bom_router"),
+      bw_bom_cable_ant: val("bw_bom_cable_ant"),
+      bw_bom_cable_eth: val("bw_bom_cable_eth"),
+      bw_bom_mount: val("bw_bom_mount"),
+      bw_bom_infra: val("bw_bom_infra"),
+      bw_bom_consumables: val("bw_bom_consumables"),
+      bw_sow_bw: val("bw_sow_bw"),
+      bw_risques: val("bw_risques"),
+      bw_bom_customer: val("bw_bom_customer"),
+      bw_sow_customer: val("bw_sow_customer"),
+      bw_approbation: val("bw_approbation"),
+      bw_next_steps: val("bw_next_steps"),
     };
 
     // Photos : on stocke les dataUrl (déjà en base64) + métadonnées + annotations
@@ -1510,6 +1653,7 @@ async function applyImportedData(data) {
       // Le sélecteur de client revient à sa valeur par défaut (Bouygues)
       const selClient = document.getElementById("client_final");
       if (selClient) selClient.value = formData.client_final || "bouygues";
+      syncClientAttr();
 
       // Restaurer le mode AUDIT/TRAVAUX si présent (par défaut: audit)
       setMode(data.mode === "travaux" ? "travaux" : "audit");
@@ -1548,7 +1692,14 @@ async function applyImportedData(data) {
         "contact_nom","contact_fonction","contact_tel","contact_mail",
         "empl_description","empl_hauteur","obstr_commentaire","cable_longueur",
         "hauteur_max","heure_debut","heure_fin","duree_totale","duree_intervention","nb_techniciens",
-        "epi_remarques","observations","signataire_nom","signataire_date"
+        "epi_remarques","observations","signataire_nom","signataire_date",
+        // ===== Champs spécifiques BLUEWIRELESS (texte / textarea) =====
+        "bw_gps","bw_building_material","bw_contact_landlord","bw_contact_civils",
+        "bw_contact_facilities","bw_contact_escort","bw_ingress_detail","bw_indoor_placement",
+        "bw_power_type","bw_power_issues","bw_emplacement_retenu","bw_reco",
+        "bw_bom_dish","bw_bom_router","bw_bom_cable_ant","bw_bom_cable_eth",
+        "bw_bom_mount","bw_bom_infra","bw_bom_consumables","bw_sow_bw","bw_risques",
+        "bw_bom_customer","bw_sow_customer","bw_approbation","bw_next_steps"
       ];
       TEXT_FIELDS.forEach(id => {
         const el = document.getElementById(id);
@@ -1572,6 +1723,14 @@ async function applyImportedData(data) {
       if (formData.nacelle_utilisee) setRadio("nacelle_utilisee", formData.nacelle_utilisee);
       if (formData.echelle_echafaud) setRadio("echelle_echafaud", formData.echelle_echafaud);
       if (formData.cablage_supp)     setRadio("cablage_supp",     formData.cablage_supp);
+
+      // 4-bis) Restaurer les radios spécifiques BLUEWIRELESS
+      [
+        "bw_building_type","bw_ownership","bw_ingress_exist","bw_rj45",
+        "bw_power_2sockets","bw_ups","bw_faisable"
+      ].forEach(name => {
+        if (formData[name]) setRadio(name, formData[name]);
+      });
 
       // 4b) Recalculer la durée à partir des heures restaurées (mode TRAVAUX)
       updateDureeIntervention();
