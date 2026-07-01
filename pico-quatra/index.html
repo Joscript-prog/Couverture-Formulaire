@@ -479,6 +479,27 @@
             gap: 14px;
             margin-top: 10px;
         }
+        /* Ligne photos sous chaque point de mesure */
+        .measure-photos-row > td {
+            background: #eef4fb;
+            padding: 12px 14px !important;
+            border-bottom: 2px solid #d5e2f0 !important;
+        }
+        .measure-photos-wrap { }
+        .measure-photos-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #1f4e79;
+            margin-bottom: 10px;
+        }
+        .measure-photos-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        @media (max-width: 720px) {
+            .measure-photos-grid { grid-template-columns: 1fr; }
+        }
         .photo-block {
             background: #f8fafc;
             border: 1px solid #e0e6ed;
@@ -1267,7 +1288,7 @@
         <!-- 3. MESURES RADIO -->
         <div class="section" id="mesures-section">
             <h2 id="measuresTitle">3. Mesures radio (avant intervention)</h2>
-            <div class="info-banner">Tests réalisés avec l'application <b>Network Cell Info Lite</b>. Saisir RSRP, SNR, RSRQ, Band et Speedtest pour chaque zone.</div>
+            <div class="info-banner">Tests réalisés avec l'application <b>Network Cell Info Lite</b>. Saisir RSRP, SNR, RSRQ, Band et Speedtest pour chaque zone. Pour chaque point, vous pouvez joindre <b>3 photos</b> : copie écran jauge, copie écran débit et photo de l'emplacement.</div>
             <h3>Grille de qualité radio (référence)</h3>
             <div class="qualite-grid" id="qualiteGrid"></div>
             <h3>Points de mesure</h3>
