@@ -277,6 +277,35 @@ function addMeasureRow() {
         <td><button type="button" class="row-del" onclick="removeMeasureRow('${id}')">✕</button></td>
     `;
     document.getElementById("measuresBody").appendChild(tr);
+
+    // --- Ligne photos associée à ce point de mesure (jauge / débit / emplacement) ---
+    const photoTr = document.createElement("tr");
+    photoTr.dataset.measurePhotosFor = id;
+    photoTr.className = "measure-photos-row";
+    const photoTd = document.createElement("td");
+    photoTd.colSpan = 10;
+    photoTd.innerHTML = `
+        <div class="measure-photos-wrap">
+            <div class="measure-photos-title">📷 Photos du point « <span data-mzone-echo="${id}">Point ${measureCounter}</span> »</div>
+            <div class="measure-photos-grid" id="${id}_photos"></div>
+        </div>
+    `;
+    photoTr.appendChild(photoTd);
+    document.getElementById("measuresBody").appendChild(photoTr);
+
+    // 3 blocs photo pré-libellés, non supprimables
+    const photoGrid = photoTd.querySelector(`#${id}_photos`);
+    MEASURE_PHOTO_PRESETS.forEach(preset => {
+        const block = createPhotoBlock(`${id}_${preset.suffix}`, preset.label, false);
+        photoGrid.appendChild(block);
+    });
+
+    // Écho du nom de zone dans le titre des photos
+    document.getElementById(id + "_zone").addEventListener("input", (e) => {
+        const echo = document.querySelector(`[data-mzone-echo="${id}"]`);
+        if (echo) echo.textContent = e.target.value.trim() || ("Point " + id.split("_")[1]);
+    });
+
     document.getElementById(id + "_rsrp").addEventListener("input", () => analyzeMeasureRow(id));
     document.getElementById(id + "_snr").addEventListener("input", () => analyzeMeasureRow(id));
     document.getElementById(id + "_zone").addEventListener("input", () => {
@@ -287,6 +316,10 @@ window.addMeasureRow = addMeasureRow;
 function removeMeasureRow(id) {
     const tr = document.querySelector(`tr[data-measure-id="${id}"]`);
     if (tr) tr.remove();
+    // Supprimer la ligne photos associée et les photos stockées
+    const photoRow = document.querySelector(`tr[data-measure-photos-for="${id}"]`);
+    if (photoRow) photoRow.remove();
+    MEASURE_PHOTO_PRESETS.forEach(preset => { delete photoStore[`${id}_${preset.suffix}`]; });
     // Délier cette mesure de tous les points qui y faisaient référence (tous plans)
     evacPlans.forEach(plan => {
         plan.points.forEach(p => {
@@ -325,6 +358,13 @@ window.removePicoPose = removePicoPose;
 // =============================================================
 //  PHOTOS PICO & QUATRA (blocs dynamiques)
 // =============================================================
+// 3 photos par point de mesure : jauge, débit, emplacement
+const MEASURE_PHOTO_PRESETS = [
+    { suffix: "ph_jauge",       label: "Copie écran jauge" },
+    { suffix: "ph_debit",       label: "Copie écran débit" },
+    { suffix: "ph_emplacement", label: "Photo emplacement" }
+];
+
 const PICO_PHOTO_PRESETS = [
     "Vue de la baie informatique",
     "Emplacement PICO 1",
@@ -981,6 +1021,7 @@ function collectMeasures() {
         const s = parseFloat(snr);
         const q = evaluateQuality(r, s);
         rows.push({
+            id,
             zone: val(id + "_zone"),
             rsrp, snr, rsrq, band,
             m4g,
@@ -988,7 +1029,12 @@ function collectMeasures() {
             dn:   val(id + "_dn"),
             up:   val(id + "_up"),
             qualite: q ? q.label : "",
-            qualiteColor: q ? q.color.replace("#", "") : ""
+            qualiteColor: q ? q.color.replace("#", "") : "",
+            photos: {
+                jauge:       (photoStore[`${id}_ph_jauge`]       || {}).dataUrl || "",
+                debit:       (photoStore[`${id}_ph_debit`]       || {}).dataUrl || "",
+                emplacement: (photoStore[`${id}_ph_emplacement`] || {}).dataUrl || ""
+            }
         });
     });
     return rows;
@@ -1261,6 +1307,21 @@ async function applyImportedData(data) {
                 document.getElementById(id + "_5g").value = m.m5g || "";
                 document.getElementById(id + "_dn").value = m.dn || "";
                 document.getElementById(id + "_up").value = m.up || "";
+                // Remapper les clés photo de l'ancien id vers le nouvel id (robuste si les ids ont changé)
+                const oldId = m.id;
+                if (oldId && oldId !== id) {
+                    MEASURE_PHOTO_PRESETS.forEach(preset => {
+                        const oldKey = `${oldId}_${preset.suffix}`;
+                        const newKey = `${id}_${preset.suffix}`;
+                        if (photos[oldKey] && !photos[newKey]) {
+                            photos[newKey] = photos[oldKey];
+                            delete photos[oldKey];
+                        }
+                    });
+                }
+                // Mettre à jour l'écho du titre photos avec la zone
+                const echo = document.querySelector(`[data-mzone-echo="${id}"]`);
+                if (echo) echo.textContent = (m.zone || "").trim() || ("Point " + measureCounter);
                 analyzeMeasureRow(id);
             });
             if ((fd.mesures || []).length === 0) addMeasureRow();
@@ -1420,13 +1481,18 @@ async function generateReport() {
         async function getPhotoImageRun(key, maxW, maxH) {
             const p = photoStore[key];
             if (!p || !p.dataUrl) return null;
+            return imageRunFromDataUrl(p.dataUrl, maxW, maxH, p.type);
+        }
+        async function imageRunFromDataUrl(dataUrl, maxW, maxH, type) {
+            if (!dataUrl) return null;
             try {
-                const dims = await new Promise((resolve) => { const img = new Image(); img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight }); img.onerror = () => resolve({ w: maxW, h: maxH }); img.src = p.dataUrl; });
+                const dims = await new Promise((resolve) => { const img = new Image(); img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight }); img.onerror = () => resolve({ w: maxW, h: maxH }); img.src = dataUrl; });
                 const ratio = dims.w / dims.h;
                 let w = maxW, h = Math.round(maxW / ratio);
                 if (h > maxH) { h = maxH; w = Math.round(maxH * ratio); }
-                return new ImageRun({ data: dataUrlToBytes(p.dataUrl), transformation: { width: w, height: h }, type: (p.type === "png") ? "png" : "jpg" });
-            } catch (err) { console.warn("Photo invalide", key, err); return null; }
+                const isPng = type ? (type === "png") : /^data:image\/png/i.test(dataUrl);
+                return new ImageRun({ data: dataUrlToBytes(dataUrl), transformation: { width: w, height: h }, type: isPng ? "png" : "jpg" });
+            } catch (err) { console.warn("Photo invalide", err); return null; }
         }
         const mode = getMode();
         const isTravaux = (mode === 'travaux');
@@ -1475,6 +1541,39 @@ async function generateReport() {
                 mesureRows.push(new TableRow({ children: [ cellText(m.zone || "—", { width: 1880, bold: true }), cellText(m4g, { width: 2080, align: AlignmentType.CENTER }), cellText(m.m5g || "—", { width: 1880, align: AlignmentType.CENTER }), cellText(m.dn || "—", { width: 880, align: AlignmentType.CENTER }), cellText(m.up || "—", { width: 880, align: AlignmentType.CENTER }), cellText( m.qualite || "—", { width: 1760, align: AlignmentType.CENTER, bold: !!m.qualite, shading: m.qualiteColor ? "#" + m.qualiteColor : undefined, color: m.qualite ? COLOR_WHITE : "000000" }) ] }));
             });
             children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: [1880, 2080, 1880, 880, 880, 1760], rows: mesureRows }));
+
+            // --- Photos par point de mesure (jauge / débit / emplacement) ---
+            const mesuresAvecPhotos = mesures.filter(m => m.photos && (m.photos.jauge || m.photos.debit || m.photos.emplacement));
+            if (mesuresAvecPhotos.length > 0) {
+                children.push(H("Reporting photos par point de mesure", 2));
+                const PH_LABELS = [
+                    { key: "jauge",       label: "Copie écran jauge" },
+                    { key: "debit",       label: "Copie écran débit" },
+                    { key: "emplacement", label: "Photo emplacement" }
+                ];
+                for (const m of mesuresAvecPhotos) {
+                    children.push(new Paragraph({ spacing: { before: 200, after: 80 }, children: [new TextRun({ text: "📍 " + (m.zone || "Point de mesure"), bold: true, size: 24, color: COLOR_SUBTITLE, font: FONT })] }));
+
+                    // En-tête (libellés) + ligne d'images, en tableau 3 colonnes
+                    const headerCells = PH_LABELS.map(pl => cellText(pl.label, { width: 3120, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }));
+
+                    const imgCells = [];
+                    for (const pl of PH_LABELS) {
+                        const dataUrl = m.photos[pl.key];
+                        let cellChildren;
+                        if (dataUrl) {
+                            const run = await imageRunFromDataUrl(dataUrl, 280, 210);
+                            cellChildren = run
+                                ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [run] })]
+                                : [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "—", font: FONT })] })];
+                        } else {
+                            cellChildren = [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "—", color: "999999", font: FONT })] })];
+                        }
+                        imgCells.push(new TableCell({ width: { size: 3120, type: WidthType.DXA }, margins: { top: 60, bottom: 60, left: 60, right: 60 }, borders: stdBorders, children: cellChildren }));
+                    }
+                    children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: [3120, 3120, 3120], rows: [ new TableRow({ tableHeader: true, children: headerCells }), new TableRow({ children: imgCells }) ] }));
+                }
+            }
         }
         const mesureNote = val("mesures_note");
         if (mesureNote.trim()) { children.push(P("")); children.push(P(mesureNote, { runOpts: { italics: true } })); }
