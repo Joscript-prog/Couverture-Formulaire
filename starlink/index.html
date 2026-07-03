@@ -120,6 +120,14 @@
   .bw-only { display: none; }
   body[data-client="bluewireless"] .bw-only { display: block; }
   body[data-client="bluewireless"] tr.bw-only { display: table-row; }
+  .iec-only { display: none; }
+  body[data-client="iectelecom"] .iec-only { display: block; }
+  body[data-client="iectelecom"] tr.iec-only { display: table-row; }
+  .paste-btn {
+    background: #6a5acd; color: #fff; border: none; border-radius: 4px;
+    padding: 4px 10px; margin-left: 6px; cursor: pointer; font-size: 0.85rem;
+  }
+  .paste-btn:hover { background: #5747b8; }
 
   .container { max-width: 1100px; margin: 20px auto; padding: 0 20px 60px 20px; }
   .section {
@@ -852,6 +860,7 @@
         <option value="bouygues" selected>Bouygues Telecom</option>
         <option value="bretagne">Bretagne Telecom (btblue)</option>
         <option value="bluewireless">Bluewireless</option>
+        <option value="iectelecom">IEC Telecom</option>
       </select>
     </div>
     <div class="field-row bw-only">
@@ -1269,6 +1278,84 @@
     <!-- ===== Fin champs BLUEWIRELESS (section 3) ===== -->
   </div>
 
+
+  <!-- ========== SECTION IEC TELECOM (client final = IEC Telecom) ========== -->
+  <div class="section iec-only">
+    <h2><span id="iecSectionNum">7.</span> Captures d'écran — Tests &amp; mise en service (IEC Telecom)</h2>
+    <p style="font-size:0.85rem;color:#555;margin-top:-4px;">
+      Importez ou collez (📋) toutes les captures d'écran disponibles : tests de l'application Starlink,
+      débits, statistiques, réseaux Wi-Fi, etc. Seules les cases remplies apparaîtront dans le rapport.
+    </p>
+    <div class="photo-grid">
+      <div class="photo-upload">
+        <div class="photo-upload-label">
+          📷 Test d'emplacement (app Starlink)
+          <input type="file" accept="image/*" data-photo-key="capt_test_emplacement" style="margin-left:8px;">
+          <button type="button" class="paste-btn" data-paste="capt_test_emplacement" title="Coller une image du presse-papiers">📋 Coller</button>
+          <button class="annotate-btn" data-annotate="capt_test_emplacement" disabled>✏ Annoter</button>
+          <button class="clear-photo" data-clear="capt_test_emplacement">✕</button>
+        </div>
+        <img class="photo-preview" id="preview_capt_test_emplacement">
+      </div>
+      <div class="photo-upload">
+        <div class="photo-upload-label">
+          📷 Test de débit Starlink
+          <input type="file" accept="image/*" data-photo-key="capt_test_debit" style="margin-left:8px;">
+          <button type="button" class="paste-btn" data-paste="capt_test_debit" title="Coller une image du presse-papiers">📋 Coller</button>
+          <button class="annotate-btn" data-annotate="capt_test_debit" disabled>✏ Annoter</button>
+          <button class="clear-photo" data-clear="capt_test_debit">✕</button>
+        </div>
+        <img class="photo-preview" id="preview_capt_test_debit">
+      </div>
+      <div class="photo-upload">
+        <div class="photo-upload-label">
+          📷 Statistiques Starlink
+          <input type="file" accept="image/*" data-photo-key="capt_stats" style="margin-left:8px;">
+          <button type="button" class="paste-btn" data-paste="capt_stats" title="Coller une image du presse-papiers">📋 Coller</button>
+          <button class="annotate-btn" data-annotate="capt_stats" disabled>✏ Annoter</button>
+          <button class="clear-photo" data-clear="capt_stats">✕</button>
+        </div>
+        <img class="photo-preview" id="preview_capt_stats">
+      </div>
+      <div class="photo-upload">
+        <div class="photo-upload-label">
+          📷 Test de débit vers le routeur
+          <input type="file" accept="image/*" data-photo-key="capt_debit_routeur" style="margin-left:8px;">
+          <button type="button" class="paste-btn" data-paste="capt_debit_routeur" title="Coller une image du presse-papiers">📋 Coller</button>
+          <button class="annotate-btn" data-annotate="capt_debit_routeur" disabled>✏ Annoter</button>
+          <button class="clear-photo" data-clear="capt_debit_routeur">✕</button>
+        </div>
+        <img class="photo-preview" id="preview_capt_debit_routeur">
+      </div>
+      <div class="photo-upload">
+        <div class="photo-upload-label">
+          📷 Réseaux Wi-Fi détectés
+          <input type="file" accept="image/*" data-photo-key="capt_wifi" style="margin-left:8px;">
+          <button type="button" class="paste-btn" data-paste="capt_wifi" title="Coller une image du presse-papiers">📋 Coller</button>
+          <button class="annotate-btn" data-annotate="capt_wifi" disabled>✏ Annoter</button>
+          <button class="clear-photo" data-clear="capt_wifi">✕</button>
+        </div>
+        <img class="photo-preview" id="preview_capt_wifi">
+      </div>
+      <div class="photo-upload">
+        <div class="photo-upload-label">
+          📷 Test de vitesse Internet
+          <input type="file" accept="image/*" data-photo-key="capt_speedtest" style="margin-left:8px;">
+          <button type="button" class="paste-btn" data-paste="capt_speedtest" title="Coller une image du presse-papiers">📋 Coller</button>
+          <button class="annotate-btn" data-annotate="capt_speedtest" disabled>✏ Annoter</button>
+          <button class="clear-photo" data-clear="capt_speedtest">✕</button>
+        </div>
+        <img class="photo-preview" id="preview_capt_speedtest">
+      </div>
+    </div>
+    <div class="photo-grid" id="iecCapturesContainer"></div>
+    <div style="margin: 8px 0 16px 0;">
+      <button type="button" id="btnAddIecCapture" class="btn-secondary" style="background:#5cb85c; color:white; padding:8px 16px;">
+        ➕ Ajouter une capture d'écran
+      </button>
+    </div>
+  </div>
+
   <!-- ========== SECTION BLUEWIRELESS (client final = Bluewireless) ========== -->
   <div class="section bw-only">
     <h2><span id="bwSectionNum">7.</span> Conclusions, équipement &amp; périmètre (Bluewireless)</h2>
@@ -1435,6 +1522,18 @@
     <div class="field-row">
       <label>Date de signature</label>
       <input type="date" id="signataire_date">
+    </div>
+    <div class="field-row full">
+      <label>Signature (image)</label>
+      <div class="photo-upload">
+        <div class="photo-upload-label">
+          ✍️ Signature du signataire — importez une image ou collez-la (capture d'écran de la signature du PDF)
+          <input type="file" accept="image/*" data-photo-key="signature_img" style="margin-left:8px;">
+          <button type="button" class="paste-btn" data-paste="signature_img" title="Coller une image du presse-papiers">📋 Coller</button>
+          <button class="clear-photo" data-clear="signature_img">✕</button>
+        </div>
+        <img class="photo-preview" id="preview_signature_img" style="max-height:140px;">
+      </div>
     </div>
   </div>
 
