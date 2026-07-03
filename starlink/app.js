@@ -92,7 +92,25 @@ const PHOTO_LABELS = {
   penetration_facade: "Point de pénétration façade",
   routeur: "Emplacement du routeur Starlink",
   bw_satellite: "Vue satellite / plan de localisation",
+  // ===== Captures d'écran IEC Telecom =====
+  capt_test_emplacement: "Test d'emplacement (app Starlink)",
+  capt_test_debit: "Test de débit Starlink",
+  capt_stats: "Statistiques Starlink",
+  capt_debit_routeur: "Test de débit vers le routeur",
+  capt_wifi: "Réseaux Wi-Fi détectés",
+  capt_speedtest: "Test de vitesse Internet",
+  signature_img: "Signature (image)",
 };
+
+// Liste ordonnée des captures d'écran IEC Telecom (clé fixe → libellé)
+const IEC_CAPTURES = [
+  ["capt_test_emplacement", "Test d'emplacement (app Starlink)"],
+  ["capt_test_debit",       "Test de débit Starlink"],
+  ["capt_stats",            "Statistiques Starlink"],
+  ["capt_debit_routeur",    "Test de débit vers le routeur"],
+  ["capt_wifi",             "Réseaux Wi-Fi détectés"],
+  ["capt_speedtest",        "Test de vitesse Internet"],
+];
 
 // ============================================================
 //  Init
@@ -176,6 +194,42 @@ document.addEventListener("DOMContentLoaded", () => {
     btnAddChem.addEventListener("click", () => addCheminementBlock());
   }
 
+  // Bouton "+ Ajouter une capture d'écran" (section IEC Telecom)
+  const btnAddIec = document.getElementById("btnAddIecCapture");
+  if (btnAddIec) {
+    btnAddIec.addEventListener("click", () => addIecCaptureBlock());
+  }
+
+  // Boutons "📋 Coller" (délégation) — colle une image du presse-papiers dans la case
+  document.body.addEventListener("click", async (e) => {
+    const btn = e.target.closest("[data-paste]");
+    if (!btn) return;
+    const key = btn.dataset.paste;
+    try {
+      if (!navigator.clipboard || !navigator.clipboard.read) {
+        alert("Votre navigateur ne permet pas de lire le presse-papiers.\nUtilisez le bouton d'import de fichier, ou Chrome/Edge en HTTPS.");
+        return;
+      }
+      const items = await navigator.clipboard.read();
+      let blob = null;
+      for (const item of items) {
+        const imgType = item.types.find(t => t.startsWith("image/"));
+        if (imgType) { blob = await item.getType(imgType); break; }
+      }
+      if (!blob) {
+        alert("Aucune image trouvée dans le presse-papiers.\nFaites d'abord une capture (ou copiez une image), puis cliquez sur 📋 Coller.");
+        return;
+      }
+      const ext = (blob.type.split("/")[1] || "png");
+      const file = new File([blob], "collage_" + key + "." + ext, { type: blob.type });
+      await ingestPhotoFile(key, file);
+      showStatus("✅ Image collée dans « " + (PHOTO_LABELS[key] || key) + " ».", "success");
+    } catch (err) {
+      console.error(err);
+      alert("Impossible de lire le presse-papiers : " + err.message + "\nAutorisez l'accès au presse-papiers ou utilisez l'import de fichier.");
+    }
+  });
+
   // Date par défaut
   const today = new Date().toISOString().slice(0, 10);
   document.getElementById("date_audit").value = today;
@@ -204,7 +258,11 @@ async function handlePhotoUpload(e) {
     document.getElementById("preview_" + key).classList.remove("shown");
     return;
   }
+  await ingestPhotoFile(key, file);
+}
 
+// Ingestion commune d'une image (fichier OU presse-papiers) pour une clé donnée
+async function ingestPhotoFile(key, file) {
   const buf = await file.arrayBuffer();
   const u8 = new Uint8Array(buf);
 
@@ -330,6 +388,75 @@ function addCheminementBlock(key) {
   return finalKey;
 }
 
+// ============================================================
+//  Captures d'écran IEC Telecom — blocs dynamiques supplémentaires
+// ============================================================
+
+// Renvoie toutes les clés iec_extra_N triées par numéro croissant
+function getIecExtraKeys() {
+  const keys = new Set();
+  document.querySelectorAll('[data-iec-capture-block]').forEach(el => {
+    keys.add(el.dataset.iecCaptureBlock);
+  });
+  Object.keys(photoStore).forEach(k => {
+    if (/^iec_extra_\d+$/.test(k)) keys.add(k);
+  });
+  return [...keys].sort((a, b) => {
+    const na = parseInt(a.split("_")[2], 10);
+    const nb = parseInt(b.split("_")[2], 10);
+    return na - nb;
+  });
+}
+
+function nextIecExtraNumber() {
+  const keys = getIecExtraKeys();
+  let n = 1;
+  while (keys.includes("iec_extra_" + n)) n++;
+  return n;
+}
+
+// Crée et insère un nouveau bloc capture supplémentaire dans la grille IEC.
+// Si `key` est fourni (ex: "iec_extra_2" lors d'un import), utilise cette clé exacte.
+function addIecCaptureBlock(key) {
+  const container = document.getElementById("iecCapturesContainer");
+  if (!container) return null;
+
+  const num = key ? parseInt(key.split("_")[2], 10) : nextIecExtraNumber();
+  const finalKey = key || ("iec_extra_" + num);
+
+  if (document.querySelector(`[data-iec-capture-block="${finalKey}"]`)) {
+    return finalKey;
+  }
+
+  const block = document.createElement("div");
+  block.className = "photo-upload";
+  block.dataset.iecCaptureBlock = finalKey;
+  block.innerHTML = `
+    <div class="photo-upload-label">
+      📷 Capture supplémentaire ${num}
+      <input type="file" accept="image/*" data-photo-key="${finalKey}" style="margin-left:8px;">
+      <button type="button" class="paste-btn" data-paste="${finalKey}" title="Coller une image du presse-papiers">📋 Coller</button>
+      <button class="annotate-btn" data-annotate="${finalKey}" disabled>✏ Annoter</button>
+      <button class="clear-photo" data-clear="${finalKey}">✕</button>
+      <button type="button" class="clear-photo remove-iec-capture-block" title="Retirer ce bloc" style="background:#777;">🗑 Retirer</button>
+    </div>
+    <img class="photo-preview" id="preview_${finalKey}">
+  `;
+  container.appendChild(block);
+
+  const removeBtn = block.querySelector(".remove-iec-capture-block");
+  if (removeBtn) {
+    removeBtn.addEventListener("click", () => {
+      delete photoStore[finalKey];
+      block.remove();
+      delete PHOTO_LABELS[finalKey];
+    });
+  }
+
+  PHOTO_LABELS[finalKey] = "Capture supplémentaire " + num;
+  return finalKey;
+}
+
 function val(id) {
   const el = document.getElementById(id);
   return el ? (el.value || "").trim() : "";
@@ -365,9 +492,15 @@ function updateSectionNumbers() {
 
   let n = isTravaux ? 5 : 6; // 1er numéro après EPI (ou après la section 4 en TRAVAUX)
 
+  const isIEC = !!(sel && sel.value === "iectelecom");
+
   const bwNumEl = document.getElementById("bwSectionNum");
   if (bwNumEl) {
     if (isBW) { bwNumEl.textContent = n + "."; n++; }
+  }
+  const iecNumEl = document.getElementById("iecSectionNum");
+  if (iecNumEl) {
+    if (isIEC) { iecNumEl.textContent = n + "."; n++; }
   }
   const synthNumEl = document.getElementById("syntheseSectionNum");
   if (synthNumEl) synthNumEl.textContent = n + ".";
@@ -402,6 +535,11 @@ function resetForm() {
       delete PHOTO_LABELS[key];
       block.remove();
     }
+  });
+  // Retirer les blocs de captures IEC supplémentaires (créés dynamiquement)
+  document.querySelectorAll('[data-iec-capture-block]').forEach(block => {
+    delete PHOTO_LABELS[block.dataset.iecCaptureBlock];
+    block.remove();
   });
   showStatus("Formulaire réinitialisé.", "success");
 }
@@ -1143,12 +1281,34 @@ async function generateDocument() {
           new TableCell({
             borders, width: { size: 9360, type: WidthType.DXA },
             margins: { top: 200, bottom: 800, left: 120, right: 120 },
-            children: [
-              emptyP(),
-              P(tr("Nom : ") + (val("signataire_nom") || "_______________________________")),
-              emptyP(),
-              P(tr("Date : ") + (formatDateFR(val("signataire_date")) || "_______________________________"))
-            ]
+            children: (() => {
+              const sigChildren = [
+                emptyP(),
+                P(tr("Nom : ") + (val("signataire_nom") || "_______________________________")),
+                emptyP(),
+                P(tr("Date : ") + (formatDateFR(val("signataire_date")) || "_______________________________"))
+              ];
+              // Image de signature (collée / importée) — insérée si présente
+              const sig = photoStore["signature_img"];
+              if (sig) {
+                const natW = sig.naturalWidth || 260;
+                const natH = sig.naturalHeight || 110;
+                const r = Math.min(260 / natW, 110 / natH, 1);
+                sigChildren.push(emptyP());
+                sigChildren.push(P(tr("Signature :"), { bold: true }));
+                sigChildren.push(new Paragraph({
+                  spacing: { before: 40, after: 40 },
+                  children: [
+                    new ImageRun({
+                      data: sig.data,
+                      transformation: { width: Math.round(natW * r), height: Math.round(natH * r) },
+                      type: sig.type
+                    })
+                  ]
+                }));
+              }
+              return sigChildren;
+            })()
           })
         ]})
       ]
@@ -1351,6 +1511,41 @@ async function generateDocument() {
       return out;
     }
 
+    // ========== SECTION IEC TELECOM (générée seulement si client = IEC Telecom) ==========
+    // Toutes les captures d'écran (cases fixes + captures supplémentaires) avec photo,
+    // affichées 2 par ligne comme les photos de cheminement.
+    function buildIecCapturesChildren(numText) {
+      const out = [];
+
+      // Paires (label, key) : cases fixes puis captures supplémentaires triées
+      const pairs = [];
+      IEC_CAPTURES.forEach(([key, label]) => {
+        if (photoStore[key]) pairs.push([label, key]);
+      });
+      Object.keys(photoStore)
+        .filter(k => /^iec_extra_\d+$/.test(k))
+        .sort((a, b) => parseInt(a.split("_")[2], 10) - parseInt(b.split("_")[2], 10))
+        .forEach(k => {
+          const num = parseInt(k.split("_")[2], 10);
+          pairs.push([tr("Capture supplémentaire ") + num, k]);
+        });
+
+      if (pairs.length === 0) return out;
+
+      out.push(sectionHeading(numText, "Captures d'écran — Tests & mise en service"));
+      for (let i = 0; i < pairs.length; i += 2) {
+        const [label1, key1] = pairs[i];
+        const second = pairs[i + 1];
+        if (second) {
+          const [label2, key2] = second;
+          out.push(...makePhotoRow(label1, key1, label2, key2));
+        } else {
+          out.push(...makePhotoRow(label1, key1, "", "__none__"));
+        }
+      }
+      return out;
+    }
+
     // ========== Construction du document ==========
     const children = [];
 
@@ -1450,6 +1645,15 @@ async function generateDocument() {
     if (isBW) {
       children.push(...buildBluewirelessChildren(String(nextNum)));
       nextNum++;
+    }
+
+    // SECTION IEC TELECOM — uniquement si client final = IEC Telecom
+    if (val("client_final") === "iectelecom") {
+      const iecChildren = buildIecCapturesChildren(String(nextNum));
+      if (iecChildren.length > 0) {
+        children.push(...iecChildren);
+        nextNum++;
+      }
     }
 
     // Synthèse de l'intervention (numéro qui suit la section BW si présente)
@@ -1728,6 +1932,15 @@ async function applyImportedData(data) {
             addCheminementBlock(k);
           }
         }
+      });
+
+      // 1d) Retirer les blocs de captures IEC dynamiques puis re-créer ceux du JSON
+      document.querySelectorAll('[data-iec-capture-block]').forEach(block => {
+        delete PHOTO_LABELS[block.dataset.iecCaptureBlock];
+        block.remove();
+      });
+      Object.keys(photos).forEach(k => {
+        if (/^iec_extra_\d+$/.test(k)) addIecCaptureBlock(k);
       });
 
       // 2) Restaurer les champs texte / date / etc.
