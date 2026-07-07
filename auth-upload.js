@@ -131,6 +131,9 @@ function tryAutoImportJson() {
         } else if (dossier === "4g-5g" && typeof window.importJSON === "function") {
             // 4g-5g attend un event de type {target: {files: [file]}}
             window.importJSON({ target: { files: [file] } });
+        } else if (dossier === "cablage" && typeof window.importJSON === "function") {
+            // cablage : même signature que 4g-5g
+            window.importJSON({ target: { files: [file] } });
         } else {
             console.warn("Fonction d'import non trouvée pour le dossier :", dossier);
             return;

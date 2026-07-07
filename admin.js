@@ -350,7 +350,7 @@ async function onActionClick(e) {
 //  - Le formulaire (via auth-upload.js) détecte le JSON et le charge
 // =================================================================
 async function openInForm(rap) {
-    if (!rap.dossier || !["pico-quatra", "4g-5g", "starlink"].includes(rap.dossier)) {
+    if (!rap.dossier || !["pico-quatra", "4g-5g", "starlink", "cablage"].includes(rap.dossier)) {
         showToast(`Dossier inconnu : "${rap.dossier}". Impossible d'ouvrir le formulaire.`, "error");
         return;
     }

@@ -118,6 +118,9 @@
         .card.pico::before {
             background: #5cb85c;
         }
+        .card.cablage::before {
+            background: #7c3aed;
+        }
         .card:hover {
             transform: translateY(-4px);
             box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
@@ -173,6 +176,9 @@
         .card.pico .card-features li::before {
             color: #5cb85c;
         }
+        .card.cablage .card-features li::before {
+            color: #7c3aed;
+        }
         .card-cta {
             align-self: flex-start;
             background: #2e75b6;
@@ -193,6 +199,9 @@
         .card.pico .card-cta {
             background: #449d44;
         }
+        .card.cablage .card-cta {
+            background: #7c3aed;
+        }
         .card:hover .card-cta {
             background: #1f4e79;
         }
@@ -201,6 +210,9 @@
         }
         .card.pico:hover .card-cta {
             background: #357935;
+        }
+        .card.cablage:hover .card-cta {
+            background: #5b21b6;
         }
 
         footer {
@@ -254,7 +266,7 @@
     </header>
 
     <div class="intro">
-        <p>Sélectionnez le formulaire correspondant à votre intervention. Chaque outil permet de basculer entre <strong>AUDIT</strong> ou <strong>TRAVAUX</strong> à l'intérieur du formulaire ; le rapport Word généré sera adapté en conséquence.</p>
+        <p>Lors de la création d'un dossier, choisissez le type de formulaire : <strong>Couverture</strong> (4G/5G, Starlink, PICO/Quatra) ou <strong>Câblage</strong>. Sélectionnez le formulaire correspondant à votre intervention. Chaque outil permet de basculer entre <strong>AUDIT</strong> ou <strong>TRAVAUX</strong> à l'intérieur du formulaire ; le rapport Word généré sera adapté en conséquence.</p>
         <div class="badges">
             <span class="badge"><span class="icon">🔍</span>Mode Audit</span>
             <span class="badge"><span class="icon">🛠️</span>Mode Travaux</span>
@@ -298,6 +310,19 @@
                     <li>Choix manuel du forfait selon le BPU (PICO 1-4, Quatra 1-6)</li>
                     <li>Décompte des PICO/CU posés et plan d'implantation</li>
                     <li>Liste de fournitures détaillée avec quantités</li>
+                </ul>
+                <span class="card-cta">Ouvrir le formulaire →</span>
+            </a>
+
+            <a class="card cablage" href="cablage/" aria-label="Ouvrir le formulaire Câblage">
+                <span class="card-icon" aria-hidden="true">🔌</span>
+                <h2>Câblage</h2>
+                <p class="card-desc">Audit ou travaux de câblage chez le client (formulaire indépendant des formulaires Couverture).</p>
+                <ul class="card-features">
+                    <li>Baie informatique : équipements, U disponibles, conformité automatique</li>
+                    <li>Photos annotables : devanture, baie, adductions, cheminements, percements...</li>
+                    <li>Section Blocage optionnelle (blocages + solutions proposées)</li>
+                    <li>Compatible tous donneurs d'ordre — ou IPKONEKT seul</li>
                 </ul>
                 <span class="card-cta">Ouvrir le formulaire →</span>
             </a>
