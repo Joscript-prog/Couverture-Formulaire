@@ -237,10 +237,10 @@ function evaluateQuality(rsrp, snr) {
     if (!r || !s) return null;
     return QUALITY_MATRIX[r][s];
 }
-function analyzeMeasureRow(id) {
-    const rsrp = parseFloat(document.getElementById(id + "_rsrp").value);
-    const snr  = parseFloat(document.getElementById(id + "_snr").value);
-    const cell = document.getElementById(id + "_analyse");
+function analyzeMeasureRow(id, tech) {
+    const rsrp = parseFloat(document.getElementById(`${id}_${tech}_rsrp`).value);
+    const snr  = parseFloat(document.getElementById(`${id}_${tech}_snr`).value);
+    const cell = document.getElementById(`${id}_${tech}_analyse`);
     if (!cell) return;
     const q = evaluateQuality(rsrp, snr);
     if (!q) {
@@ -262,23 +262,42 @@ function analyzeMeasureRow(id) {
 function addMeasureRow() {
     measureCounter++;
     const id = "m_" + measureCounter;
-    const tr = document.createElement("tr");
-    tr.dataset.measureId = id;
-    tr.innerHTML = `
-        <td><input type="text" id="${id}_zone" placeholder="Foyer, Bureau..."></td>
-        <td><input type="text" id="${id}_rsrp" inputmode="text" placeholder="-110"></td>
-        <td><input type="text" id="${id}_snr" inputmode="text" placeholder="8"></td>
-        <td><input type="text" id="${id}_rsrq" placeholder="-8"></td>
-        <td><input type="text" id="${id}_band" placeholder="20"></td>
-        <td><input type="text" id="${id}_5g" placeholder="-112/-10/28"></td>
-        <td><input type="text" id="${id}_dn" inputmode="decimal" placeholder="37"></td>
-        <td><input type="text" id="${id}_up" inputmode="decimal" placeholder="0.4"></td>
-        <td id="${id}_analyse" style="padding:8px 10px; text-align:center; font-weight:600; font-size:0.85rem; border-radius:4px; background:#e5e7eb; color:#374151;">—</td>
-        <td><button type="button" class="row-del" onclick="removeMeasureRow('${id}')">✕</button></td>
-    `;
-    document.getElementById("measuresBody").appendChild(tr);
 
-    // --- Ligne photos associée à ce point de mesure (jauge / débit / emplacement) ---
+    // --- Ligne 4G (contient la zone + bouton supprimer, en rowspan sur les 2 lignes) ---
+    const tr4g = document.createElement("tr");
+    tr4g.dataset.measureId = id;
+    tr4g.dataset.measureTech = "4g";
+    tr4g.innerHTML = `
+        <td rowspan="2" style="vertical-align:middle;"><input type="text" id="${id}_zone" placeholder="Foyer, Bureau..."></td>
+        <td style="text-align:center; font-weight:700; color:#1f4e79;">4G</td>
+        <td><input type="text" id="${id}_4g_rsrp" inputmode="text" placeholder="-110"></td>
+        <td><input type="text" id="${id}_4g_snr" inputmode="text" placeholder="8"></td>
+        <td><input type="text" id="${id}_4g_rsrq" placeholder="-8"></td>
+        <td><input type="text" id="${id}_4g_band" placeholder="20"></td>
+        <td><input type="text" id="${id}_4g_dn" inputmode="decimal" placeholder="37"></td>
+        <td><input type="text" id="${id}_4g_up" inputmode="decimal" placeholder="0.4"></td>
+        <td id="${id}_4g_analyse" style="padding:8px 10px; text-align:center; font-weight:600; font-size:0.85rem; border-radius:4px; background:#e5e7eb; color:#374151;">—</td>
+        <td rowspan="2" style="vertical-align:middle;"><button type="button" class="row-del" onclick="removeMeasureRow('${id}')">✕</button></td>
+    `;
+    document.getElementById("measuresBody").appendChild(tr4g);
+
+    // --- Ligne 5G ---
+    const tr5g = document.createElement("tr");
+    tr5g.dataset.measureRowFor = id;
+    tr5g.dataset.measureTech = "5g";
+    tr5g.innerHTML = `
+        <td style="text-align:center; font-weight:700; color:#7030a0;">5G</td>
+        <td><input type="text" id="${id}_5g_rsrp" inputmode="text" placeholder="-112"></td>
+        <td><input type="text" id="${id}_5g_snr" inputmode="text" placeholder="10"></td>
+        <td><input type="text" id="${id}_5g_rsrq" placeholder="-10"></td>
+        <td><input type="text" id="${id}_5g_band" placeholder="78"></td>
+        <td><input type="text" id="${id}_5g_dn" inputmode="decimal" placeholder="43.7"></td>
+        <td><input type="text" id="${id}_5g_up" inputmode="decimal" placeholder="0.109"></td>
+        <td id="${id}_5g_analyse" style="padding:8px 10px; text-align:center; font-weight:600; font-size:0.85rem; border-radius:4px; background:#e5e7eb; color:#374151;">—</td>
+    `;
+    document.getElementById("measuresBody").appendChild(tr5g);
+
+    // --- Ligne photos associée à ce point de mesure (jauge/débit 4G & 5G + emplacement) ---
     const photoTr = document.createElement("tr");
     photoTr.dataset.measurePhotosFor = id;
     photoTr.className = "measure-photos-row";
@@ -293,7 +312,7 @@ function addMeasureRow() {
     photoTr.appendChild(photoTd);
     document.getElementById("measuresBody").appendChild(photoTr);
 
-    // 3 blocs photo pré-libellés, non supprimables
+    // Blocs photo pré-libellés, non supprimables (jauge/débit 4G & 5G + emplacement)
     const photoGrid = photoTd.querySelector(`#${id}_photos`);
     MEASURE_PHOTO_PRESETS.forEach(preset => {
         const block = createPhotoBlock(`${id}_${preset.suffix}`, preset.label, false);
@@ -306,8 +325,11 @@ function addMeasureRow() {
         if (echo) echo.textContent = e.target.value.trim() || ("Point " + id.split("_")[1]);
     });
 
-    document.getElementById(id + "_rsrp").addEventListener("input", () => analyzeMeasureRow(id));
-    document.getElementById(id + "_snr").addEventListener("input", () => analyzeMeasureRow(id));
+    // Analyse auto pour chaque techno
+    ["4g", "5g"].forEach(tech => {
+        document.getElementById(`${id}_${tech}_rsrp`).addEventListener("input", () => analyzeMeasureRow(id, tech));
+        document.getElementById(`${id}_${tech}_snr`).addEventListener("input", () => analyzeMeasureRow(id, tech));
+    });
     document.getElementById(id + "_zone").addEventListener("input", () => {
         if (typeof refreshEvacMeasureSelect === "function") refreshEvacMeasureSelect();
     });
@@ -316,6 +338,9 @@ window.addMeasureRow = addMeasureRow;
 function removeMeasureRow(id) {
     const tr = document.querySelector(`tr[data-measure-id="${id}"]`);
     if (tr) tr.remove();
+    // Supprimer la ligne 5G associée
+    const tr5g = document.querySelector(`tr[data-measure-row-for="${id}"]`);
+    if (tr5g) tr5g.remove();
     // Supprimer la ligne photos associée et les photos stockées
     const photoRow = document.querySelector(`tr[data-measure-photos-for="${id}"]`);
     if (photoRow) photoRow.remove();
@@ -748,8 +773,8 @@ function refreshEvacMeasureSelectForPlan(planId) {
         const placedElsewhere = linkedAll.has(id) && !placedHere;
         const opt = document.createElement("option");
         opt.value = id;
-        const r = parseFloat(document.getElementById(id + "_rsrp")?.value);
-        const s = parseFloat(document.getElementById(id + "_snr")?.value);
+        const r = parseFloat(document.getElementById(id + "_4g_rsrp")?.value);
+        const s = parseFloat(document.getElementById(id + "_4g_snr")?.value);
         const q = evaluateQuality(r, s);
         let suffix = "";
         if (placedHere) suffix = " ✓ placé ici";
@@ -777,8 +802,8 @@ function refreshEvacMeasureSelect() { refreshAllEvacMeasureSelects(); }
 // --- Couleur d'analyse pour un measureId donné ---
 function getMeasureColor(measureId) {
     if (!measureId) return "#dc2626";
-    const r = parseFloat(document.getElementById(measureId + "_rsrp")?.value);
-    const s = parseFloat(document.getElementById(measureId + "_snr")?.value);
+    const r = parseFloat(document.getElementById(measureId + "_4g_rsrp")?.value);
+    const s = parseFloat(document.getElementById(measureId + "_4g_snr")?.value);
     const q = evaluateQuality(r, s);
     return q ? q.color : "#dc2626";
 }
@@ -1014,24 +1039,42 @@ function collectMeasures() {
     const rows = [];
     document.querySelectorAll("#measuresBody tr[data-measure-id]").forEach(tr => {
         const id = tr.dataset.measureId;
-        const rsrp = val(id + "_rsrp");
-        const snr  = val(id + "_snr");
-        const rsrq = val(id + "_rsrq");
-        const band = val(id + "_band");
-        const m4g = (rsrp || rsrq || band) ? [rsrp || "—", rsrq || "—", band || "—"].join("/") : "";
-        const r = parseFloat(rsrp);
-        const s = parseFloat(snr);
-        const q = evaluateQuality(r, s);
+
+        // --- 4G ---
+        const g4 = {
+            rsrp: val(id + "_4g_rsrp"),
+            snr:  val(id + "_4g_snr"),
+            rsrq: val(id + "_4g_rsrq"),
+            band: val(id + "_4g_band"),
+            dn:   val(id + "_4g_dn"),
+            up:   val(id + "_4g_up")
+        };
+        const q4 = evaluateQuality(parseFloat(g4.rsrp), parseFloat(g4.snr));
+        g4.qualite = q4 ? q4.label : "";
+        g4.qualiteColor = q4 ? q4.color.replace("#", "") : "";
+
+        // --- 5G ---
+        const g5 = {
+            rsrp: val(id + "_5g_rsrp"),
+            snr:  val(id + "_5g_snr"),
+            rsrq: val(id + "_5g_rsrq"),
+            band: val(id + "_5g_band"),
+            dn:   val(id + "_5g_dn"),
+            up:   val(id + "_5g_up")
+        };
+        const q5 = evaluateQuality(parseFloat(g5.rsrp), parseFloat(g5.snr));
+        g5.qualite = q5 ? q5.label : "";
+        g5.qualiteColor = q5 ? q5.color.replace("#", "") : "";
+
         rows.push({
             id,
             zone: val(id + "_zone"),
-            rsrp, snr, rsrq, band,
-            m4g,
-            m5g:  val(id + "_5g"),
-            dn:   val(id + "_dn"),
-            up:   val(id + "_up"),
-            qualite: q ? q.label : "",
-            qualiteColor: q ? q.color.replace("#", "") : "",
+            g4, g5,
+            // champs "à plat" pour compat (le plan lie via la qualité 4G)
+            rsrp: g4.rsrp, snr: g4.snr, rsrq: g4.rsrq, band: g4.band,
+            dn: g4.dn, up: g4.up,
+            qualite: g4.qualite,
+            qualiteColor: g4.qualiteColor,
             photos: {
                 jauge_4g:    (photoStore[`${id}_ph_jauge_4g`]    || {}).dataUrl || "",
                 debit_4g:    (photoStore[`${id}_ph_debit_4g`]    || {}).dataUrl || "",
@@ -1298,19 +1341,43 @@ async function applyImportedData(data) {
                 addMeasureRow();
                 const id = "m_" + measureCounter;
                 document.getElementById(id + "_zone").value = m.zone || "";
-                document.getElementById(id + "_rsrp").value = m.rsrp || "";
-                document.getElementById(id + "_snr").value  = m.snr  || "";
-                document.getElementById(id + "_rsrq").value = m.rsrq || "";
-                document.getElementById(id + "_band").value = m.band || "";
-                if (!m.rsrp && !m.rsrq && !m.band && m.m4g) {
+
+                // --- 4G : nouveau format (m.g4) ou ancien format (champs à plat / m4g) ---
+                const g4 = m.g4 || {};
+                let r4_rsrp = g4.rsrp || m.rsrp || "";
+                let r4_rsrq = g4.rsrq || m.rsrq || "";
+                let r4_band = g4.band || m.band || "";
+                if (!r4_rsrp && !r4_rsrq && !r4_band && m.m4g) {
                     const parts = String(m.m4g).split("/");
-                    if (parts[0]) document.getElementById(id + "_rsrp").value = parts[0].trim();
-                    if (parts[1]) document.getElementById(id + "_rsrq").value = parts[1].trim();
-                    if (parts[2]) document.getElementById(id + "_band").value = parts[2].trim();
+                    if (parts[0]) r4_rsrp = parts[0].trim();
+                    if (parts[1]) r4_rsrq = parts[1].trim();
+                    if (parts[2]) r4_band = parts[2].trim();
                 }
-                document.getElementById(id + "_5g").value = m.m5g || "";
-                document.getElementById(id + "_dn").value = m.dn || "";
-                document.getElementById(id + "_up").value = m.up || "";
+                document.getElementById(id + "_4g_rsrp").value = r4_rsrp;
+                document.getElementById(id + "_4g_snr").value  = g4.snr || m.snr || "";
+                document.getElementById(id + "_4g_rsrq").value = r4_rsrq;
+                document.getElementById(id + "_4g_band").value = r4_band;
+                document.getElementById(id + "_4g_dn").value   = g4.dn || m.dn || "";
+                document.getElementById(id + "_4g_up").value   = g4.up || m.up || "";
+
+                // --- 5G : nouveau format (m.g5) ou ancien format (m.m5g = "rsrp/rsrq/band") ---
+                const g5 = m.g5 || {};
+                let r5_rsrp = g5.rsrp || "";
+                let r5_rsrq = g5.rsrq || "";
+                let r5_band = g5.band || "";
+                if (!r5_rsrp && !r5_rsrq && !r5_band && m.m5g) {
+                    const parts5 = String(m.m5g).split("/");
+                    if (parts5[0]) r5_rsrp = parts5[0].trim();
+                    if (parts5[1]) r5_rsrq = parts5[1].trim();
+                    if (parts5[2]) r5_band = parts5[2].trim();
+                }
+                document.getElementById(id + "_5g_rsrp").value = r5_rsrp;
+                document.getElementById(id + "_5g_snr").value  = g5.snr || "";
+                document.getElementById(id + "_5g_rsrq").value = r5_rsrq;
+                document.getElementById(id + "_5g_band").value = r5_band;
+                document.getElementById(id + "_5g_dn").value   = g5.dn || "";
+                document.getElementById(id + "_5g_up").value   = g5.up || "";
+
                 // Remapper les clés photo de l'ancien id vers le nouvel id (robuste si les ids ont changé)
                 const oldId = m.id;
                 if (oldId && oldId !== id) {
@@ -1326,7 +1393,8 @@ async function applyImportedData(data) {
                 // Mettre à jour l'écho du titre photos avec la zone
                 const echo = document.querySelector(`[data-mzone-echo="${id}"]`);
                 if (echo) echo.textContent = (m.zone || "").trim() || ("Point " + measureCounter);
-                analyzeMeasureRow(id);
+                analyzeMeasureRow(id, "4g");
+                analyzeMeasureRow(id, "5g");
             });
             if ((fd.mesures || []).length === 0) addMeasureRow();
             (fd.pico_poses || []).forEach(p => {
@@ -1536,15 +1604,46 @@ async function generateReport() {
         children.push(P("Tests réalisés avec l'application Network Cell Info Lite.", { runOpts: { italics: true, color: "555555" } }));
         children.push(H("État de la couverture radio", 2));
         children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: [3120, 6240], rows: [ new TableRow({ children: [ cellText("Qualité couverture", { width: 3120, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true }), cellText("4G", { width: 6240, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }) ] }), new TableRow({ children: [cellText("Bonne", { width: 3120, bold: true }), cellText("> -97 dBm", { width: 6240 })] }), new TableRow({ children: [cellText("Moyenne", { width: 3120, bold: true }), cellText("-98 dBm < X < -107 dBm", { width: 6240 })] }), new TableRow({ children: [cellText("Médiocre", { width: 3120, bold: true }), cellText("-108 dBm < X < -117 dBm", { width: 6240 })] }), new TableRow({ children: [cellText("Mauvaise", { width: 3120, bold: true }), cellText("> -118 dBm", { width: 6240 })] }), new TableRow({ children: [cellText("Inexistante", { width: 3120, bold: true }), cellText("Pas de couverture", { width: 6240 })] }) ] }));
-        const mesures = collectMeasures().filter(m => m.zone || m.m4g || m.m5g || m.rsrp);
+        const mesures = collectMeasures().filter(m => m.zone || (m.g4 && (m.g4.rsrp || m.g4.rsrq || m.g4.band)) || (m.g5 && (m.g5.rsrp || m.g5.rsrq || m.g5.band)));
         if (mesures.length > 0) {
             children.push(H("Points de mesure", 2));
-            const mesureRows = [ new TableRow({ tableHeader: true, children: [ cellText("Point de mesure", { width: 1880, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true }), cellText("4G (RSRP/SNR/RSRQ/Band)", { width: 2080, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }), cellText("5G (RSRP/RSRQ/Band)", { width: 1880, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }), cellText("↓ Mb", { width: 880, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }), cellText("↑ Mb", { width: 880, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }), cellText("Analyse auto", { width: 1760, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }) ] }) ];
+            const W = { pt: 1560, tech: 780, rsrp: 1120, snr: 900, rsrq: 900, band: 900, dn: 780, up: 780, an: 1640 };
+            const cw = [W.pt, W.tech, W.rsrp, W.snr, W.rsrq, W.band, W.dn, W.up, W.an];
+            const dash = x => (x === undefined || x === null || x === "") ? "—" : x;
+            const hCell = (t, w) => cellText(t, { width: w, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER });
+            const mesureRows = [ new TableRow({ tableHeader: true, children: [
+                cellText("Point de mesure", { width: W.pt, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true }),
+                hCell("Techno", W.tech), hCell("RSRP", W.rsrp), hCell("SNR", W.snr), hCell("RSRQ", W.rsrq),
+                hCell("Band", W.band), hCell("↓ Mb", W.dn), hCell("↑ Mb", W.up), hCell("Analyse auto", W.an)
+            ] }) ];
             mesures.forEach(m => {
-                const m4g = [m.rsrp, m.snr, m.rsrq, m.band].map(x => (x === undefined || x === null || x === "") ? "—" : x).join("/");
-                mesureRows.push(new TableRow({ children: [ cellText(m.zone || "—", { width: 1880, bold: true }), cellText(m4g, { width: 2080, align: AlignmentType.CENTER }), cellText(m.m5g || "—", { width: 1880, align: AlignmentType.CENTER }), cellText(m.dn || "—", { width: 880, align: AlignmentType.CENTER }), cellText(m.up || "—", { width: 880, align: AlignmentType.CENTER }), cellText( m.qualite || "—", { width: 1760, align: AlignmentType.CENTER, bold: !!m.qualite, shading: m.qualiteColor ? "#" + m.qualiteColor : undefined, color: m.qualite ? COLOR_WHITE : "000000" }) ] }));
+                const g4 = m.g4 || {}, g5 = m.g5 || {};
+                const anCell = (g) => cellText(g.qualite || "—", { width: W.an, align: AlignmentType.CENTER, bold: !!g.qualite, shading: g.qualiteColor ? "#" + g.qualiteColor : undefined, color: g.qualite ? COLOR_WHITE : "000000" });
+                // Ligne 4G (avec le nom du point en rowspan 2)
+                mesureRows.push(new TableRow({ children: [
+                    new TableCell({ width: { size: W.pt, type: WidthType.DXA }, rowSpan: 2, verticalAlign: VerticalAlign.CENTER, borders: stdBorders, children: [ new Paragraph({ children: [ new TextRun({ text: m.zone || "—", bold: true, font: FONT }) ] }) ] }),
+                    cellText("4G", { width: W.tech, align: AlignmentType.CENTER, bold: true }),
+                    cellText(dash(g4.rsrp), { width: W.rsrp, align: AlignmentType.CENTER }),
+                    cellText(dash(g4.snr), { width: W.snr, align: AlignmentType.CENTER }),
+                    cellText(dash(g4.rsrq), { width: W.rsrq, align: AlignmentType.CENTER }),
+                    cellText(dash(g4.band), { width: W.band, align: AlignmentType.CENTER }),
+                    cellText(dash(g4.dn), { width: W.dn, align: AlignmentType.CENTER }),
+                    cellText(dash(g4.up), { width: W.up, align: AlignmentType.CENTER }),
+                    anCell(g4)
+                ] }));
+                // Ligne 5G
+                mesureRows.push(new TableRow({ children: [
+                    cellText("5G", { width: W.tech, align: AlignmentType.CENTER, bold: true }),
+                    cellText(dash(g5.rsrp), { width: W.rsrp, align: AlignmentType.CENTER }),
+                    cellText(dash(g5.snr), { width: W.snr, align: AlignmentType.CENTER }),
+                    cellText(dash(g5.rsrq), { width: W.rsrq, align: AlignmentType.CENTER }),
+                    cellText(dash(g5.band), { width: W.band, align: AlignmentType.CENTER }),
+                    cellText(dash(g5.dn), { width: W.dn, align: AlignmentType.CENTER }),
+                    cellText(dash(g5.up), { width: W.up, align: AlignmentType.CENTER }),
+                    anCell(g5)
+                ] }));
             });
-            children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: [1880, 2080, 1880, 880, 880, 1760], rows: mesureRows }));
+            children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: cw, rows: mesureRows }));
 
             // --- Photos par point de mesure : jauge/débit 4G & 5G + 1 seule photo emplacement ---
             const mesuresAvecPhotos = mesures.filter(m => m.photos && (m.photos.jauge_4g || m.photos.debit_4g || m.photos.jauge_5g || m.photos.debit_5g || m.photos.emplacement));

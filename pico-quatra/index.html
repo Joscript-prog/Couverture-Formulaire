@@ -288,6 +288,7 @@
             width: 100%;
         }
         .measures-table .col-zone { min-width: 130px; }
+        .measures-table .col-tech { width: 8%; }
         .measures-table .col-rsrp { width: 14%; }
         .measures-table .col-rsrq { width: 12%; }
         .measures-table .col-band { width: 10%; }
@@ -1288,14 +1289,14 @@
         <!-- 3. MESURES RADIO -->
         <div class="section" id="mesures-section">
             <h2 id="measuresTitle">3. Mesures radio (avant intervention)</h2>
-            <div class="info-banner">Tests réalisés avec l'application <b>Network Cell Info Lite</b>. Saisir RSRP, SNR, RSRQ, Band et Speedtest pour chaque zone. Pour chaque point, vous pouvez joindre <b>3 photos</b> : copie écran jauge, copie écran débit et photo de l'emplacement.</div>
+            <div class="info-banner">Tests réalisés avec l'application <b>Network Cell Info Lite</b>. Pour chaque point de mesure, saisir RSRP, SNR, RSRQ, Band et Speedtest <b>pour la 4G et pour la 5G</b>. Vous pouvez joindre <b>5 photos</b> : copie écran jauge 4G, débit 4G, jauge 5G, débit 5G et la photo de l'emplacement (commune).</div>
             <h3>Grille de qualité radio (référence)</h3>
             <div class="qualite-grid" id="qualiteGrid"></div>
             <h3>Points de mesure</h3>
             <p style="font-size: 0.85rem; color: #555;">Saisir au minimum la zone, RSRP (dBm) et SNR (dB) pour déclencher l'analyse automatique de qualité.</p>
             <div style="overflow-x: auto;">
                 <table class="measures-table">
-                    <thead><tr><th class="col-zone">Zone / Pièce</th><th>RSRP (dBm)</th><th>SNR (dB)</th><th>RSRQ</th><th>Band</th><th>5G (RSRP/RSRQ/Band)</th><th>↓ Mb</th><th>↑ Mb</th><th>Analyse auto</th><th></th></tr></thead>
+                    <thead><tr><th class="col-zone">Zone / Pièce</th><th class="col-tech">Techno</th><th>RSRP (dBm)</th><th>SNR (dB)</th><th>RSRQ</th><th>Band</th><th>↓ Mb</th><th>↑ Mb</th><th>Analyse auto</th><th></th></tr></thead>
                     <tbody id="measuresBody"></tbody>
                 </table>
             </div>
