@@ -358,10 +358,12 @@ window.removePicoPose = removePicoPose;
 // =============================================================
 //  PHOTOS PICO & QUATRA (blocs dynamiques)
 // =============================================================
-// 3 photos par point de mesure : jauge, débit, emplacement
+// Photos par point de mesure : jauge/débit distingués 4G & 5G, + 1 seule photo emplacement
 const MEASURE_PHOTO_PRESETS = [
-    { suffix: "ph_jauge",       label: "Copie écran jauge" },
-    { suffix: "ph_debit",       label: "Copie écran débit" },
+    { suffix: "ph_jauge_4g",    label: "Copie écran jauge 4G" },
+    { suffix: "ph_debit_4g",    label: "Copie écran débit 4G" },
+    { suffix: "ph_jauge_5g",    label: "Copie écran jauge 5G" },
+    { suffix: "ph_debit_5g",    label: "Copie écran débit 5G" },
     { suffix: "ph_emplacement", label: "Photo emplacement" }
 ];
 
@@ -1031,8 +1033,10 @@ function collectMeasures() {
             qualite: q ? q.label : "",
             qualiteColor: q ? q.color.replace("#", "") : "",
             photos: {
-                jauge:       (photoStore[`${id}_ph_jauge`]       || {}).dataUrl || "",
-                debit:       (photoStore[`${id}_ph_debit`]       || {}).dataUrl || "",
+                jauge_4g:    (photoStore[`${id}_ph_jauge_4g`]    || {}).dataUrl || "",
+                debit_4g:    (photoStore[`${id}_ph_debit_4g`]    || {}).dataUrl || "",
+                jauge_5g:    (photoStore[`${id}_ph_jauge_5g`]    || {}).dataUrl || "",
+                debit_5g:    (photoStore[`${id}_ph_debit_5g`]    || {}).dataUrl || "",
                 emplacement: (photoStore[`${id}_ph_emplacement`] || {}).dataUrl || ""
             }
         });
@@ -1542,36 +1546,60 @@ async function generateReport() {
             });
             children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: [1880, 2080, 1880, 880, 880, 1760], rows: mesureRows }));
 
-            // --- Photos par point de mesure (jauge / débit / emplacement) ---
-            const mesuresAvecPhotos = mesures.filter(m => m.photos && (m.photos.jauge || m.photos.debit || m.photos.emplacement));
+            // --- Photos par point de mesure : jauge/débit 4G & 5G + 1 seule photo emplacement ---
+            const mesuresAvecPhotos = mesures.filter(m => m.photos && (m.photos.jauge_4g || m.photos.debit_4g || m.photos.jauge_5g || m.photos.debit_5g || m.photos.emplacement));
             if (mesuresAvecPhotos.length > 0) {
                 children.push(H("Reporting photos par point de mesure", 2));
-                const PH_LABELS = [
-                    { key: "jauge",       label: "Copie écran jauge" },
-                    { key: "debit",       label: "Copie écran débit" },
-                    { key: "emplacement", label: "Photo emplacement" }
-                ];
+
+                // Cellule image réutilisable
+                const imgCell = async (dataUrl, width) => {
+                    let cellChildren;
+                    if (dataUrl) {
+                        const run = await imageRunFromDataUrl(dataUrl, 280, 210);
+                        cellChildren = run
+                            ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [run] })]
+                            : [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "—", font: FONT })] })];
+                    } else {
+                        cellChildren = [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "—", color: "999999", font: FONT })] })];
+                    }
+                    return new TableCell({ width: { size: width, type: WidthType.DXA }, margins: { top: 60, bottom: 60, left: 60, right: 60 }, borders: stdBorders, children: cellChildren });
+                };
+
                 for (const m of mesuresAvecPhotos) {
                     children.push(new Paragraph({ spacing: { before: 200, after: 80 }, children: [new TextRun({ text: "📍 " + (m.zone || "Point de mesure"), bold: true, size: 24, color: COLOR_SUBTITLE, font: FONT })] }));
 
-                    // En-tête (libellés) + ligne d'images, en tableau 3 colonnes
-                    const headerCells = PH_LABELS.map(pl => cellText(pl.label, { width: 3120, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }));
+                    // Tableau 3 colonnes : colonne 1 = techno, colonnes 2/3 = jauge/débit
+                    const COL_TECH = 1560, COL_IMG = 3900;
+                    const rows = [];
 
-                    const imgCells = [];
-                    for (const pl of PH_LABELS) {
-                        const dataUrl = m.photos[pl.key];
-                        let cellChildren;
-                        if (dataUrl) {
-                            const run = await imageRunFromDataUrl(dataUrl, 280, 210);
-                            cellChildren = run
-                                ? [new Paragraph({ alignment: AlignmentType.CENTER, children: [run] })]
-                                : [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "—", font: FONT })] })];
-                        } else {
-                            cellChildren = [new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "—", color: "999999", font: FONT })] })];
-                        }
-                        imgCells.push(new TableCell({ width: { size: 3120, type: WidthType.DXA }, margins: { top: 60, bottom: 60, left: 60, right: 60 }, borders: stdBorders, children: cellChildren }));
-                    }
-                    children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: [3120, 3120, 3120], rows: [ new TableRow({ tableHeader: true, children: headerCells }), new TableRow({ children: imgCells }) ] }));
+                    // En-tête
+                    rows.push(new TableRow({ tableHeader: true, children: [
+                        cellText("", { width: COL_TECH, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true }),
+                        cellText("Copie écran jauge", { width: COL_IMG, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }),
+                        cellText("Copie écran débit", { width: COL_IMG, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER })
+                    ] }));
+
+                    // Ligne 4G
+                    rows.push(new TableRow({ children: [
+                        cellText("4G", { width: COL_TECH, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }),
+                        await imgCell(m.photos.jauge_4g, COL_IMG),
+                        await imgCell(m.photos.debit_4g, COL_IMG)
+                    ] }));
+
+                    // Ligne 5G
+                    rows.push(new TableRow({ children: [
+                        cellText("5G", { width: COL_TECH, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }),
+                        await imgCell(m.photos.jauge_5g, COL_IMG),
+                        await imgCell(m.photos.debit_5g, COL_IMG)
+                    ] }));
+
+                    children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: [COL_TECH, COL_IMG, COL_IMG], rows }));
+
+                    // Photo emplacement (unique) sous le tableau jauge/débit
+                    children.push(new Table({ width: { size: 9360, type: WidthType.DXA }, alignment: AlignmentType.CENTER, columnWidths: [9360], rows: [
+                        new TableRow({ tableHeader: true, children: [ cellText("Photo emplacement", { width: 9360, shading: COLOR_SUBTITLE, color: COLOR_WHITE, bold: true, align: AlignmentType.CENTER }) ] }),
+                        new TableRow({ children: [ await imgCell(m.photos.emplacement, 9360) ] })
+                    ] }));
                 }
             }
         }
