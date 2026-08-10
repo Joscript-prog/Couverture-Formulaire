@@ -55,6 +55,21 @@ const CLIENTS_FINAUX = {
         label: "IEC Telecom",
         getLogoB64: () => LOGO_IECTELECOM_B64,
         logoRatio: 490 / 125  // ≈ 3.92 — logo large
+    },
+    // Clients ajoutés pour le formulaire CÂBLAGE.
+    // Les logos sont définis dans cablage/logos.js ; le typeof évite une
+    // erreur dans les autres formulaires qui ne chargent pas ces constantes.
+    emag: {
+        id: "emag",
+        label: "E-Mag numérique",
+        getLogoB64: () => (typeof LOGO_EMAG_B64 !== "undefined" ? LOGO_EMAG_B64 : ""),
+        logoRatio: 478 / 179  // ≈ 2.67
+    },
+    etam: {
+        id: "etam",
+        label: "ETAM Lingerie",
+        getLogoB64: () => (typeof LOGO_ETAM_B64 !== "undefined" ? LOGO_ETAM_B64 : ""),
+        logoRatio: 960 / 200  // ≈ 4.80 — logo large
     }
 };
 
