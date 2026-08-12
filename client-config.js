@@ -63,13 +63,13 @@ const CLIENTS_FINAUX = {
         id: "emag",
         label: "E-Mag numérique",
         getLogoB64: () => (typeof LOGO_EMAG_B64 !== "undefined" ? LOGO_EMAG_B64 : ""),
-        logoRatio: 478 / 179  // ≈ 2.67
+        logoRatio: 460 / 164  // ≈ 2.80
     },
     etam: {
         id: "etam",
         label: "ETAM Lingerie",
         getLogoB64: () => (typeof LOGO_ETAM_B64 !== "undefined" ? LOGO_ETAM_B64 : ""),
-        logoRatio: 960 / 200  // ≈ 4.80 — logo large
+        logoRatio: 703 / 194  // ≈ 3.62 — logo large
     }
 };
 
