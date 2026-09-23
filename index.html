@@ -121,6 +121,9 @@
         .card.cablage::before {
             background: #7c3aed;
         }
+        .card.wifi::before {
+            background: #0f766e;
+        }
         .card:hover {
             transform: translateY(-4px);
             box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
@@ -179,6 +182,9 @@
         .card.cablage .card-features li::before {
             color: #7c3aed;
         }
+        .card.wifi .card-features li::before {
+            color: #0f766e;
+        }
         .card-cta {
             align-self: flex-start;
             background: #2e75b6;
@@ -202,6 +208,9 @@
         .card.cablage .card-cta {
             background: #7c3aed;
         }
+        .card.wifi .card-cta {
+            background: #0f766e;
+        }
         .card:hover .card-cta {
             background: #1f4e79;
         }
@@ -213,6 +222,14 @@
         }
         .card.cablage:hover .card-cta {
             background: #5b21b6;
+        }
+        .card.wifi:hover .card-cta {
+            background: #115e59;
+        }
+        .card-icon svg {
+            width: 1.2em;
+            height: 1.2em;
+            vertical-align: -0.15em;
         }
 
         footer {
@@ -266,7 +283,7 @@
     </header>
 
     <div class="intro">
-        <p>Lors de la création d'un dossier, choisissez le type de formulaire : <strong>Couverture</strong> (4G/5G, Starlink, PICO/Quatra) ou <strong>Câblage</strong>. Sélectionnez le formulaire correspondant à votre intervention. Chaque outil permet de basculer entre <strong>AUDIT</strong> ou <strong>TRAVAUX</strong> à l'intérieur du formulaire ; le rapport Word généré sera adapté en conséquence.</p>
+        <p>Lors de la création d'un dossier, choisissez le type de formulaire : <strong>Couverture</strong> (4G/5G, Starlink, PICO/Quatra) ou <strong>Câblage</strong> (classique ou Wi-Fi). Sélectionnez le formulaire correspondant à votre intervention. Chaque outil permet de basculer entre <strong>AUDIT</strong> ou <strong>TRAVAUX</strong> à l'intérieur du formulaire ; le rapport Word généré sera adapté en conséquence.</p>
         <div class="badges">
             <span class="badge"><span class="icon">🔍</span>Mode Audit</span>
             <span class="badge"><span class="icon">🛠️</span>Mode Travaux</span>
@@ -323,6 +340,19 @@
                     <li>Photos annotables : devanture, baie, adductions, cheminements, percements...</li>
                     <li>Section Blocage optionnelle (blocages + solutions proposées)</li>
                     <li>Compatible tous donneurs d'ordre — ou IPKONEKT seul</li>
+                </ul>
+                <span class="card-cta">Ouvrir le formulaire →</span>
+            </a>
+
+            <a class="card wifi" href="cablage-wifi/" aria-label="Ouvrir le formulaire Câblage Wi-Fi">
+                <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M13 42 A52 52 0 0 1 87 42" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round"/><path d="M27 56 A33 33 0 0 1 73 56" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round"/><path d="M40 70 A15 15 0 0 1 60 70" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="84" r="7" fill="#0f766e"/></svg></span>
+                <h2>Câblage Wi-Fi</h2>
+                <p class="card-desc">Audit ou travaux de câblage pour la pose de bornes Wi-Fi, sur un ou plusieurs niveaux.</p>
+                <ul class="card-features">
+                    <li>Baie existante (conformité auto) ou baie à installer</li>
+                    <li>Plans d'évacuation par niveau : une couleur par borne, tracé multi-points</li>
+                    <li>Fiche par borne : emplacement, pose, métrage, cheminement, percements</li>
+                    <li>Synthèse par borne générée automatiquement dans le compte rendu</li>
                 </ul>
                 <span class="card-cta">Ouvrir le formulaire →</span>
             </a>
