@@ -70,6 +70,16 @@ const CLIENTS_FINAUX = {
         label: "ETAM Lingerie",
         getLogoB64: () => (typeof LOGO_ETAM_B64 !== "undefined" ? LOGO_ETAM_B64 : ""),
         logoRatio: 703 / 194  // ≈ 3.62 — logo large
+    },
+    // Client ajouté pour le formulaire CAMÉRAS & ALARME.
+    // Pas encore de logo : le rapport affiche seulement « HIGH-COM │ IPKONEKT ».
+    // Pour l'ajouter : définir LOGO_HIGHCOM_B64 dans camera-alarme/logos.js
+    // et renseigner logoRatio (largeur / hauteur du logo).
+    highcom: {
+        id: "highcom",
+        label: "HIGH-COM",
+        getLogoB64: () => (typeof LOGO_HIGHCOM_B64 !== "undefined" ? LOGO_HIGHCOM_B64 : ""),
+        logoRatio: 1.0
     }
 };
 
