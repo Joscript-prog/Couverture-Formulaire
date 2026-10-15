@@ -759,14 +759,14 @@ function addGalleryItem(kind, opts = {}) {
     div.dataset.photoKey = key;
     div.innerHTML = `
         <div class="chem-header">
-            <strong>📷 ${cfg.label} ${num}</strong>
-            <button type="button" class="btn-delete" data-del-gallery title="Supprimer">🗑</button>
+            <strong>${cfg.label} ${num}</strong>
+            <button type="button" class="btn-delete" data-del-gallery title="Supprimer"></button>
         </div>
         <input type="file" accept="image/*">
         <img class="photo-preview" id="preview_${key}" alt="">
         <div class="chem-actions">
-            <button type="button" class="annotate-btn" data-annotate="${key}" data-label="${cfg.label} ${num}" disabled>✏ Annoter</button>
-            <button type="button" class="clear-btn" data-clear="${key}">🗑 Effacer</button>
+            <button type="button" class="annotate-btn" data-annotate="${key}" data-label="${cfg.label} ${num}" disabled>Annoter</button>
+            <button type="button" class="clear-btn" data-clear="${key}">Effacer</button>
         </div>
         ${cfg.withComment ? `<textarea class="cheminement-comment" placeholder="${cfg.commentPlaceholder}"></textarea>` : ""}
     `;
@@ -789,7 +789,7 @@ function renumberGallery(kind) {
     if (!container) return;
     container.querySelectorAll(".cheminement-item").forEach((item, i) => {
         const strong = item.querySelector(".chem-header strong");
-        if (strong) strong.textContent = `📷 ${cfg.label} ${i + 1}`;
+        if (strong) strong.textContent = `${cfg.label} ${i + 1}`;
     });
 }
 
@@ -803,8 +803,8 @@ function photoBlockHtml(key, opts = {}) {
         <input type="file" accept="image/*" data-site-photo="${key}">
         <img class="photo-preview${has ? " shown" : ""}" id="preview_${key}" alt=""${has ? ` src="${src}"` : ""}>
         <div class="chem-actions">
-            <button type="button" class="annotate-btn" data-annotate="${key}"${has ? "" : " disabled"}>${opts.annotateLabel || "✏ Annoter"}</button>
-            <button type="button" class="clear-btn" data-clear="${key}">🗑 Effacer</button>
+            <button type="button" class="annotate-btn" data-annotate="${key}"${has ? "" : " disabled"}>${opts.annotateLabel || "Annoter"}</button>
+            <button type="button" class="clear-btn" data-clear="${key}">Effacer</button>
         </div>`;
 }
 
@@ -813,7 +813,7 @@ function itemHtml(title, key, list, comment, placeholder) {
         <div class="cheminement-item" data-photo-key="${key}" data-list="${list}">
             <div class="chem-header">
                 <strong>${title}</strong>
-                <button type="button" class="btn-delete" data-eq-act="del-item" title="Supprimer">🗑</button>
+                <button type="button" class="btn-delete" data-eq-act="del-item" title="Supprimer"></button>
             </div>
             ${photoBlockHtml(key)}
             <textarea class="cheminement-comment" data-eq-field="item-comment" placeholder="${escapeHtml(placeholder)}">${escapeHtml(comment || "")}</textarea>
@@ -874,7 +874,7 @@ function buildEquipCard(e) {
             <span class="eq-dot" title="Couleur sur les plans : ${eqColorName(e)}"></span>
             <input type="text" class="eq-nom" data-eq-field="nom" value="${escapeHtml(e.nom)}" aria-label="Nom de l'équipement">
             <span class="eq-type-badge">${escapeHtml(t.label)}</span>
-            <button type="button" class="btn-delete" data-eq-act="del-eq" title="Supprimer l'équipement">🗑</button>
+            <button type="button" class="btn-delete" data-eq-act="del-eq" title="Supprimer l'équipement"></button>
         </div>
         <div class="eq-body">
             <div class="eq-placement"></div>
@@ -904,7 +904,7 @@ function buildEquipCard(e) {
             <label class="eq-full eq-fov-only"${t.fov ? "" : " hidden"}>${escapeHtml(zoneLabel(e))}
                 <textarea data-eq-field="zone" placeholder="${escapeHtml(t.zonePh || "")}">${escapeHtml(e.zone)}</textarea>
             </label>
-            <p class="eq-wireless-note"${cable ? " hidden" : ""}>📡 Équipement sans fil : pas de câble à tirer. Placez-le simplement sur un plan.</p>
+            <p class="eq-wireless-note"${cable ? " hidden" : ""}>Équipement sans fil : pas de câble à tirer. Placez-le simplement sur un plan.</p>
             <div class="eq-cable-only"${cable ? "" : " hidden"}>
                 <div class="eq-grid" style="margin-top:10px;">
                     <label>Métrage de câble jusqu'à la baie (m)
@@ -919,30 +919,30 @@ function buildEquipCard(e) {
                 </label>
             </div>
 
-            <div class="photo-cat-title small">📷 ${escapeHtml(empPhotoTitle(e))}</div>
+            <div class="photo-cat-title small">${escapeHtml(empPhotoTitle(e))}</div>
             <div class="mp-photo-block eq-single-photo">${photoBlockHtml(e.empKey)}</div>
 
             <div class="eq-vue-block"${t.vue ? "" : " hidden"}>
                 <div class="photo-cat-title small">
-                    <span class="audit-only">📷 Vue souhaitée (photo prise depuis l'emplacement de la caméra)</span>
-                    <span class="travaux-only">📷 Image obtenue (capture de la caméra)</span>
+                    <span class="audit-only">Vue souhaitée (photo prise depuis l'emplacement de la caméra)</span>
+                    <span class="travaux-only">Image obtenue (capture de la caméra)</span>
                 </div>
                 <div class="mp-photo-block eq-single-photo">${photoBlockHtml(e.vueKey)}</div>
             </div>
 
             <div class="eq-cable-only"${cable ? "" : " hidden"}>
-                <div class="photo-cat-title small">📷 Photos du cheminement</div>
+                <div class="photo-cat-title small">Photos du cheminement</div>
                 <p class="photo-cat-note eq-sameas-note"${sameAs ? "" : " hidden"}>Cheminement identique à « ${escapeHtml(sameAs ? sameAs.nom : "")} » : ajoutez seulement les photos de la partie propre à cet équipement.</p>
                 <div class="gallery-grid" data-list-container="chem">
-                    ${e.chem.map((it, i) => itemHtml(`📷 Cheminement ${i + 1}`, it.key, "chem", it.comment, "Commentaire (passage de câble, support, traversée…)")).join("")}
+                    ${e.chem.map((it, i) => itemHtml(`Cheminement ${i + 1}`, it.key, "chem", it.comment, "Commentaire (passage de câble, support, traversée…)")).join("")}
                 </div>
-                <button type="button" class="btn-secondary" data-eq-act="add-chem">➕ Ajouter une photo de cheminement</button>
+                <button type="button" class="btn-secondary" data-eq-act="add-chem">+ Ajouter une photo de cheminement</button>
 
-                <div class="photo-cat-title small">📷 Percements</div>
+                <div class="photo-cat-title small">Percements</div>
                 <div class="gallery-grid" data-list-container="perc">
-                    ${e.perc.map((it, i) => itemHtml(`📷 Percement ${i + 1}`, it.key, "perc", it.comment, "Commentaire (emplacement, diamètre, rebouchage…)")).join("")}
+                    ${e.perc.map((it, i) => itemHtml(`Percement ${i + 1}`, it.key, "perc", it.comment, "Commentaire (emplacement, diamètre, rebouchage…)")).join("")}
                 </div>
-                <button type="button" class="btn-secondary" data-eq-act="add-perc">➕ Ajouter une photo de percement</button>
+                <button type="button" class="btn-secondary" data-eq-act="add-perc">+ Ajouter une photo de percement</button>
             </div>
         </div>`;
     return div;
@@ -960,32 +960,32 @@ function buildNiveauCard(n) {
                 <input type="text" class="niv-nom" data-niv-field="nom" value="${escapeHtml(n.nom)}" placeholder="Ex : RDC, R+1, sous-sol, extérieur, bâtiment B…">
             </label>
             <span class="niv-count">${nb} équipement${nb > 1 ? "s" : ""}</span>
-            <button type="button" class="btn-delete" data-eq-act="del-niveau" title="Supprimer le niveau">🗑</button>
+            <button type="button" class="btn-delete" data-eq-act="del-niveau" title="Supprimer le niveau"></button>
         </div>
         <div class="niv-body">
-            <div class="photo-cat-title">🗺️ Plan(s) d'évacuation du niveau</div>
+            <div class="photo-cat-title">Plan(s) d'évacuation du niveau</div>
             <p class="photo-cat-note">Sur chaque plan : posez la baie et les équipements, orientez le champ de vision des caméras, puis tracez le cheminement de chaque câble jusqu'à la baie. La couleur de chaque équipement est appliquée automatiquement.</p>
             <div class="gallery-grid" data-list-container="plans">
                 ${n.plans.map((p, i) => `
                     <div class="cheminement-item" data-photo-key="${p.key}" data-list="plans">
                         <div class="chem-header">
-                            <strong>🗺️ Plan ${i + 1} — ${escapeHtml(niveauLabel(n))}</strong>
-                            <button type="button" class="btn-delete" data-eq-act="del-item" title="Supprimer ce plan">🗑</button>
+                            <strong>Plan ${i + 1} — ${escapeHtml(niveauLabel(n))}</strong>
+                            <button type="button" class="btn-delete" data-eq-act="del-item" title="Supprimer ce plan"></button>
                         </div>
-                        ${photoBlockHtml(p.key, { annotateLabel: "✏ Annoter / placer / tracer" })}
+                        ${photoBlockHtml(p.key, { annotateLabel: "Annoter / placer / tracer" })}
                         <div class="plan-legend" data-legend="${p.key}"></div>
                         <textarea class="cheminement-comment" data-eq-field="item-comment" placeholder="Commentaire du plan (optionnel)">${escapeHtml(p.comment || "")}</textarea>
                     </div>`).join("")}
             </div>
-            <button type="button" class="btn-secondary" data-eq-act="add-plan">➕ Ajouter un plan pour ce niveau</button>
+            <button type="button" class="btn-secondary" data-eq-act="add-plan">+ Ajouter un plan pour ce niveau</button>
 
-            <div class="photo-cat-title">📍 Équipements du niveau</div>
+            <div class="photo-cat-title">Équipements du niveau</div>
             <p class="photo-cat-note niv-empty-note"${nb ? " hidden" : ""}>Aucun équipement sur ce niveau. Choisissez un type ci-dessous puis « Ajouter ».</p>
             <div class="eq-list"></div>
             <div class="eq-add-bar">
                 <span>Ajouter :</span>
                 <select data-niv-field="addType" aria-label="Type d'équipement à ajouter">${typeOptionsHtml(n.addType || "camera")}</select>
-                <button type="button" class="btn-secondary" data-eq-act="add-eq">➕ Ajouter</button>
+                <button type="button" class="btn-secondary" data-eq-act="add-eq">+ Ajouter</button>
             </div>
         </div>`;
     const list = div.querySelector(".eq-list");
@@ -1028,9 +1028,9 @@ function refreshDerived() {
         if (!el) return;
         const pl = findPlacement(card.dataset.eq, null);
         if (pl) {
-            el.textContent = `📍 Placé sur : ${pl.label}`;
+            el.textContent = `Placé sur : ${pl.label}`;
         } else {
-            el.innerHTML = `⚠ Pas encore placé sur un plan.<button type="button" class="eq-place-btn" data-eq-act="place">✏ Placer sur un plan</button>`;
+            el.innerHTML = `Pas encore placé sur un plan.<button type="button" class="eq-place-btn" data-eq-act="place">Placer sur un plan</button>`;
         }
         el.classList.toggle("placed", !!pl);
         el.classList.toggle("missing", !pl);
@@ -1063,7 +1063,7 @@ function syncNames() {
         const n = niveauById(card.dataset.niveau);
         if (!n) return;
         card.querySelectorAll('[data-list="plans"] .chem-header strong').forEach((s, i) => {
-            s.textContent = `🗺️ Plan ${i + 1} — ${niveauLabel(n)}`;
+            s.textContent = `Plan ${i + 1} — ${niveauLabel(n)}`;
         });
     });
     refreshDerived();
@@ -1800,7 +1800,7 @@ window.importJSON = function (event) {
             }
             await applyFormData(data);
             schedule();
-            alert("✅ Données importées.");
+            alert("Données importées.");
         } catch (err) {
             console.error("Erreur import JSON :", err);
             alert("Le fichier n'est pas un export valide.");
@@ -1825,19 +1825,19 @@ async function generateDocument() {
 
     const btn = document.getElementById("btnGenerateWord");
     const status = document.getElementById("status");
-    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "⏳ Génération…"; }
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "Génération…"; }
     if (status) { status.textContent = "Génération du rapport Word…"; status.className = "status loading"; }
     try {
         // Noms / types des équipements à jour sur les plans annotés
         await rerenderMarkerPhotos();
         await buildAndSaveDocx();
-        if (status) { status.textContent = "✅ Rapport Word généré."; status.className = "status success"; }
+        if (status) { status.textContent = "Rapport Word généré."; status.className = "status success"; }
     } catch (err) {
         console.error("Erreur génération Word :", err);
-        if (status) { status.textContent = "❌ Erreur lors de la génération : " + (err.message || err); status.className = "status error"; }
+        if (status) { status.textContent = "Erreur lors de la génération : " + (err.message || err); status.className = "status error"; }
         alert("Erreur lors de la génération du rapport Word :\n" + (err.message || err));
     } finally {
-        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "📄 Générer le rapport Word"; }
+        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "Générer le rapport Word"; }
     }
 }
 

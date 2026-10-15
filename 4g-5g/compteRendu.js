@@ -28,7 +28,7 @@
     const CATALOGUE = [
         {
             cat: "Travaux radio / antennaires",
-            icon: "📡",
+            icon: "",
             items: [
                 { id: "pose_pico",      label: "Pose pico BTS",                 qty: "count",   hauteur: true,  state: false },
                 { id: "pose_smallcell", label: "Pose small cell",               qty: "count",   hauteur: true,  state: false },
@@ -47,7 +47,7 @@
         },
         {
             cat: "Travaux de desserte",
-            icon: "🔌",
+            icon: "",
             items: [
                 { id: "create_rj45",    label: "Création desserte RJ45",        qty: "metrage", dual: true,    state: false },
                 { id: "create_fibre",   label: "Création desserte fibre optique", qty: "metrage", dual: true, state: false },
@@ -75,7 +75,7 @@
         },
         {
             cat: "Travaux de percement",
-            icon: "🔨",
+            icon: "",
             items: [
                 { id: "perc_placo",     label: "Percement cloison placo",       qty: "count",   state: false },
                 { id: "perc_beton",     label: "Percement mur béton",           qty: "count",   state: false },
@@ -93,7 +93,7 @@
         },
         {
             cat: "Travaux de fixation",
-            icon: "🔧",
+            icon: "",
             items: [
                 { id: "fix_mur",        label: "Fixation murale",               qty: "count",   state: false },
                 { id: "fix_plafond",    label: "Fixation plafond",              qty: "count",   state: false },
@@ -114,7 +114,7 @@
         },
         {
             cat: "Travaux réseau / informatique",
-            icon: "💻",
+            icon: "",
             items: [
                 { id: "switch",         label: "Switch PoE",                    qty: "count",   state: true },
                 { id: "injecteur_poe",  label: "Injecteur PoE",                  qty: "count",   state: true },
@@ -139,7 +139,7 @@
         },
         {
             cat: "Fournitures — Cheminement câble",
-            icon: "📦",
+            icon: "",
             items: [
                 { id: "f_iro",          label: "Tube IRO",                      qty: "metrage", dual: true,    state: false },
                 { id: "f_irl",          label: "Tube IRL",                      qty: "metrage", dual: true,    state: false },
@@ -158,7 +158,7 @@
         },
         {
             cat: "Fournitures — Réseau",
-            icon: "🔗",
+            icon: "",
             items: [
                 { id: "f_cat6",         label: "Câble RJ45 Cat6",               qty: "metrage", dual: true,    state: false },
                 { id: "f_cat6a",        label: "Câble Cat6A",                   qty: "metrage", dual: true,    state: false },
@@ -170,7 +170,7 @@
         },
         {
             cat: "Fournitures — Supports antennaires",
-            icon: "🗼",
+            icon: "",
             items: [
                 { id: "f_mat_auto",     label: "Mât autostable",                qty: "count",   state: false },
                 { id: "f_mat_dep",      label: "Mât déporté",                   qty: "count",   state: false },
@@ -189,7 +189,7 @@
         },
         {
             cat: "Fournitures — Étanchéité / fixation",
-            icon: "🛡️",
+            icon: "",
             items: [
                 { id: "f_silic_blanc",  label: "Silicone blanc",                qty: "count",   labelQty: "tube(s)", state: false },
                 { id: "f_silic_toit",   label: "Silicone toiture",              qty: "count",   labelQty: "tube(s)", state: false },
@@ -205,7 +205,7 @@
         },
         {
             cat: "Fournitures — Protection électrique",
-            icon: "⚡",
+            icon: "",
             items: [
                 { id: "f_bandeau",      label: "Bandeau électrique",            qty: "count",   labelQty: "port(s)", state: true },
                 { id: "f_onduleur",     label: "Onduleur",                      qty: "count",   state: true },
@@ -217,7 +217,7 @@
         },
         {
             cat: "Sécurité chantier / Prérequis",
-            icon: "🦺",
+            icon: "",
             items: [
                 { id: "s_dict",         label: "DICT (travaux extérieurs)",     qty: null,      state: false },
                 { id: "s_planprev",     label: "Plan de prévention",            qty: null,      state: false },

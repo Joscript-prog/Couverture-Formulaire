@@ -207,7 +207,7 @@ const Editor = (function () {
     if (btn) {
       const isEquip = valid !== "commun";
       btn.disabled = !isEquip;
-      btn.textContent = isEquip ? `📍 Poser « ${o.nom} »` : "📍 Poser l'équipement (choisissez un équipement)";
+      btn.textContent = isEquip ? `Poser « ${o.nom} »` : "Poser l'équipement (choisissez un équipement)";
     }
     trace.setStyle({ owner: valid, color: o ? o.color : FREE_COLOR });
   }

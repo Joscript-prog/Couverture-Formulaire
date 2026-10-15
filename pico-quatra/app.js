@@ -305,7 +305,7 @@ function addMeasureRow() {
     photoTd.colSpan = 10;
     photoTd.innerHTML = `
         <div class="measure-photos-wrap">
-            <div class="measure-photos-title">📷 Photos du point « <span data-mzone-echo="${id}">Point ${measureCounter}</span> »</div>
+            <div class="measure-photos-title">Photos du point « <span data-mzone-echo="${id}">Point ${measureCounter}</span> »</div>
             <div class="measure-photos-grid" id="${id}_photos"></div>
         </div>
     `;
@@ -439,9 +439,9 @@ function createPhotoBlock(key, defaultLabel, removable) {
         <input type="file" accept="image/*" data-photo-input="${key}">
         <img class="photo-preview" id="preview_${key}" alt="">
         <div class="photo-actions">
-            <button type="button" class="annotate-btn" data-annotate="${key}" disabled>✏ Annoter</button>
+            <button type="button" class="annotate-btn" data-annotate="${key}" disabled>Annoter</button>
             <button type="button" class="clear-photo" data-clear="${key}">✕ Effacer</button>
-            ${removable ? `<button type="button" class="clear-photo" data-remove-block="${key}" style="background:#6c757d;">🗑 Supprimer le bloc</button>` : ""}
+            ${removable ? `<button type="button" class="clear-photo" data-remove-block="${key}" style="background:#6c757d;">Supprimer le bloc</button>` : ""}
         </div>
     `;
     const fileInput = block.querySelector('input[type="file"]');
@@ -638,14 +638,14 @@ function renderEvacPlanCard(plan) {
     card.innerHTML = `
         <div class="evac-plan-card-header">
             <div class="evac-plan-card-title-wrap">
-                <span class="evac-plan-card-icon">📋</span>
+                <span class="evac-plan-card-icon"></span>
                 <input type="text" class="evac-plan-card-title-input" value="${escapeHtml(plan.title)}" placeholder="Ex : Rez-de-chaussée, 1er étage, Bâtiment A...">
             </div>
-            <button type="button" class="evac-plan-card-remove-btn" title="Supprimer ce plan">🗑 Supprimer ce plan</button>
+            <button type="button" class="evac-plan-card-remove-btn" title="Supprimer ce plan">Supprimer ce plan</button>
         </div>
 
         <div class="evac-upload-area">
-            <div class="icon">📷</div>
+            <div class="icon"></div>
             <div>Cliquez pour importer une photo de ce plan</div>
         </div>
         <input type="file" class="evac-input" accept="image/*" style="display:none;">
@@ -662,10 +662,10 @@ function renderEvacPlanCard(plan) {
                 <input type="text" class="evac-label" placeholder="Ex : PICO 1, CU 2, FOYER..." maxlength="20" style="flex:1; min-width:160px;">
             </div>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <button type="button" class="btn-success evac-place-btn">📍 Placer un point sur ce plan</button>
-                <button type="button" class="clear-photo evac-replace-btn" style="padding: 10px 14px;">🖼 Remplacer la photo</button>
+                <button type="button" class="btn-success evac-place-btn">Placer un point sur ce plan</button>
+                <button type="button" class="clear-photo evac-replace-btn" style="padding: 10px 14px;">Remplacer la photo</button>
             </div>
-            <p style="font-size:0.8rem; color:#555; margin:0;">💡 Si lié à une mesure, le cercle prend la couleur de l'analyse RSRP/SNR. Cliquez et glissez la poignée bleue (en bas à droite) pour redimensionner.</p>
+            <p style="font-size:0.8rem; color:#555; margin:0;">Si lié à une mesure, le cercle prend la couleur de l'analyse RSRP/SNR. Cliquez et glissez la poignée bleue (en bas à droite) pour redimensionner.</p>
         </div>
     `;
     container.appendChild(card);
@@ -833,7 +833,7 @@ function armPlacePoint(planId) {
         return;
     }
     placePointArmed = Number(planId);
-    showStatus(`👆 Cliquez maintenant sur le plan « ${getEvacPlanById(planId)?.title || ""} » à l'emplacement souhaité.`, "info");
+    showStatus(`Cliquez maintenant sur le plan « ${getEvacPlanById(planId)?.title || ""} » à l'emplacement souhaité.`, "info");
     const container = card.querySelector(".plan-evac-container");
     if (!container) return;
     container.style.cursor = "crosshair";
@@ -983,7 +983,7 @@ function makeEvacPointResizable(div, point) {
 }
 
 // Compat ascendante avec l'ancienne API HTML (boutons inline onclick="clearPlan()")
-// — désormais la suppression se fait par bouton "🗑 Supprimer ce plan" de chaque carte.
+// — désormais la suppression se fait par bouton "Supprimer ce plan" de chaque carte.
 function clearPlan() {
     if (evacPlans.length === 1) {
         removeEvacPlan(evacPlans[0].id);
@@ -1250,10 +1250,10 @@ async function exportToJSON() {
         const fullExport = buildExportData();
         const blob = new Blob([JSON.stringify(fullExport, null, 2)], { type: "application/json" });
         saveAs(blob, buildBaseFilename() + "_BACKUP.json");
-        showStatus("✅ Sauvegarde JSON exportée.", "success");
+        showStatus("Sauvegarde JSON exportée.", "success");
     } catch (err) {
         console.error(err);
-        showStatus("❌ Erreur export JSON : " + err.message, "error");
+        showStatus("Erreur export JSON : " + err.message, "error");
     }
 }
 window.exportToJSON = exportToJSON;
@@ -1271,10 +1271,10 @@ async function importFromJSON(file) {
             await applyImportedData(data);
             if (window.__autosaveSchedule) window.__autosaveSchedule(); // resynchroniser la sauvegarde auto
             document.getElementById("importJsonInput").value = "";
-            showStatus("✅ Sauvegarde importée.", "success");
+            showStatus("Sauvegarde importée.", "success");
         } catch (err) {
             console.error(err);
-            showStatus("❌ Erreur d'import : " + err.message, "error");
+            showStatus("Erreur d'import : " + err.message, "error");
         }
     };
     reader.readAsText(file);
@@ -1536,7 +1536,7 @@ const COLOR_WHITE = "FFFFFF";
 const COLOR_HEADER_BG = "2E5481";
 
 async function generateReport() {
-    showStatus("⏳ Génération du rapport en cours...", "info");
+    showStatus("Génération du rapport en cours...", "info");
     try {
         await window.__libsLoaded;
         if (typeof docx === "undefined") throw new Error("La bibliothèque docx n'a pas pu être chargée.");
@@ -1857,10 +1857,10 @@ async function generateReport() {
         const blob = await Packer.toBlob(doc);
         const filename = buildBaseFilename() + ".docx";
         saveAs(blob, filename);
-        showStatus("✅ Rapport généré : " + filename, "success");
+        showStatus("Rapport généré : " + filename, "success");
     } catch (err) {
         console.error(err);
-        showStatus("❌ Erreur lors de la génération : " + err.message, "error");
+        showStatus("Erreur lors de la génération : " + err.message, "error");
     }
 }
 window.generateReport = generateReport;

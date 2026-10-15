@@ -179,7 +179,7 @@ async function refreshData() {
     } catch (err) {
         console.error("Erreur chargement Supabase :", err);
         $("tableArea").className = "";
-        $("tableArea").innerHTML = `<div class="empty-state"><div class="icon">⚠️</div>Erreur de chargement : ${escapeHtml(err.message || err)}</div>`;
+        $("tableArea").innerHTML = `<div class="empty-state"><div class="icon"></div>Erreur de chargement : ${escapeHtml(err.message || err)}</div>`;
         showToast("Erreur de chargement des rapports", "error");
     }
 }
@@ -214,13 +214,13 @@ function updateStats() {
         card.classList.add("danger");
         alert.classList.add("danger");
         alert.style.display = "block";
-        $("storageAlertTitle").textContent = "🚨 Limite de stockage atteinte !";
+        $("storageAlertTitle").textContent = "Limite de stockage atteinte !";
         $("storageAlertText").textContent  = `Vous avez utilisé ${formatBytes(totalBytes)} sur ${formatBytes(STORAGE_LIMIT_BYTES)}. Supprimez impérativement d'anciens rapports.`;
     } else if (totalBytes >= STORAGE_WARNING_BYTES) {
         bar.classList.add("warning");
         card.classList.add("warning");
         alert.style.display = "block";
-        $("storageAlertTitle").textContent = "⚠️ Stockage en approche de la limite";
+        $("storageAlertTitle").textContent = "Stockage en approche de la limite";
         $("storageAlertText").textContent  = `${formatBytes(totalBytes)} utilisés sur ${formatBytes(STORAGE_LIMIT_BYTES)}. Pensez à supprimer les anciens rapports.`;
     } else {
         alert.style.display = "none";
@@ -270,7 +270,7 @@ function renderTable() {
 
     if (filteredRapports.length === 0) {
         area.innerHTML = `<div class="empty-state">
-            <div class="icon">📭</div>
+            <div class="icon"></div>
             ${rapports.length === 0 ? "Aucun rapport envoyé pour le moment." : "Aucun rapport ne correspond aux filtres."}
         </div>`;
         return;
@@ -286,11 +286,11 @@ function renderTable() {
             <td>${escapeHtml(r.ville)}</td>
             <td><span class="badge badge-${r.mode === "travaux" ? "travaux" : "audit"}">${escapeHtml(r.mode)}</span></td>
             <td class="actions">
-                <button class="action-btn" data-act="edit"  title="Ouvrir dans le formulaire pour modifier">✏️</button>
-                <button class="action-btn" data-act="view"  title="Voir détails JSON">👀</button>
-                <button class="action-btn" data-act="docx"  title="Télécharger Word">📄</button>
-                <button class="action-btn" data-act="json"  title="Télécharger JSON">📋</button>
-                <button class="action-btn delete" data-act="del" title="Supprimer">🗑️</button>
+                <button class="action-btn" data-act="edit"  title="Ouvrir dans le formulaire pour modifier"></button>
+                <button class="action-btn" data-act="view"  title="Voir détails JSON"></button>
+                <button class="action-btn" data-act="docx"  title="Télécharger Word"></button>
+                <button class="action-btn" data-act="json"  title="Télécharger JSON"></button>
+                <button class="action-btn delete" data-act="del" title="Supprimer"></button>
             </td>
         </tr>
     `).join("");
@@ -381,7 +381,7 @@ async function openInForm(rap) {
         const newWin = window.open(url, "_blank");
         if (!newWin) {
             // Popup bloquée → demander à l'utilisateur de cliquer
-            showToast("⚠️ Popup bloquée. Cliquez sur le lien ci-dessous.", "error");
+            showToast("Popup bloquée. Cliquez sur le lien ci-dessous.", "error");
             const link = prompt(
                 "Le navigateur a bloqué l'ouverture automatique.\n\nCopiez ce lien et ouvrez-le manuellement :",
                 window.location.origin + window.location.pathname.replace(/admin\.html$/, "") + rap.dossier + "/"
@@ -396,7 +396,7 @@ async function openInForm(rap) {
 }
 
 async function openDetailsModal(rap) {
-    $("modalTitle").textContent = "📄 " + rap.fileName;
+    $("modalTitle").textContent = "" + rap.fileName;
     $("modalBody").textContent = "Chargement du JSON...";
     $("detailsModal").classList.add("open");
     try {
@@ -412,7 +412,7 @@ async function openDetailsModal(rap) {
             $("modalBody").textContent = text;
         }
     } catch (err) {
-        $("modalBody").textContent = "❌ Erreur de chargement : " + (err.message || err);
+        $("modalBody").textContent = "Erreur de chargement : " + (err.message || err);
     }
 }
 

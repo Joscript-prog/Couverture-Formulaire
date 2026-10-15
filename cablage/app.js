@@ -321,14 +321,14 @@ function addGalleryItem(kind, opts = {}) {
     div.dataset.photoKey = key;
     div.innerHTML = `
         <div class="chem-header">
-            <strong>📷 ${cfg.label} ${num}</strong>
-            <button class="btn-delete" data-del-gallery title="Supprimer">🗑</button>
+            <strong>${cfg.label} ${num}</strong>
+            <button class="btn-delete" data-del-gallery title="Supprimer"></button>
         </div>
         <input type="file" accept="image/*">
         <img class="photo-preview" id="preview_${key}">
         <div class="chem-actions">
-            <button class="annotate-btn" data-annotate="${key}" disabled>✏ Annoter</button>
-            <button class="clear-btn" data-clear="${key}">🗑 Effacer</button>
+            <button class="annotate-btn" data-annotate="${key}" disabled>Annoter</button>
+            <button class="clear-btn" data-clear="${key}">Effacer</button>
         </div>
         ${cfg.withComment ? `<textarea class="cheminement-comment" placeholder="${cfg.commentPlaceholder}"></textarea>` : ""}
     `;
@@ -352,7 +352,7 @@ function renumberGallery(kind) {
     if (!container) return;
     container.querySelectorAll(".cheminement-item").forEach((item, i) => {
         const strong = item.querySelector(".chem-header strong");
-        if (strong) strong.textContent = `📷 ${cfg.label} ${i + 1}`;
+        if (strong) strong.textContent = `${cfg.label} ${i + 1}`;
     });
 }
 
@@ -686,7 +686,7 @@ window.importJSON = function (event) {
         try {
             const data = JSON.parse(e.target.result);
             await applyFormData(data);
-            alert("✅ Données importées avec succès.");
+            alert("Données importées avec succès.");
         } catch (err) {
             console.error("Erreur import JSON :", err);
             alert("Le fichier n'est pas un export valide.");
@@ -1214,7 +1214,7 @@ async function generateDocument() {
         }]
     });
 
-    // ⚠️ Comme dans les autres formulaires : ATTENDRE le blob, sinon
+    // Comme dans les autres formulaires : ATTENDRE le blob, sinon
     // captureSaveAs() (auth-upload) se termine avant l'appel à saveAs().
     const blob = await Packer.toBlob(doc);
     const safeName = (val("raison_sociale") || "Site").replace(/[^a-zA-Z0-9_-]/g, "_");

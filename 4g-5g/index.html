@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-tool="4g">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Formulaire Audit 4G/5G — IPKONEKT</title>
+    <title>Antenne 4G / 5G | IPKONEKT</title>
     <script>
         function loadWithFallback(localSrc, fallbackSrc, globalCheck) {
             return new Promise((resolve) => {
@@ -41,12 +41,12 @@
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
             margin: 0;
-            background: #f0f4f8;
+            background: var(--paper);
             color: #222;
             -webkit-tap-highlight-color: rgba(46, 117, 182, 0.2);
         }
         header {
-            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
             color: white;
             padding: 20px 30px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -73,14 +73,14 @@
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
         }
         .section h2 {
-            color: #1f4e79;
-            border-bottom: 2px solid #2e75b6;
+            color: var(--ink);
+            border-bottom: 2px solid var(--accent-ink);
             padding-bottom: 8px;
             margin-top: 0;
             font-size: 1.2rem;
         }
         .section h3 {
-            color: #2e75b6;
+            color: var(--accent-ink);
             font-size: 1rem;
             font-style: italic;
             margin-top: 20px;
@@ -128,7 +128,7 @@
         textarea:focus,
         select:focus {
             outline: none;
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
             box-shadow: 0 0 0 2px rgba(46, 117, 182, 0.2);
         }
         textarea {
@@ -156,7 +156,7 @@
             touch-action: manipulation;
         }
         .checkbox-group label:hover {
-            background: #eef4fa;
+            background: var(--accent-tint);
         }
         .checkbox-group label:active {
             background: #dbe7f2;
@@ -178,7 +178,7 @@
         }
         .photo-upload-label {
             font-weight: 600;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -215,7 +215,7 @@
             background: white;
             padding: 15px 20px;
             padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
-            border-top: 2px solid #2e75b6;
+            border-top: 2px solid var(--accent-ink);
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             gap: 10px;
@@ -238,11 +238,11 @@
             transform: scale(0.97);
         }
         .btn-primary {
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: white;
         }
         .btn-primary:hover {
-            background: #1f4e79;
+            background: var(--ink);
         }
         .btn-secondary {
             background: #e6e6e6;
@@ -374,7 +374,7 @@
             display: flex;
         }
         .editor-modal {
-            background: #f0f4f8;
+            background: var(--paper);
             border-radius: 8px;
             width: min(95vw, 1200px);
             height: min(95vh, 850px);
@@ -384,7 +384,7 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
         .editor-header {
-            background: #1f4e79;
+            background: var(--ink);
             color: white;
             padding: 12px 20px;
             display: flex;
@@ -431,7 +431,7 @@
         .editor-toolbar h3 {
             margin: 0 0 8px 0;
             font-size: 0.85rem;
-            color: #1f4e79;
+            color: var(--ink);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -452,14 +452,14 @@
             cursor: pointer;
             font-size: 0.85rem;
             margin-bottom: 6px;
-            color: #1f4e79;
+            color: var(--ink);
             text-align: left;
             font-weight: 600;
             touch-action: manipulation;
         }
         .tool-btn:hover {
-            background: #eef4fa;
-            border-color: #2e75b6;
+            background: var(--accent-tint);
+            border-color: var(--accent-ink);
         }
         .tool-btn img {
             width: 28px;
@@ -501,7 +501,7 @@
             touch-action: none;
         }
         .editor-element.selected {
-            outline: 2px dashed #2e75b6;
+            outline: 2px dashed var(--accent-ink);
             outline-offset: 2px;
         }
         .editor-element img {
@@ -539,7 +539,7 @@
             width: 14px;
             height: 14px;
             background: #fff;
-            border: 2px solid #2e75b6;
+            border: 2px solid var(--accent-ink);
             border-radius: 50%;
             z-index: 10;
             touch-action: none; /* Empêche le pan/zoom natif lors du drag */
@@ -707,7 +707,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.82rem;
-            color: #1f4e79;
+            color: var(--ink);
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -716,13 +716,13 @@
             touch-action: manipulation;
         }
         .flip-btn:hover {
-            background: #eef4fa;
-            border-color: #2e75b6;
+            background: var(--accent-tint);
+            border-color: var(--accent-ink);
         }
         .flip-btn.active {
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: #fff;
-            border-color: #1f4e79;
+            border-color: var(--ink);
         }
         .flip-btn svg {
             width: 18px;
@@ -975,7 +975,7 @@
             }
         }
         .evacuation-upload-area {
-            border: 2px dashed #2e75b6;
+            border: 2px dashed var(--accent-ink);
             border-radius: 6px;
             padding: 20px;
             text-align: center;
@@ -986,10 +986,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #2e75b6;
+            color: var(--accent-ink);
         }
         .evacuation-upload-area:hover {
-            background: #eef4fa;
+            background: var(--accent-tint);
         }
         .evacuation-upload-area input[type="file"] {
             display: none;
@@ -1015,7 +1015,7 @@
             text-align: center;
         }
         .ref-table th {
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: white;
         }
         .ref-table td {
@@ -1084,7 +1084,7 @@
         }
         .quality-matrix thead th {
             background: #f8fafc;
-            color: #2e75b6;
+            color: var(--accent-ink);
             font-weight: 700;
             font-size: 0.85rem;
             border-bottom: 2px solid #cfdce9;
@@ -1092,7 +1092,7 @@
         .quality-matrix tbody th {
             text-align: left;
             background: #f8fafc;
-            color: #1f4e79;
+            color: var(--ink);
             font-weight: 600;
             padding-left: 14px;
             border-right: 1px solid #e6ecf2;
@@ -1126,7 +1126,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #1f4e79;
+            color: var(--ink);
             font-weight: 600;
             margin-top: 18px;
             margin-bottom: 4px;
@@ -1155,7 +1155,7 @@
         }
         .mp-header h4 {
             margin: 0;
-            color: #1f4e79;
+            color: var(--ink);
             font-size: 1rem;
         }
         .btn-delete {
@@ -1204,7 +1204,7 @@
         .mp-photo-label {
             display: block;
             font-weight: 600;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 6px;
             font-size: 0.88rem;
         }
@@ -1229,7 +1229,7 @@
             font-size: 0.8rem;
             line-height: 1.3;
         }
-        .ocr-status[data-state="working"] { color: #2e75b6; }
+        .ocr-status[data-state="working"] { color: var(--accent-ink); }
         .ocr-status[data-state="ok"]      { color: #166534; }
         .ocr-status[data-state="warn"]    { color: #8a6d1f; }
         /* Surlignage temporaire d'un champ pré-rempli par l'OCR */
@@ -1293,7 +1293,7 @@
             min-height: 40px;
         }
         .mp-measure-cell input:focus {
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
             outline: none;
             box-shadow: 0 0 0 2px rgba(46, 117, 182, 0.15);
         }
@@ -1342,7 +1342,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 8px;
         }
         .cheminement-item input[type="file"] {
@@ -1414,8 +1414,8 @@
             height: 18px;
             border-radius: 50%;
             background: white;
-            color: #1f4e79;
-            border: 1.5px solid #1f4e79;
+            color: var(--ink);
+            border: 1.5px solid var(--ink);
             font-size: 11px;
             font-weight: bold;
             display: flex;
@@ -1451,7 +1451,7 @@
         /* --- Carte d'un plan d'évacuation (multi-plans : un par étage) --- */
         .evac-plan-card {
             border: 1px solid #c9d6e2;
-            border-left: 4px solid #2e75b6;
+            border-left: 4px solid var(--accent-ink);
             border-radius: 8px;
             padding: 14px 14px 16px;
             margin-top: 14px;
@@ -1480,7 +1480,7 @@
         }
         .evac-plan-card-icon {
             font-size: 1.1rem;
-            color: #1f4e79;
+            color: var(--ink);
             flex-shrink: 0;
         }
         .evac-plan-card-title-input {
@@ -1489,14 +1489,14 @@
             padding: 6px 10px;
             font-size: 0.95rem;
             font-weight: 600;
-            color: #1f4e79;
+            color: var(--ink);
             border: 1px solid #d8e2ec;
             border-radius: 4px;
             background: #f9fbfd;
         }
         .evac-plan-card-title-input:focus {
             outline: none;
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
             background: #ffffff;
         }
         .evac-plan-card-remove-btn {
@@ -1558,7 +1558,7 @@
             margin-top: 14px;
         }
         .tech-block[data-tech="4g"] {
-            border-left: 4px solid #2e75b6;
+            border-left: 4px solid var(--accent-ink);
         }
         .tech-block[data-tech="5g"] {
             border-left: 4px solid #16a34a;
@@ -1572,7 +1572,7 @@
         .tech-title {
             margin: 0;
             font-size: 1rem;
-            color: #1f4e79;
+            color: var(--ink);
             font-style: normal;
             font-weight: 700;
         }
@@ -1614,7 +1614,7 @@
             min-width: 0;
             font-size: 1rem;
             font-weight: 700;
-            color: #1f4e79;
+            color: var(--ink);
             padding: 8px 10px;
             border: 1px solid #c7d6e6;
             border-radius: 6px;
@@ -1659,7 +1659,7 @@
             min-width: 0;
             font-weight: 600;
             font-size: 1rem;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 0;
         }
         .mp-location-remove { flex-shrink: 0; }
@@ -1682,11 +1682,11 @@
             border-radius: 999px;
             color: #fff;
         }
-        .mp-subhead[data-tech="4g"] .mp-subhead-badge { background: #2e75b6; }
-        .mp-subhead[data-tech="5g"] .mp-subhead-badge { background: #1f4e79; }
+        .mp-subhead[data-tech="4g"] .mp-subhead-badge { background: var(--accent-ink); }
+        .mp-subhead[data-tech="5g"] .mp-subhead-badge { background: var(--ink); }
         /* Liseré coloré à gauche de chaque sous-bloc pour distinguer 4G / 5G */
-        .mp-location-techs .measure-point-group.mp-container-4g { border-left: 4px solid #2e75b6; }
-        .mp-location-techs .measure-point-group.mp-container-5g { border-left: 4px solid #1f4e79; }
+        .mp-location-techs .measure-point-group.mp-container-4g { border-left: 4px solid var(--accent-ink); }
+        .mp-location-techs .measure-point-group.mp-container-5g { border-left: 4px solid var(--ink); }
 
         /* --- Plan d'évacuation : label CENTRÉ près du cercle --- */
         .evac-pin {
@@ -1696,12 +1696,12 @@
             /* Décalage léger en haut-droite par rapport au centre */
             transform: translate(8%, -135%);
             background: white;
-            color: #1f4e79;
+            color: var(--ink);
             padding: 2px 8px;
             border-radius: 4px;
             font-weight: 700;
             font-size: 0.78rem;
-            border: 1.5px solid #1f4e79;
+            border: 1.5px solid var(--ink);
             white-space: nowrap;
             pointer-events: none;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
@@ -1718,13 +1718,13 @@
             margin-right: 5px;
             vertical-align: middle;
         }
-        .evac-pin .pin-tech.tech-4g { background: #2e75b6; }
+        .evac-pin .pin-tech.tech-4g { background: var(--accent-ink); }
         .evac-pin .pin-tech.tech-5g { background: #16a34a; }
 
         /* --- Liste des points disponibles à placer sur le plan --- */
         .evac-picker-title {
             font-weight: 700;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 4px;
             font-size: 0.95rem;
         }
@@ -1749,21 +1749,21 @@
             cursor: pointer;
             font-size: 0.85rem;
             font-weight: 600;
-            color: #1f4e79;
+            color: var(--ink);
             transition: all 0.15s;
             user-select: none;
             touch-action: manipulation;
         }
         .evac-pp-item:hover {
-            background: #eef4fa;
-            border-color: #2e75b6;
+            background: var(--accent-tint);
+            border-color: var(--accent-ink);
         }
         .evac-pp-item .pp-tech-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
         }
-        .evac-pp-item .pp-tech-dot.tech-4g { background: #2e75b6; }
+        .evac-pp-item .pp-tech-dot.tech-4g { background: var(--accent-ink); }
         .evac-pp-item .pp-tech-dot.tech-5g { background: #16a34a; }
         .evac-pp-item .pp-name {
             max-width: 200px;
@@ -1839,7 +1839,7 @@
 
         /* ============ SÉLECTEUR MODE AUDIT / TRAVAUX ============ */
         .mode-selector {
-            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
             padding: 25px 20px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -1882,7 +1882,7 @@
         }
         .mode-btn.active {
             background: #fff;
-            color: #1f4e79;
+            color: var(--ink);
             border-color: #fff;
             box-shadow: 0 4px 14px rgba(0,0,0,0.2);
         }
@@ -1901,7 +1901,7 @@
         }
         .cr-category > h4 {
             margin: 0 0 12px 0;
-            color: #1f4e79;
+            color: var(--ink);
             font-size: 0.95rem;
             font-weight: 700;
             border-bottom: 1px solid #d0dae5;
@@ -1938,7 +1938,7 @@
         .cr-subcategory {
             margin: 10px 0 6px 0;
             font-weight: 600;
-            color: #2e75b6;
+            color: var(--accent-ink);
             font-size: 0.85rem;
             font-style: italic;
         }
@@ -1961,7 +1961,7 @@
         }
         .cr-item.checked {
             background: #eef7ff;
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
         }
         .cr-item-main {
             display: flex;
@@ -1982,7 +1982,7 @@
             height: 22px;
             cursor: pointer;
             flex-shrink: 0;
-            accent-color: #2e75b6;
+            accent-color: var(--accent-ink);
         }
         .cr-item-extras {
             display: flex;
@@ -2012,7 +2012,7 @@
         }
         .cr-status-radios label {
             padding: 8px 12px;
-            background: #f0f4f8;
+            background: var(--paper);
             border: 1px solid #cfdce9;
             border-radius: 4px;
             cursor: pointer;
@@ -2031,9 +2031,9 @@
             transform: scale(0.97);
         }
         .cr-status-radios label:has(input:checked) {
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: #fff;
-            border-color: #1f4e79;
+            border-color: var(--ink);
         }
         .cr-status-radios label.preset-existing:has(input:checked) {
             background: #5cb85c;
@@ -2084,7 +2084,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            background: #f0f4f8;
+            background: var(--paper);
             padding: 4px 10px;
             border-radius: 4px;
         }
@@ -2102,7 +2102,7 @@
         }
         #compteRenduPreview {
             background: #fff;
-            border: 2px solid #2e75b6;
+            border: 2px solid var(--accent-ink);
             border-radius: 6px;
             padding: 18px 22px;
             margin-top: 14px;
@@ -2126,7 +2126,7 @@
         }
         .cr-preview-header h3 {
             margin: 0;
-            color: #1f4e79;
+            color: var(--ink);
             font-size: 1rem;
             font-style: normal;
             font-weight: 700;
@@ -2162,7 +2162,7 @@
 
         /* ============ BORNES / RÉPÉTEURS INTÉRIEURS ============ */
         .bn-subtitle {
-            color: #1f4e79; font-size: 1.05rem; font-weight: 700;
+            color: var(--ink); font-size: 1.05rem; font-weight: 700;
             margin: 24px 0 8px; padding-top: 14px; border-top: 1px dashed #d5dde5;
         }
         .bn-subtitle.first { border-top: none; padding-top: 0; margin-top: 6px; }
@@ -2170,25 +2170,25 @@
         #bornesEmpty[hidden] { display: none; }
         .bn-card {
             background: #fff; border: 1px solid #dde5ee;
-            border-left: 6px solid var(--borne-color, #2e75b6);
+            border-left: 6px solid var(--borne-color, var(--accent-ink));
             border-radius: 8px; padding: 12px 14px; margin: 10px 0 14px;
         }
         .bn-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .bn-toggle {
             width: 36px; height: 36px; min-width: 36px; padding: 0;
-            border: 1px solid #cddbe8; background: #fff; color: #1f4e79;
+            border: 1px solid #cddbe8; background: #fff; color: var(--ink);
             border-radius: 6px; font-size: 1rem; cursor: pointer; transition: transform 0.15s;
         }
         .bn-card.collapsed .bn-toggle { transform: rotate(-90deg); }
         .bn-card.collapsed > .bn-body { display: none; }
         .bn-dot {
             width: 20px; height: 20px; min-width: 20px; border-radius: 50%;
-            background: var(--borne-color, #2e75b6);
+            background: var(--borne-color, var(--accent-ink));
             box-shadow: 0 0 0 3px #fff, 0 0 0 4px #cfd8e3;
         }
         input.bn-nom {
-            flex: 1; min-width: 160px; width: auto; font-weight: 700; color: #1f4e79;
-            border-bottom: 3px solid var(--borne-color, #2e75b6) !important;
+            flex: 1; min-width: 160px; width: auto; font-weight: 700; color: var(--ink);
+            border-bottom: 3px solid var(--borne-color, var(--accent-ink)) !important;
         }
         .bn-color-name { font-size: 0.82rem; color: #666; white-space: nowrap; }
         .bn-body { margin-top: 10px; }
@@ -2204,7 +2204,7 @@
         .bn-full { margin-top: 10px; }
         .bn-full textarea { min-height: 64px; }
         .bn-photo-title {
-            color: #1f4e79; font-weight: 700; font-size: 0.95rem;
+            color: var(--ink); font-weight: 700; font-size: 0.95rem;
             margin: 16px 0 8px; padding-top: 10px; border-top: 1px dashed #d5dde5;
         }
         .bn-single-photo { max-width: 520px; }
@@ -2225,13 +2225,13 @@
         #syntheseBornesWrap { margin: 6px 0 18px; }
         #syntheseBornesWrap[hidden] { display: none; }
         .synth-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
-        .synth-head label { font-weight: 700; color: #1f4e79; font-size: 1rem; }
+        .synth-head label { font-weight: 700; color: var(--ink); font-size: 1rem; }
         .conf-badge { display: inline-block; padding: 3px 10px; border-radius: 16px; font-weight: 700; font-size: 0.78rem; }
         .conf-badge.ok { background: #dcfce7; color: #166534; }
         .conf-badge.ko { background: #fef3c7; color: #92400e; }
         #syntheseRegenBtn {
             display: none; align-items: center; gap: 6px;
-            background: #fff; border: 1px solid #2e75b6; color: #2e75b6;
+            background: #fff; border: 1px solid var(--accent-ink); color: var(--accent-ink);
             padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
         }
         .bn-help { color: #666; font-size: 0.86rem; margin: 0 0 8px; }
@@ -2266,6 +2266,9 @@
         /* En mode travaux : on cache les éléments audit-only */
         body[data-mode="travaux"] .audit-only { display: none !important; }
     </style>
+    <link rel="icon" href="../logo-ipkonekt.png">
+    <link rel="preload" href="../fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../theme.css">
 </head>
 <body>
 
@@ -2277,7 +2280,7 @@
         body.locked > *:not(#loginOverlay) { filter: blur(3px); pointer-events: none; user-select: none; }
         #loginOverlay {
             position: fixed; inset: 0; z-index: 9999;
-            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
             display: flex; align-items: center; justify-content: center;
             padding: 20px;
         }
@@ -2285,7 +2288,7 @@
             background: #fff; border-radius: 14px; padding: 36px 32px;
             width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
-        #loginOverlay h2 { margin: 0 0 8px 0; color: #1f4e79; font-size: 1.4rem; }
+        #loginOverlay h2 { margin: 0 0 8px 0; color: var(--ink); font-size: 1.4rem; }
         #loginOverlay .subtitle { margin: 0 0 24px 0; color: #666; font-size: 0.9rem; }
         #loginOverlay label { display:block; margin: 14px 0 6px 0; font-weight: 600; color: #333; font-size: 0.88rem; }
         #loginOverlay select, #loginOverlay input {
@@ -2293,15 +2296,15 @@
             border-radius: 6px; font-size: 1rem; font-family: inherit;
         }
         #loginOverlay select:focus, #loginOverlay input:focus {
-            outline: none; border-color: #2e75b6; box-shadow: 0 0 0 3px rgba(46,117,182,0.15);
+            outline: none; border-color: var(--accent-ink); box-shadow: 0 0 0 3px rgba(46,117,182,0.15);
         }
         #loginOverlay #loginBtn {
             width: 100%; margin-top: 22px; padding: 13px;
-            background: #2e75b6; color: #fff; border: none;
+            background: var(--accent-ink); color: #fff; border: none;
             border-radius: 6px; font-size: 1rem; font-weight: 600;
             cursor: pointer; transition: background 0.15s;
         }
-        #loginOverlay #loginBtn:hover { background: #1f4e79; }
+        #loginOverlay #loginBtn:hover { background: var(--ink); }
         #loginOverlay #loginError {
             display: none; margin-top: 14px; padding: 10px 12px;
             background: #fde8e8; color: #c0392b; border-radius: 6px;
@@ -2311,7 +2314,7 @@
     </style>
     <div id="loginOverlay" style="display:none;">
         <div class="login-card">
-            <h2>🔐 Connexion technicien</h2>
+            <h2>Connexion technicien</h2>
             <p class="subtitle">Espace IPKONEKT</p>
             <label for="loginTechSelect">Identifiant technicien</label>
             <select id="loginTechSelect">
@@ -2325,30 +2328,27 @@
         </div>
     </div>
 
-    <header>
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
-            <div>
-                <h1>📋 Formulaire d'Audit 4G/5G — IPKONEKT</h1>
-                <p>Renseignez les informations ci-dessous, puis générez le rapport Word.</p>
+    <header class="app-header">
+        <div class="app-header-in">
+            <a class="app-home" href="../" title="Tous les outils"><img src="../logo-ipkonekt.png" alt="IPKONEKT" width="147" height="129"></a>
+            <div class="app-title">
+                <h1>Antenne 4G / 5G</h1>
+                <p>Audit ou travaux d'installation d'antenne 4G/5G chez le client. Le rapport se génère en bas de page.</p>
             </div>
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-                <span id="loggedUserBadge" style="display:none; background:rgba(255,255,255,0.22); color:#fff; padding:8px 14px; border-radius:20px; font-size:0.85rem; font-weight:600;"></span>
-                <button id="logoutBtn" type="button" onclick="logout()" style="display:none; background:#c0392b; color:#fff; border:none; padding:10px 16px; border-radius:6px; font-size:0.9rem; font-weight:600; cursor:pointer;">⎋ Déconnexion</button>
-                <a href="../" style="background: rgba(255,255,255,0.18); color:#fff; text-decoration:none; padding:10px 16px; border-radius:6px; border:1px solid rgba(255,255,255,0.4); font-size:0.9rem; font-weight:600; white-space:nowrap;">← Retour au portail</a>
+            <div class="app-tools">
+                <span id="loggedUserBadge" style="display:none;"></span>
+                <button id="logoutBtn" type="button" onclick="logout()" style="display:none;">Déconnexion</button>
+                <a class="app-back" href="../">Tous les outils</a>
             </div>
         </div>
     </header>
 
     <!-- ===== SÉLECTEUR DE MODE AUDIT / TRAVAUX ===== -->
     <div class="mode-selector">
-        <h3>Type d'intervention</h3>
-        <div class="mode-buttons">
-            <button type="button" class="mode-btn active" id="modeAuditBtn" onclick="setMode('audit')">
-                <span class="mode-icon">🔍</span>AUDIT
-            </button>
-            <button type="button" class="mode-btn" id="modeTravauxBtn" onclick="setMode('travaux')">
-                <span class="mode-icon">🛠️</span>TRAVAUX
-            </button>
+        <span class="mode-label" id="modeLabel">Type d'intervention</span>
+        <div class="mode-buttons" role="group" aria-labelledby="modeLabel">
+            <button type="button" class="mode-btn active" id="modeAuditBtn" onclick="setMode('audit')">Audit</button>
+            <button type="button" class="mode-btn" id="modeTravauxBtn" onclick="setMode('travaux')">Travaux</button>
         </div>
         <input type="hidden" id="modeIntervention" value="audit">
     </div>
@@ -2538,14 +2538,14 @@
             <div id="measureLevelsContainer"></div>
 
             <button class="btn-secondary audit-only" id="addMeasureLevelBtn" style="margin-top:14px; font-weight:600;">
-                ➕ Ajouter un niveau / étage (bloc 4G + 5G)
+                + Ajouter un niveau / étage (bloc 4G + 5G)
             </button>
             </div>
 
             <!-- ========== PHOTO INSTALLATION ROUTEUR (mode TRAVAUX uniquement) ========== -->
             <div class="tech-block travaux-only" data-tech="4g" style="margin-top:24px;">
                 <div class="tech-header">
-                    <h3 class="tech-title">📷 Photo de l'installation du routeur 4G</h3>
+                    <h3 class="tech-title">Photo de l'installation du routeur 4G</h3>
                 </div>
                 <p style="margin:6px 0 12px; color:#555; font-size:0.92rem;">
                     Importez une photo montrant l'installation physique du routeur. La photo est annotable (flèches, cercles, texte) pour mettre en avant les points importants.
@@ -2554,8 +2554,8 @@
                     <input type="file" accept="image/*" id="routeurPhotoInput">
                     <img id="preview_routeur_install" class="photo-preview">
                     <div class="mp-photo-actions">
-                        <button class="annotate-btn" data-annotate="routeur_install" disabled>✏ Annoter</button>
-                        <button class="clear-btn" data-clear="routeur_install">🗑 Effacer</button>
+                        <button class="annotate-btn" data-annotate="routeur_install" disabled>Annoter</button>
+                        <button class="clear-btn" data-clear="routeur_install">Effacer</button>
                     </div>
                 </div>
             </div>
@@ -2566,7 +2566,7 @@
             <h2>4. Plan(s) d'évacuation</h2>
             <div class="info-box audit-only">
                 Importez une ou plusieurs photos du plan d'évacuation (utile pour les sites à plusieurs étages : un plan par niveau). Pour chaque plan importé, choisissez dans la liste les points de mesure (issus de la section 3) à placer dessus. Les points sont automatiquement colorés selon la qualité radio globale.<br>
-                <b>💡 Un même point ne peut être placé que sur un seul plan</b> (s'il est placé sur le plan d'un étage, il devient grisé sur tous les autres plans).
+                <b>Un même point ne peut être placé que sur un seul plan</b> (s'il est placé sur le plan d'un étage, il devient grisé sur tous les autres plans).
             </div>
             <div class="info-box travaux-only">
                 Importez une ou plusieurs photos du plan d'évacuation (utile pour les sites à plusieurs étages). Pour chaque plan, annotez le <b>cheminement complet entre l'antenne et le routeur</b> : passage de câble, percements, traversées, direction de cheminement, etc.<br>
@@ -2578,7 +2578,7 @@
                 <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer; font-weight:500;">
                     <input type="checkbox" id="noEvacPlan" style="margin-top:3px; flex-shrink:0;">
                     <span>
-                        ☐ <strong>Aucun plan d'évacuation disponible sur le site</strong><br>
+                        <strong>Aucun plan d'évacuation disponible sur le site</strong><br>
                         <span style="font-weight:400; font-size:0.9em; color:#666;">
                             Cochez cette case si le site ne dispose pas de plan d'évacuation. Dans ce cas, la génération du rapport ne nécessitera pas le positionnement des points sur un plan, mais les 12 photos (6 lieux + 6 écrans) restent obligatoires.
                         </span>
@@ -2592,14 +2592,14 @@
 
             <!-- Bouton pour ajouter un plan d'évacuation supplémentaire (étage suivant, autre bâtiment, etc.) -->
             <button type="button" class="btn-secondary" id="addEvacPlanBtn" style="margin-top:14px;">
-                ➕ Ajouter un plan d'évacuation (étage / niveau supplémentaire)
+                + Ajouter un plan d'évacuation (étage / niveau supplémentaire)
             </button>
         </div>
 
         <!-- Popup info plan d'évacuation -->
         <div id="evacPopup" class="evac-popup-overlay">
             <div class="evac-popup-modal">
-                <div class="evac-popup-icon">⚠️</div>
+                <div class="evac-popup-icon"></div>
                 <p class="evac-popup-text" id="evacPopupText">Vous n'avez plus de points de mesure disponibles à ajouter.</p>
                 <button class="btn-primary" onclick="closeEvacPopup()">OK</button>
             </div>
@@ -2615,16 +2615,16 @@
             <div id="cheminementContainer">
                 <!-- Les cheminements sont ajoutés dynamiquement par app.js -->
             </div>
-            <button class="btn-secondary" id="addCheminementBtn">➕ Ajouter une photo de cheminement</button>
+            <button class="btn-secondary" id="addCheminementBtn">+ Ajouter une photo de cheminement</button>
 
             <div class="bn-subtitle">Bornes / répéteurs intérieurs</div>
             <div class="info-box">
                 Une fiche par borne ou répéteur <span class="audit-only">à prévoir</span><span class="travaux-only">posé</span> : emplacement, câble, photos du cheminement et des percements. Chaque borne a sa couleur.<br>
-                Sur un plan d'évacuation (section 4, bouton « ✏ Annoter ce plan »), choisissez la borne dans <b>« Je trace pour »</b>, posez-la, puis tracez son cheminement : il prend automatiquement sa couleur.
+                Sur un plan d'évacuation (section 4, bouton « Annoter ce plan »), choisissez la borne dans <b>« Je trace pour »</b>, posez-la, puis tracez son cheminement : il prend automatiquement sa couleur.
             </div>
             <p id="bornesEmpty">Aucune borne pour l'instant.</p>
             <div id="bornesContainer"></div>
-            <button type="button" class="btn-secondary" id="addBorneBtn">➕ Ajouter une borne / un répéteur</button>
+            <button type="button" class="btn-secondary" id="addBorneBtn">+ Ajouter une borne / un répéteur</button>
         </div>
 
         <!-- ===== SECTION 6 - SYNTHÈSE ===== -->
@@ -2667,22 +2667,22 @@
                 <div class="synth-head">
                     <label for="synthese_bornes">Synthèse par borne</label>
                     <span class="conf-badge ok" id="syntheseBadge">Mise à jour automatique</span>
-                    <button type="button" id="syntheseRegenBtn">🔄 Régénérer depuis les fiches</button>
+                    <button type="button" id="syntheseRegenBtn">Régénérer depuis les fiches</button>
                 </div>
                 <p class="bn-help">Rédigée automatiquement à partir des fiches des bornes (section 5). Vous pouvez la modifier : elle est reprise telle quelle dans le Word.</p>
                 <textarea id="synthese_bornes"></textarea>
             </div>
 
             <div class="field-row full">
-                <label style="font-size:1rem; color:#1f4e79; margin-bottom:8px;">📝 Compte rendu principal</label>
+                <label style="font-size:1rem; color:var(--ink); margin-bottom:8px;">Compte rendu principal</label>
                 <div class="cr-info-banner">
                     Cochez les éléments concernés. Pour les équipements pouvant déjà exister sur site, choisissez <b>« Déjà présent »</b> ou <b>« À installer »</b>. Le compte rendu rédigé en bas se met à jour automatiquement et reste éditable avant export.
                 </div>
                 <div id="compteRenduCheckboxes"></div>
 
                 <div class="cr-preview-header">
-                    <h3>📄 Compte rendu rédigé (modifiable)</h3>
-                    <button type="button" class="cr-regen-btn" onclick="regenererCompteRendu()">🔄 Régénérer depuis les cases</button>
+                    <h3>Compte rendu rédigé (modifiable)</h3>
+                    <button type="button" class="cr-regen-btn" onclick="regenererCompteRendu()">Régénérer depuis les cases</button>
                 </div>
                 <textarea id="compteRenduPreview" placeholder="Cochez les éléments ci-dessus pour générer automatiquement le compte rendu..."></textarea>
             </div>
@@ -2708,20 +2708,20 @@
     <div id="validationBanner" style="max-width: 1200px; margin: 0 auto 10px auto; padding: 12px 16px; border-radius: 6px; display: none;"></div>
 
     <div class="actions">
-        <button class="btn-secondary" onclick="resetForm()">🔄 Réinitialiser</button>
-        <button class="btn-secondary" id="btnExportJSON" onclick="exportJSON()">⬇ Export JSON</button>
-        <button class="btn-secondary" onclick="document.getElementById('importJSONInput').click()">⬆ Import JSON</button>
+        <button class="btn-secondary" onclick="resetForm()">Réinitialiser</button>
+        <button class="btn-secondary" id="btnExportJSON" onclick="exportJSON()">Export JSON</button>
+        <button class="btn-secondary" onclick="document.getElementById('importJSONInput').click()">Import JSON</button>
         <input type="file" id="importJSONInput" accept=".json" style="display:none" onchange="importJSON(event)">
-        <button class="btn-primary" id="btnGenerateWord" onclick="generateDocument()">📄 Générer le rapport Word</button>
-        <button class="btn-primary" id="btnGeneratePDF" onclick="generatePDFReport()" style="background:#b91c1c;">📄 Générer le rapport PDF</button>
-        <button type="button" id="sendToServerBtn" class="btn-success" onclick="sendToServer()" style="background:#16a34a; color:#fff;">📧 Envoyer au serveur</button>
+        <button class="btn-primary" id="btnGenerateWord" onclick="generateDocument()">Générer le rapport Word</button>
+        <button class="btn-primary" id="btnGeneratePDF" onclick="generatePDFReport()">Générer le rapport PDF</button>
+        <button type="button" id="sendToServerBtn" class="btn-success" onclick="sendToServer()">Envoyer au serveur</button>
     </div>
 
     <!-- ===== ÉDITEUR D'ANNOTATION ===== -->
     <div class="editor-overlay" id="editorOverlay">
         <div class="editor-modal">
             <div class="editor-header">
-                <h2>✏ Annoter la photo — <span id="editorTitle"></span></h2>
+                <h2>Annoter : <span id="editorTitle"></span></h2>
                 <button class="editor-close" onclick="closeEditor()">Fermer sans enregistrer</button>
             </div>
             <div class="editor-body">
@@ -2736,7 +2736,7 @@
                     </div>
 
                     <div class="selection-panel tool-group" id="selectionPanel">
-                        <h3>✎ Élément sélectionné</h3>
+                        <h3>Élément sélectionné</h3>
                         <div id="selPanelImage">
                             <div class="flip-buttons">
                                 <button class="flip-btn" id="flipHBtn" title="Retourner horizontalement">
@@ -2788,11 +2788,11 @@
                             <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="currentColor"/></svg>
                             Tracé (plusieurs points)
                         </button>
-                        <button type="button" class="tool-btn" id="toolAddBorne" style="display:none;">📶 Poser la borne</button>
-                        <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche simple</button>
-                        <button class="tool-btn" id="toolAddCircle">⭕ Ajouter un cercle</button>
-                        <button class="tool-btn" id="toolAddText">🅰️ Ajouter du texte</button>
-                        <button class="tool-btn" id="toolAddMeasurePoint">📍 Ajouter un point de mesure</button>
+                        <button type="button" class="tool-btn" id="toolAddBorne" style="display:none;">Poser la borne</button>
+                        <button class="tool-btn" id="toolAddArrow">Ajouter une flèche simple</button>
+                        <button class="tool-btn" id="toolAddCircle">Ajouter un cercle</button>
+                        <button class="tool-btn" id="toolAddText">Ajouter du texte</button>
+                        <button class="tool-btn" id="toolAddMeasurePoint">Ajouter un point de mesure</button>
                     </div>
 
                     <div class="tool-group">
@@ -2834,7 +2834,7 @@
                                 <div class="swatch" style="background:#000000" data-color="#000000"></div>
                             </div>
                             <div class="style-preview" id="textPreview">Aperçu</div>
-                            <button class="tool-btn" id="btnAddText" style="background:#2e75b6; color:white; border-color:#1f4e79; justify-content:center; margin-top:6px;">➕ Ajouter le texte</button>
+                            <button class="tool-btn" id="btnAddText" style="background:var(--accent-ink); color:white; border-color:var(--ink); justify-content:center; margin-top:6px;">+ Ajouter le texte</button>
                         </div>
                     </div>
 
@@ -2858,10 +2858,10 @@
                 </div>
             </div>
             <div class="editor-footer">
-                <span class="hint">💡 Astuce : double-cliquez sur un texte pour le modifier.</span>
+                <span class="hint">Astuce : double-cliquez sur un texte pour le modifier.</span>
                 <div>
                     <button class="btn-secondary" onclick="closeEditor()" style="padding:8px 16px;">Annuler</button>
-                    <button class="btn-primary" onclick="saveAnnotation()" style="padding:8px 16px;">✅ Enregistrer</button>
+                    <button class="btn-primary" onclick="saveAnnotation()" style="padding:8px 16px;">Enregistrer</button>
                 </div>
             </div>
         </div>

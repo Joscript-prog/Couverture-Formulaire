@@ -87,7 +87,7 @@ const Editor = (function () {
       stageH = bgPhotoEl.naturalHeight;
       fitStage();
 
-      // ⭐ Restaurer les annotations sauvegardées (si présentes)
+      // Restaurer les annotations sauvegardées (si présentes)
       if (photo.annotations && Array.isArray(photo.annotations) && photo.annotations.length > 0) {
         photo.annotations.forEach(d => recreateElementFromData(d));
       }
@@ -1065,7 +1065,7 @@ const Editor = (function () {
     photo.dataUrl = dataUrl;
     photo.annotated = true;
 
-    // ⭐ Sauvegarder les annotations pour une ré-édition future
+    // Sauvegarder les annotations pour une ré-édition future
     // On clone profondément les data pour qu'ils soient indépendants des éléments DOM
     photo.annotations = elements.map(e => JSON.parse(JSON.stringify(e.data)));
 

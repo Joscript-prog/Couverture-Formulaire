@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Admin — Gestion des rapports TECHCOUV</title>
+    <title>Gestion des rapports TECHCOUV | IPKONEKT</title>
     <style>
         * { box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -11,13 +11,13 @@
             margin: 0; min-height: 100vh;
             font-family: 'Segoe UI', Tahoma, sans-serif;
             color: #222;
-            background: #f0f4f8;
+            background: var(--paper);
         }
 
         /* ====== ÉCRAN DE LOGIN ADMIN ====== */
         #adminLoginScreen {
             min-height: 100vh;
-            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
             display: flex; align-items: center; justify-content: center;
             padding: 20px;
         }
@@ -30,7 +30,7 @@
         }
         .admin-login-card h1 {
             margin: 0 0 10px 0;
-            color: #1f4e79;
+            color: var(--ink);
             font-size: 1.5rem;
             text-align: center;
         }
@@ -57,14 +57,14 @@
         }
         .admin-login-card input[type="password"]:focus {
             outline: none;
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
             box-shadow: 0 0 0 3px rgba(46, 117, 182, 0.15);
         }
         .admin-login-btn {
             width: 100%;
             margin-top: 22px;
             padding: 13px;
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: #fff;
             border: none;
             border-radius: 6px;
@@ -73,7 +73,7 @@
             cursor: pointer;
             transition: background 0.15s;
         }
-        .admin-login-btn:hover { background: #1f4e79; }
+        .admin-login-btn:hover { background: var(--ink); }
         #loginErrorBox {
             display: none;
             margin-top: 16px;
@@ -95,7 +95,7 @@
         #dashboardScreen { display: none; }
 
         .admin-header {
-            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
             color: #fff;
             padding: 20px 30px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -138,7 +138,7 @@
             border-radius: 10px;
             padding: 18px 22px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border-left: 4px solid #2e75b6;
+            border-left: 4px solid var(--accent-ink);
         }
         .stat-card.warning { border-left-color: #e67e22; }
         .stat-card.danger  { border-left-color: #c0392b; }
@@ -152,7 +152,7 @@
         .stat-card .value {
             font-size: 1.6rem;
             font-weight: 700;
-            color: #1f4e79;
+            color: var(--ink);
         }
         .stat-card .sub {
             font-size: 0.78rem;
@@ -237,7 +237,7 @@
             font-size: 0.95rem;
         }
         .filters-card select:focus, .filters-card input:focus {
-            outline: none; border-color: #2e75b6;
+            outline: none; border-color: var(--accent-ink);
             box-shadow: 0 0 0 3px rgba(46,117,182,0.15);
         }
 
@@ -306,7 +306,7 @@
             color: #444;
             transition: background 0.1s, border-color 0.1s;
         }
-        .action-btn:hover { background: #f0f4f8; border-color: #2e75b6; color: #1f4e79; }
+        .action-btn:hover { background: var(--paper); border-color: var(--accent-ink); color: var(--ink); }
         .action-btn.delete { color: #c0392b; border-color: #f1c5c0; }
         .action-btn.delete:hover { background: #fde8e8; border-color: #c0392b; }
 
@@ -320,14 +320,14 @@
         .loading {
             text-align: center;
             padding: 50px 20px;
-            color: #2e75b6;
+            color: var(--accent-ink);
             font-size: 1rem;
         }
         .loading::before {
             content: ""; display: inline-block;
             width: 24px; height: 24px;
             border: 3px solid #e6e6e6;
-            border-top-color: #2e75b6;
+            border-top-color: var(--accent-ink);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-right: 12px;
@@ -360,7 +360,7 @@
             display: flex; align-items: center; justify-content: space-between;
         }
         .modal-header h3 {
-            margin: 0; color: #1f4e79; font-size: 1.1rem;
+            margin: 0; color: var(--ink); font-size: 1.1rem;
         }
         .modal-close {
             background: none; border: none; cursor: pointer;
@@ -397,7 +397,7 @@
         #toast.show { opacity: 1; transform: translateY(0); }
         #toast.success { background: #16a34a; }
         #toast.error   { background: #c0392b; }
-        #toast.info    { background: #2e75b6; }
+        #toast.info    { background: var(--accent-ink); }
 
         /* ====== RESPONSIVE ====== */
         @media (max-width: 700px) {
@@ -408,6 +408,8 @@
             .action-btn { padding: 5px 8px; font-size: 0.8rem; }
         }
     </style>
+    <link rel="icon" href="logo-ipkonekt.png">
+    <link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
@@ -416,7 +418,7 @@
      ============================================================ -->
 <div id="adminLoginScreen">
     <div class="admin-login-card">
-        <h1>🔐 Gestion des Rapports TECHCOUV</h1>
+        <h1>Gestion des rapports TECHCOUV</h1>
         <p class="subtitle">Dashboard administrateur</p>
 
         <label for="adminPassword">Mot de passe administrateur</label>
@@ -427,7 +429,7 @@
         <div id="loginErrorBox"></div>
 
         <div class="login-footer">
-            <a href="./" style="color:#2e75b6; text-decoration:none;">← Retour au portail</a>
+            <a href="./">Retour aux outils</a>
         </div>
     </div>
 </div>
@@ -439,12 +441,12 @@
 
     <div class="admin-header">
         <div>
-            <h1>📊 Gestion des Rapports TECHCOUV</h1>
+            <h1>Gestion des rapports TECHCOUV</h1>
             <p class="sub">Tableau de bord administrateur</p>
         </div>
         <div class="user-info">
-            <span class="user-badge">👤 Admin</span>
-            <button class="header-btn" id="adminLogoutBtn">⎋ Déconnexion</button>
+            <span class="user-badge">Admin</span>
+            <button class="header-btn" id="adminLogoutBtn">Déconnexion</button>
         </div>
     </div>
 
@@ -453,17 +455,17 @@
         <!-- STATS BAR -->
         <div class="stats-bar">
             <div class="stat-card">
-                <div class="label">📊 Total rapports</div>
+                <div class="label">Total rapports</div>
                 <div class="value" id="statTotal">—</div>
                 <div class="sub" id="statTotalSub">Tous dossiers confondus</div>
             </div>
             <div class="stat-card">
-                <div class="label">👥 Techniciens actifs</div>
+                <div class="label">Techniciens actifs</div>
                 <div class="value" id="statTechs">—</div>
                 <div class="sub" id="statTechsSub">Ayant envoyé un rapport</div>
             </div>
             <div class="stat-card" id="storageCard">
-                <div class="label">💾 Stockage utilisé</div>
+                <div class="label">Stockage utilisé</div>
                 <div class="value" id="statStorage">—</div>
                 <div class="sub" id="statStorageSub">sur 1 GB disponibles</div>
                 <div class="storage-progress">
@@ -474,12 +476,12 @@
 
         <!-- ALERTE STOCKAGE -->
         <div class="storage-alert" id="storageAlert">
-            <strong id="storageAlertTitle">⚠️ Stockage en approche de la limite</strong>
+            <strong id="storageAlertTitle">Stockage en approche de la limite</strong>
             <span id="storageAlertText">Vous approchez de la limite. Pensez à supprimer les anciens rapports.</span>
             <div class="bulk-form">
                 <label for="bulkDeleteDate" style="font-weight:600;">Supprimer les rapports avant :</label>
                 <input type="date" id="bulkDeleteDate">
-                <button id="bulkDeleteBtn">🗑️ Supprimer en masse</button>
+                <button id="bulkDeleteBtn">Supprimer en masse</button>
             </div>
         </div>
 

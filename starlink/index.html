@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-tool="starlink">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Formulaire Starlink — IPKONEKT</title>
+<title>Antenne Starlink | IPKONEKT</title>
 <script>
   function loadWithFallback(localSrc, fallbackSrc, globalCheck) {
     return new Promise((resolve) => {
@@ -34,11 +34,11 @@
   body {
     font-family: 'Segoe UI', Tahoma, sans-serif;
     margin: 0;
-    background: #f0f4f8;
+    background: var(--paper);
     color: #222;
   }
   header {
-    background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+    background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
     color: white;
     padding: 20px 30px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -48,7 +48,7 @@
 
   /* ============ SÉLECTEUR MODE AUDIT / TRAVAUX ============ */
   .mode-selector {
-    background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+    background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
     padding: 25px 20px;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -91,7 +91,7 @@
   }
   .mode-btn.active {
     background: #fff;
-    color: #1f4e79;
+    color: var(--ink);
     border-color: #fff;
     box-shadow: 0 4px 14px rgba(0,0,0,0.2);
   }
@@ -138,14 +138,14 @@
     box-shadow: 0 1px 4px rgba(0,0,0,0.05);
   }
   .section h2 {
-    color: #1f4e79;
-    border-bottom: 2px solid #2e75b6;
+    color: var(--ink);
+    border-bottom: 2px solid var(--accent-ink);
     padding-bottom: 8px;
     margin-top: 0;
     font-size: 1.2rem;
   }
   .section h3 {
-    color: #2e75b6;
+    color: var(--accent-ink);
     font-size: 1rem;
     font-style: italic;
     margin-top: 20px;
@@ -173,7 +173,7 @@
   }
   input:focus, textarea:focus, select:focus {
     outline: none;
-    border-color: #2e75b6;
+    border-color: var(--accent-ink);
     box-shadow: 0 0 0 2px rgba(46,117,182,0.2);
   }
   textarea { min-height: 70px; resize: vertical; }
@@ -190,7 +190,7 @@
     border-radius: 4px;
     font-size: 0.88rem;
   }
-  .checkbox-group label:hover { background: #eef4fa; }
+  .checkbox-group label:hover { background: var(--accent-tint); }
   .checkbox-group input[type="checkbox"], .checkbox-group input[type="radio"] {
     margin: 0;
     cursor: pointer;
@@ -204,7 +204,7 @@
   }
   .photo-upload-label {
     font-weight: 600;
-    color: #1f4e79;
+    color: var(--ink);
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -234,7 +234,7 @@
     bottom: 0;
     background: white;
     padding: 15px 20px;
-    border-top: 2px solid #2e75b6;
+    border-top: 2px solid var(--accent-ink);
     box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
     display: flex;
     gap: 10px;
@@ -251,8 +251,8 @@
     transition: all 0.15s;
     touch-action: manipulation;
   }
-  .btn-primary { background: #2e75b6; color: white; }
-  .btn-primary:hover { background: #1f4e79; }
+  .btn-primary { background: var(--accent-ink); color: white; }
+  .btn-primary:hover { background: var(--ink); }
   .btn-secondary { background: #e6e6e6; color: #333; }
   .btn-secondary:hover { background: #ccc; }
   .info-box {
@@ -314,7 +314,7 @@
   }
   .editor-overlay.shown { display: flex; }
   .editor-modal {
-    background: #f0f4f8;
+    background: var(--paper);
     border-radius: 8px;
     width: min(95vw, 1200px);
     height: min(95vh, 850px);
@@ -324,7 +324,7 @@
     box-shadow: 0 10px 40px rgba(0,0,0,0.3);
   }
   .editor-header {
-    background: #1f4e79;
+    background: var(--ink);
     color: white;
     padding: 12px 20px;
     display: flex;
@@ -360,7 +360,7 @@
   .editor-toolbar h3 {
     margin: 0 0 8px 0;
     font-size: 0.85rem;
-    color: #1f4e79;
+    color: var(--ink);
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
@@ -381,12 +381,12 @@
     cursor: pointer;
     font-size: 0.85rem;
     margin-bottom: 6px;
-    color: #1f4e79;
+    color: var(--ink);
     text-align: left;
     font-weight: 600;
     touch-action: manipulation;
   }
-  .tool-btn:hover { background: #eef4fa; border-color: #2e75b6; }
+  .tool-btn:hover { background: var(--accent-tint); border-color: var(--accent-ink); }
   .tool-btn img {
     width: 28px;
     height: 28px;
@@ -425,7 +425,7 @@
     touch-action: none;
   }
   .editor-element.selected {
-    outline: 2px dashed #2e75b6;
+    outline: 2px dashed var(--accent-ink);
     outline-offset: 2px;
   }
   .editor-element img {
@@ -446,7 +446,7 @@
     width: 14px;
     height: 14px;
     background: #fff;
-    border: 2px solid #2e75b6;
+    border: 2px solid var(--accent-ink);
     border-radius: 50%;
     z-index: 10;
     touch-action: manipulation;
@@ -594,7 +594,7 @@
     border-radius: 4px;
     cursor: pointer;
     font-size: 0.82rem;
-    color: #1f4e79;
+    color: var(--ink);
     font-weight: 600;
     display: flex;
     align-items: center;
@@ -602,11 +602,11 @@
     gap: 4px;
     touch-action: manipulation;
   }
-  .flip-btn:hover { background: #eef4fa; border-color: #2e75b6; }
+  .flip-btn:hover { background: var(--accent-tint); border-color: var(--accent-ink); }
   .flip-btn.active {
-    background: #2e75b6;
+    background: var(--accent-ink);
     color: #fff;
-    border-color: #1f4e79;
+    border-color: var(--ink);
   }
   .flip-btn svg { width: 18px; height: 18px; }
 
@@ -636,7 +636,7 @@
   .editor-element.circle-element ellipse { pointer-events: auto; }
   .editor-element.circle-element .handle { pointer-events: auto; }
   .editor-element.circle-element.selected {
-    outline: 2px dashed #2e75b6;
+    outline: 2px dashed var(--accent-ink);
     outline-offset: 4px;
   }
 
@@ -764,6 +764,9 @@
     }
   }
 </style>
+    <link rel="icon" href="../logo-ipkonekt.png">
+    <link rel="preload" href="../fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../theme.css">
 </head>
 <body>
 
@@ -775,7 +778,7 @@
     body.locked > *:not(#loginOverlay) { filter: blur(3px); pointer-events: none; user-select: none; }
     #loginOverlay {
         position: fixed; inset: 0; z-index: 9999;
-        background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+        background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
         display: flex; align-items: center; justify-content: center;
         padding: 20px;
     }
@@ -783,7 +786,7 @@
         background: #fff; border-radius: 14px; padding: 36px 32px;
         width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
     }
-    #loginOverlay h2 { margin: 0 0 8px 0; color: #1f4e79; font-size: 1.4rem; }
+    #loginOverlay h2 { margin: 0 0 8px 0; color: var(--ink); font-size: 1.4rem; }
     #loginOverlay .subtitle { margin: 0 0 24px 0; color: #666; font-size: 0.9rem; }
     #loginOverlay label { display:block; margin: 14px 0 6px 0; font-weight: 600; color: #333; font-size: 0.88rem; }
     #loginOverlay select, #loginOverlay input {
@@ -791,15 +794,15 @@
         border-radius: 6px; font-size: 1rem; font-family: inherit;
     }
     #loginOverlay select:focus, #loginOverlay input:focus {
-        outline: none; border-color: #2e75b6; box-shadow: 0 0 0 3px rgba(46,117,182,0.15);
+        outline: none; border-color: var(--accent-ink); box-shadow: 0 0 0 3px rgba(46,117,182,0.15);
     }
     #loginOverlay #loginBtn {
         width: 100%; margin-top: 22px; padding: 13px;
-        background: #2e75b6; color: #fff; border: none;
+        background: var(--accent-ink); color: #fff; border: none;
         border-radius: 6px; font-size: 1rem; font-weight: 600;
         cursor: pointer; transition: background 0.15s;
     }
-    #loginOverlay #loginBtn:hover { background: #1f4e79; }
+    #loginOverlay #loginBtn:hover { background: var(--ink); }
     #loginOverlay #loginError {
         display: none; margin-top: 14px; padding: 10px 12px;
         background: #fde8e8; color: #c0392b; border-radius: 6px;
@@ -809,7 +812,7 @@
 </style>
 <div id="loginOverlay" style="display:none;">
     <div class="login-card">
-        <h2>🔐 Connexion technicien</h2>
+        <h2>Connexion technicien</h2>
         <p class="subtitle">Espace IPKONEKT</p>
         <label for="loginTechSelect">Identifiant technicien</label>
         <select id="loginTechSelect">
@@ -823,31 +826,28 @@
     </div>
 </div>
 
-<header>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
-    <div>
-      <h1>📋 Formulaire Starlink — IPKONEKT</h1>
-      <p>Renseignez les informations ci-dessous, puis générez le rapport Word.</p>
+<header class="app-header">
+    <div class="app-header-in">
+        <a class="app-home" href="../" title="Tous les outils"><img src="../logo-ipkonekt.png" alt="IPKONEKT" width="147" height="129"></a>
+        <div class="app-title">
+            <h1>Antenne Starlink</h1>
+            <p>Audit ou travaux d'installation d'une antenne Starlink. Le rapport se génère en bas de page.</p>
+        </div>
+        <div class="app-tools">
+            <span id="loggedUserBadge" style="display:none;"></span>
+            <button id="logoutBtn" type="button" onclick="logout()" style="display:none;">Déconnexion</button>
+            <a class="app-back" href="../">Tous les outils</a>
+        </div>
     </div>
-    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-      <span id="loggedUserBadge" style="display:none; background:rgba(255,255,255,0.22); color:#fff; padding:8px 14px; border-radius:20px; font-size:0.85rem; font-weight:600;"></span>
-      <button id="logoutBtn" type="button" onclick="logout()" style="display:none; background:#c0392b; color:#fff; border:none; padding:10px 16px; border-radius:6px; font-size:0.9rem; font-weight:600; cursor:pointer;">⎋ Déconnexion</button>
-      <a href="../" style="background: rgba(255,255,255,0.18); color:#fff; text-decoration:none; padding:10px 16px; border-radius:6px; border:1px solid rgba(255,255,255,0.4); font-size:0.9rem; font-weight:600; white-space:nowrap;">← Retour au portail</a>
-    </div>
-  </div>
 </header>
 
 <!-- ===== SÉLECTEUR DE MODE AUDIT / TRAVAUX ===== -->
 <div class="mode-selector">
-  <h3>Type d'intervention</h3>
-  <div class="mode-buttons">
-    <button type="button" class="mode-btn active" id="modeAuditBtn" onclick="setMode('audit')">
-      <span class="mode-icon">🔍</span>AUDIT
-    </button>
-    <button type="button" class="mode-btn" id="modeTravauxBtn" onclick="setMode('travaux')">
-      <span class="mode-icon">🛠️</span>TRAVAUX
-    </button>
-  </div>
+    <span class="mode-label" id="modeLabel">Type d'intervention</span>
+    <div class="mode-buttons" role="group" aria-labelledby="modeLabel">
+        <button type="button" class="mode-btn active" id="modeAuditBtn" onclick="setMode('audit')">Audit</button>
+        <button type="button" class="mode-btn" id="modeTravauxBtn" onclick="setMode('travaux')">Travaux</button>
+    </div>
   <input type="hidden" id="modeIntervention" value="audit">
 </div>
 
@@ -990,9 +990,9 @@
     <h3>Photo : Vue Façade Extérieur</h3>
     <div class="photo-upload">
       <div class="photo-upload-label">
-        📷 Vue Façade Extérieur
+        Vue Façade Extérieur
         <input type="file" accept="image/*" data-photo-key="facade" style="margin-left:8px;">
-        <button class="annotate-btn" data-annotate="facade" disabled>✏ Annoter</button>
+        <button class="annotate-btn" data-annotate="facade" disabled>Annoter</button>
         <button class="clear-photo" data-clear="facade">✕</button>
       </div>
       <img class="photo-preview" id="preview_facade">
@@ -1040,18 +1040,18 @@
     <div class="photo-grid">
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Vue générale de l'emplacement
+          Vue générale de l'emplacement
           <input type="file" accept="image/*" data-photo-key="empl_general" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="empl_general" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="empl_general" disabled>Annoter</button>
           <button class="clear-photo" data-clear="empl_general">✕</button>
         </div>
         <img class="photo-preview" id="preview_empl_general">
       </div>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Vue détaillée du point de fixation
+          Vue détaillée du point de fixation
           <input type="file" accept="image/*" data-photo-key="empl_detail" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="empl_detail" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="empl_detail" disabled>Annoter</button>
           <button class="clear-photo" data-clear="empl_detail">✕</button>
         </div>
         <img class="photo-preview" id="preview_empl_detail">
@@ -1062,9 +1062,9 @@
     <div class="bw-only">
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Vue satellite / plan de localisation du site
+          Vue satellite / plan de localisation du site
           <input type="file" accept="image/*" data-photo-key="bw_satellite" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="bw_satellite" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="bw_satellite" disabled>Annoter</button>
           <button class="clear-photo" data-clear="bw_satellite">✕</button>
         </div>
         <img class="photo-preview" id="preview_bw_satellite">
@@ -1087,18 +1087,18 @@
     <div class="photo-grid">
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📱 Capture écran test obstruction (app Starlink)
+          Capture écran test obstruction (app Starlink)
           <input type="file" accept="image/*" data-photo-key="capture_obstruction" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="capture_obstruction" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="capture_obstruction" disabled>Annoter</button>
           <button class="clear-photo" data-clear="capture_obstruction">✕</button>
         </div>
         <img class="photo-preview" id="preview_capture_obstruction">
       </div>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📱 Carte de couverture / signal obtenu
+          Carte de couverture / signal obtenu
           <input type="file" accept="image/*" data-photo-key="carte_couverture" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="carte_couverture" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="carte_couverture" disabled>Annoter</button>
           <button class="clear-photo" data-clear="carte_couverture">✕</button>
         </div>
         <img class="photo-preview" id="preview_carte_couverture">
@@ -1157,45 +1157,45 @@
 
     <h3>3.2 - Photos de pose et cheminement</h3>
     <div class="info-box">
-      💡 Cliquez sur <b>✏ Annoter</b> pour ajouter des mâts, antennes ou commentaires sur une photo. Les emplacements sans photo seront automatiquement supprimés du document final.
+      Cliquez sur <b>Annoter</b> pour ajouter des mâts, antennes ou commentaires sur une photo. Les emplacements sans photo seront automatiquement supprimés du document final.
     </div>
     <div class="photo-grid">
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Antenne posée sur support
+          Antenne posée sur support
           <input type="file" accept="image/*" data-photo-key="pose_antenne" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="pose_antenne" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="pose_antenne" disabled>Annoter</button>
           <button class="clear-photo" data-clear="pose_antenne">✕</button>
         </div>
         <img class="photo-preview" id="preview_pose_antenne">
       </div>
     </div>
 
-    <h3 style="margin-top:18px;">📷 Photos de cheminement câble</h3>
+    <h3 style="margin-top:18px;">Photos de cheminement câble</h3>
     <div id="cheminementPhotosContainer" class="photo-grid">
       <div class="photo-upload" data-cheminement-block="cheminement_1">
         <div class="photo-upload-label">
-          📷 Cheminement câble 1
+          Cheminement câble 1
           <input type="file" accept="image/*" data-photo-key="cheminement_1" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="cheminement_1" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="cheminement_1" disabled>Annoter</button>
           <button class="clear-photo" data-clear="cheminement_1">✕</button>
         </div>
         <img class="photo-preview" id="preview_cheminement_1">
       </div>
       <div class="photo-upload" data-cheminement-block="cheminement_2">
         <div class="photo-upload-label">
-          📷 Cheminement câble 2
+          Cheminement câble 2
           <input type="file" accept="image/*" data-photo-key="cheminement_2" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="cheminement_2" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="cheminement_2" disabled>Annoter</button>
           <button class="clear-photo" data-clear="cheminement_2">✕</button>
         </div>
         <img class="photo-preview" id="preview_cheminement_2">
       </div>
       <div class="photo-upload" data-cheminement-block="cheminement_3">
         <div class="photo-upload-label">
-          📷 Cheminement câble 3
+          Cheminement câble 3
           <input type="file" accept="image/*" data-photo-key="cheminement_3" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="cheminement_3" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="cheminement_3" disabled>Annoter</button>
           <button class="clear-photo" data-clear="cheminement_3">✕</button>
         </div>
         <img class="photo-preview" id="preview_cheminement_3">
@@ -1203,25 +1203,25 @@
     </div>
     <div style="margin: 8px 0 16px 0;">
       <button type="button" id="btnAddCheminementPhoto" class="btn-secondary" style="background:#5cb85c; color:white; padding:8px 16px;">
-        ➕ Ajouter une photo de cheminement
+        + Ajouter une photo de cheminement
       </button>
     </div>
 
     <div class="photo-grid">
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Point de pénétration façade
+          Point de pénétration façade
           <input type="file" accept="image/*" data-photo-key="penetration_facade" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="penetration_facade" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="penetration_facade" disabled>Annoter</button>
           <button class="clear-photo" data-clear="penetration_facade">✕</button>
         </div>
         <img class="photo-preview" id="preview_penetration_facade">
       </div>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Emplacement du routeur Starlink
+          Emplacement du routeur Starlink
           <input type="file" accept="image/*" data-photo-key="routeur" style="margin-left:8px;">
-          <button class="annotate-btn" data-annotate="routeur" disabled>✏ Annoter</button>
+          <button class="annotate-btn" data-annotate="routeur" disabled>Annoter</button>
           <button class="clear-photo" data-clear="routeur">✕</button>
         </div>
         <img class="photo-preview" id="preview_routeur">
@@ -1285,66 +1285,66 @@
   <div class="section iec-only">
     <h2><span id="iecSectionNum">7.</span> Captures d'écran — Tests &amp; mise en service (IEC Telecom)</h2>
     <p style="font-size:0.85rem;color:#555;margin-top:-4px;">
-      Importez ou collez (📋) toutes les captures d'écran disponibles : tests de l'application Starlink,
+      Importez ou collez () toutes les captures d'écran disponibles : tests de l'application Starlink,
       débits, statistiques, réseaux Wi-Fi, etc. Seules les cases remplies apparaîtront dans le rapport.
     </p>
     <div class="photo-grid">
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Test d'emplacement (app Starlink)
+          Test d'emplacement (app Starlink)
           <input type="file" accept="image/*" data-photo-key="capt_test_emplacement" style="margin-left:8px;">
-          <button type="button" class="paste-btn" data-paste="capt_test_emplacement" title="Coller une image du presse-papiers">📋 Coller</button>
-          <button class="annotate-btn" data-annotate="capt_test_emplacement" disabled>✏ Annoter</button>
+          <button type="button" class="paste-btn" data-paste="capt_test_emplacement" title="Coller une image du presse-papiers">Coller</button>
+          <button class="annotate-btn" data-annotate="capt_test_emplacement" disabled>Annoter</button>
           <button class="clear-photo" data-clear="capt_test_emplacement">✕</button>
         </div>
         <img class="photo-preview" id="preview_capt_test_emplacement">
       </div>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Test de débit Starlink
+          Test de débit Starlink
           <input type="file" accept="image/*" data-photo-key="capt_test_debit" style="margin-left:8px;">
-          <button type="button" class="paste-btn" data-paste="capt_test_debit" title="Coller une image du presse-papiers">📋 Coller</button>
-          <button class="annotate-btn" data-annotate="capt_test_debit" disabled>✏ Annoter</button>
+          <button type="button" class="paste-btn" data-paste="capt_test_debit" title="Coller une image du presse-papiers">Coller</button>
+          <button class="annotate-btn" data-annotate="capt_test_debit" disabled>Annoter</button>
           <button class="clear-photo" data-clear="capt_test_debit">✕</button>
         </div>
         <img class="photo-preview" id="preview_capt_test_debit">
       </div>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Statistiques Starlink
+          Statistiques Starlink
           <input type="file" accept="image/*" data-photo-key="capt_stats" style="margin-left:8px;">
-          <button type="button" class="paste-btn" data-paste="capt_stats" title="Coller une image du presse-papiers">📋 Coller</button>
-          <button class="annotate-btn" data-annotate="capt_stats" disabled>✏ Annoter</button>
+          <button type="button" class="paste-btn" data-paste="capt_stats" title="Coller une image du presse-papiers">Coller</button>
+          <button class="annotate-btn" data-annotate="capt_stats" disabled>Annoter</button>
           <button class="clear-photo" data-clear="capt_stats">✕</button>
         </div>
         <img class="photo-preview" id="preview_capt_stats">
       </div>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Test de débit vers le routeur
+          Test de débit vers le routeur
           <input type="file" accept="image/*" data-photo-key="capt_debit_routeur" style="margin-left:8px;">
-          <button type="button" class="paste-btn" data-paste="capt_debit_routeur" title="Coller une image du presse-papiers">📋 Coller</button>
-          <button class="annotate-btn" data-annotate="capt_debit_routeur" disabled>✏ Annoter</button>
+          <button type="button" class="paste-btn" data-paste="capt_debit_routeur" title="Coller une image du presse-papiers">Coller</button>
+          <button class="annotate-btn" data-annotate="capt_debit_routeur" disabled>Annoter</button>
           <button class="clear-photo" data-clear="capt_debit_routeur">✕</button>
         </div>
         <img class="photo-preview" id="preview_capt_debit_routeur">
       </div>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Réseaux Wi-Fi détectés
+          Réseaux Wi-Fi détectés
           <input type="file" accept="image/*" data-photo-key="capt_wifi" style="margin-left:8px;">
-          <button type="button" class="paste-btn" data-paste="capt_wifi" title="Coller une image du presse-papiers">📋 Coller</button>
-          <button class="annotate-btn" data-annotate="capt_wifi" disabled>✏ Annoter</button>
+          <button type="button" class="paste-btn" data-paste="capt_wifi" title="Coller une image du presse-papiers">Coller</button>
+          <button class="annotate-btn" data-annotate="capt_wifi" disabled>Annoter</button>
           <button class="clear-photo" data-clear="capt_wifi">✕</button>
         </div>
         <img class="photo-preview" id="preview_capt_wifi">
       </div>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          📷 Test de vitesse Internet
+          Test de vitesse Internet
           <input type="file" accept="image/*" data-photo-key="capt_speedtest" style="margin-left:8px;">
-          <button type="button" class="paste-btn" data-paste="capt_speedtest" title="Coller une image du presse-papiers">📋 Coller</button>
-          <button class="annotate-btn" data-annotate="capt_speedtest" disabled>✏ Annoter</button>
+          <button type="button" class="paste-btn" data-paste="capt_speedtest" title="Coller une image du presse-papiers">Coller</button>
+          <button class="annotate-btn" data-annotate="capt_speedtest" disabled>Annoter</button>
           <button class="clear-photo" data-clear="capt_speedtest">✕</button>
         </div>
         <img class="photo-preview" id="preview_capt_speedtest">
@@ -1353,7 +1353,7 @@
     <div class="photo-grid" id="iecCapturesContainer"></div>
     <div style="margin: 8px 0 16px 0;">
       <button type="button" id="btnAddIecCapture" class="btn-secondary" style="background:#5cb85c; color:white; padding:8px 16px;">
-        ➕ Ajouter une capture d'écran
+        + Ajouter une capture d'écran
       </button>
     </div>
   </div>
@@ -1529,9 +1529,9 @@
       <label>Signature (image)</label>
       <div class="photo-upload">
         <div class="photo-upload-label">
-          ✍️ Signature du signataire — importez une image ou collez-la (capture d'écran de la signature du PDF)
+          Signature du signataire — importez une image ou collez-la (capture d'écran de la signature du PDF)
           <input type="file" accept="image/*" data-photo-key="signature_img" style="margin-left:8px;">
-          <button type="button" class="paste-btn" data-paste="signature_img" title="Coller une image du presse-papiers">📋 Coller</button>
+          <button type="button" class="paste-btn" data-paste="signature_img" title="Coller une image du presse-papiers">Coller</button>
           <button class="clear-photo" data-clear="signature_img">✕</button>
         </div>
         <img class="photo-preview" id="preview_signature_img" style="max-height:140px;">
@@ -1544,26 +1544,26 @@
 </div>
 
 <div class="actions">
-  <button class="btn-secondary" onclick="resetForm()">🔄 Réinitialiser</button>
-  <button class="btn-secondary" onclick="exportToJSON()">💾 Exporter JSON</button>
+  <button class="btn-secondary" onclick="resetForm()">Réinitialiser</button>
+  <button class="btn-secondary" onclick="exportToJSON()">Exporter JSON</button>
   <input type="file" id="importJsonInput" accept=".json,application/json" style="display:none" onchange="importFromJSON(this.files[0])">
-  <button class="btn-secondary" onclick="document.getElementById('importJsonInput').click()">📂 Importer JSON</button>
-  <button class="btn-primary" onclick="generateDocument()">📄 Générer le rapport Word</button>
-  <button type="button" id="sendToServerBtn" class="btn-success" onclick="sendToServer()" style="background:#16a34a; color:#fff;">📧 Envoyer au serveur</button>
+  <button class="btn-secondary" onclick="document.getElementById('importJsonInput').click()">Importer JSON</button>
+  <button class="btn-primary" onclick="generateDocument()">Générer le rapport Word</button>
+  <button type="button" id="sendToServerBtn" class="btn-success" onclick="sendToServer()">Envoyer au serveur</button>
 </div>
 
 <!-- ========== ÉDITEUR D'ANNOTATION (modal) ========== -->
 <div class="editor-overlay" id="editorOverlay">
   <div class="editor-modal">
     <div class="editor-header">
-      <h2>✏ Annoter la photo — <span id="editorTitle"></span></h2>
+      <h2>Annoter : <span id="editorTitle"></span></h2>
       <button class="editor-close" onclick="closeEditor()">Fermer sans enregistrer</button>
     </div>
     <div class="editor-body">
       <div class="editor-toolbar">
         <!-- Panneau de l'élément sélectionné (Flip H/V pour images, params pour flèches) -->
         <div class="selection-panel tool-group" id="selectionPanel">
-          <h3>✎ Élément sélectionné</h3>
+          <h3>Élément sélectionné</h3>
           <!-- Pour les images -->
           <div id="selPanelImage">
             <div class="flip-buttons">
@@ -1701,7 +1701,7 @@
                 <input type="number" id="arrowHeadSize" min="8" max="150" value="18">
               </label>
             </div>
-            <button class="tool-btn" id="btnAddArrow" style="background:#2e75b6; color:white; border-color:#1f4e79; justify-content:center; margin-top:4px;">➕ Ajouter une flèche</button>
+            <button class="tool-btn" id="btnAddArrow" style="background:var(--accent-ink); color:white; border-color:var(--ink); justify-content:center; margin-top:4px;">+ Ajouter une flèche</button>
             <button type="button" class="tool-btn" id="toolAddPolyline" style="justify-content:center; margin-top:4px;">
               <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="currentColor"/></svg>
               Tracé (plusieurs points)
@@ -1743,7 +1743,7 @@
                 <input type="range" id="circleFillOpacity" min="0.05" max="1" step="0.05" value="0.3" style="width:100%;">
               </label>
             </div>
-            <button class="tool-btn" id="btnAddCircle" style="background:#2e75b6; color:white; border-color:#1f4e79; justify-content:center; margin-top:4px;">⭕ Ajouter un cercle</button>
+            <button class="tool-btn" id="btnAddCircle" style="background:var(--accent-ink); color:white; border-color:var(--ink); justify-content:center; margin-top:4px;">Ajouter un cercle</button>
           </div>
         </div>
 
@@ -1791,7 +1791,7 @@
               <div class="swatch" style="background:#000000" data-color="#000000" title="Noir"></div>
             </div>
             <div class="style-preview" id="textPreview">Aperçu</div>
-            <button class="tool-btn" id="btnAddText" style="background:#2e75b6; color:white; border-color:#1f4e79; justify-content:center; margin-top:6px;">➕ Ajouter le texte</button>
+            <button class="tool-btn" id="btnAddText" style="background:var(--accent-ink); color:white; border-color:var(--ink); justify-content:center; margin-top:6px;">+ Ajouter le texte</button>
           </div>
         </div>
         <div class="tool-group">
@@ -1815,10 +1815,10 @@
       </div>
     </div>
     <div class="editor-footer">
-      <span class="hint">💡 Astuce : double-cliquez sur un texte pour le modifier.</span>
+      <span class="hint">Astuce : double-cliquez sur un texte pour le modifier.</span>
       <div>
         <button class="btn-secondary" onclick="closeEditor()" style="padding:8px 16px;">Annuler</button>
-        <button class="btn-primary" onclick="saveAnnotation()" style="padding:8px 16px;">✅ Enregistrer la photo annotée</button>
+        <button class="btn-primary" onclick="saveAnnotation()" style="padding:8px 16px;">Enregistrer la photo annotée</button>
       </div>
     </div>
   </div>

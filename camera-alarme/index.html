@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-tool="camera">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Formulaire Caméras & Alarme — IPKONEKT</title>
+    <title>Caméras et alarme | IPKONEKT</title>
     <script>
         function loadWithFallback(localSrc, fallbackSrc, globalCheck) {
             return new Promise((resolve) => {
@@ -40,12 +40,12 @@
         body {
             font-family: 'Segoe UI', Tahoma, sans-serif;
             margin: 0;
-            background: #f0f4f8;
+            background: var(--paper);
             color: #222;
             -webkit-tap-highlight-color: rgba(46, 117, 182, 0.2);
         }
         header {
-            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
             color: white;
             padding: 20px 30px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
@@ -72,14 +72,14 @@
             box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
         }
         .section h2 {
-            color: #1f4e79;
-            border-bottom: 2px solid #2e75b6;
+            color: var(--ink);
+            border-bottom: 2px solid var(--accent-ink);
             padding-bottom: 8px;
             margin-top: 0;
             font-size: 1.2rem;
         }
         .section h3 {
-            color: #2e75b6;
+            color: var(--accent-ink);
             font-size: 1rem;
             font-style: italic;
             margin-top: 20px;
@@ -127,7 +127,7 @@
         textarea:focus,
         select:focus {
             outline: none;
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
             box-shadow: 0 0 0 2px rgba(46, 117, 182, 0.2);
         }
         textarea {
@@ -155,7 +155,7 @@
             touch-action: manipulation;
         }
         .checkbox-group label:hover {
-            background: #eef4fa;
+            background: var(--accent-tint);
         }
         .checkbox-group label:active {
             background: #dbe7f2;
@@ -177,7 +177,7 @@
         }
         .photo-upload-label {
             font-weight: 600;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 8px;
             display: flex;
             align-items: center;
@@ -214,7 +214,7 @@
             background: white;
             padding: 15px 20px;
             padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px));
-            border-top: 2px solid #2e75b6;
+            border-top: 2px solid var(--accent-ink);
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
             display: flex;
             gap: 10px;
@@ -237,11 +237,11 @@
             transform: scale(0.97);
         }
         .btn-primary {
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: white;
         }
         .btn-primary:hover {
-            background: #1f4e79;
+            background: var(--ink);
         }
         .btn-secondary {
             background: #e6e6e6;
@@ -373,7 +373,7 @@
             display: flex;
         }
         .editor-modal {
-            background: #f0f4f8;
+            background: var(--paper);
             border-radius: 8px;
             width: min(95vw, 1200px);
             height: min(95vh, 850px);
@@ -383,7 +383,7 @@
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
         }
         .editor-header {
-            background: #1f4e79;
+            background: var(--ink);
             color: white;
             padding: 12px 20px;
             display: flex;
@@ -430,7 +430,7 @@
         .editor-toolbar h3 {
             margin: 0 0 8px 0;
             font-size: 0.85rem;
-            color: #1f4e79;
+            color: var(--ink);
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -451,14 +451,14 @@
             cursor: pointer;
             font-size: 0.85rem;
             margin-bottom: 6px;
-            color: #1f4e79;
+            color: var(--ink);
             text-align: left;
             font-weight: 600;
             touch-action: manipulation;
         }
         .tool-btn:hover {
-            background: #eef4fa;
-            border-color: #2e75b6;
+            background: var(--accent-tint);
+            border-color: var(--accent-ink);
         }
         .tool-btn img {
             width: 28px;
@@ -500,7 +500,7 @@
             touch-action: none;
         }
         .editor-element.selected {
-            outline: 2px dashed #2e75b6;
+            outline: 2px dashed var(--accent-ink);
             outline-offset: 2px;
         }
         .editor-element img {
@@ -538,7 +538,7 @@
             width: 14px;
             height: 14px;
             background: #fff;
-            border: 2px solid #2e75b6;
+            border: 2px solid var(--accent-ink);
             border-radius: 50%;
             z-index: 10;
             touch-action: none; /* Empêche le pan/zoom natif lors du drag */
@@ -706,7 +706,7 @@
             border-radius: 4px;
             cursor: pointer;
             font-size: 0.82rem;
-            color: #1f4e79;
+            color: var(--ink);
             font-weight: 600;
             display: flex;
             align-items: center;
@@ -715,13 +715,13 @@
             touch-action: manipulation;
         }
         .flip-btn:hover {
-            background: #eef4fa;
-            border-color: #2e75b6;
+            background: var(--accent-tint);
+            border-color: var(--accent-ink);
         }
         .flip-btn.active {
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: #fff;
-            border-color: #1f4e79;
+            border-color: var(--ink);
         }
         .flip-btn svg {
             width: 18px;
@@ -974,7 +974,7 @@
             }
         }
         .evacuation-upload-area {
-            border: 2px dashed #2e75b6;
+            border: 2px dashed var(--accent-ink);
             border-radius: 6px;
             padding: 20px;
             text-align: center;
@@ -985,10 +985,10 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            color: #2e75b6;
+            color: var(--accent-ink);
         }
         .evacuation-upload-area:hover {
-            background: #eef4fa;
+            background: var(--accent-tint);
         }
         .evacuation-upload-area input[type="file"] {
             display: none;
@@ -1014,7 +1014,7 @@
             text-align: center;
         }
         .ref-table th {
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: white;
         }
         .ref-table td {
@@ -1083,7 +1083,7 @@
         }
         .quality-matrix thead th {
             background: #f8fafc;
-            color: #2e75b6;
+            color: var(--accent-ink);
             font-weight: 700;
             font-size: 0.85rem;
             border-bottom: 2px solid #cfdce9;
@@ -1091,7 +1091,7 @@
         .quality-matrix tbody th {
             text-align: left;
             background: #f8fafc;
-            color: #1f4e79;
+            color: var(--ink);
             font-weight: 600;
             padding-left: 14px;
             border-right: 1px solid #e6ecf2;
@@ -1125,7 +1125,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            color: #1f4e79;
+            color: var(--ink);
             font-weight: 600;
             margin-top: 18px;
             margin-bottom: 4px;
@@ -1154,7 +1154,7 @@
         }
         .mp-header h4 {
             margin: 0;
-            color: #1f4e79;
+            color: var(--ink);
             font-size: 1rem;
         }
         .btn-delete {
@@ -1203,7 +1203,7 @@
         .mp-photo-label {
             display: block;
             font-weight: 600;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 6px;
             font-size: 0.88rem;
         }
@@ -1228,7 +1228,7 @@
             font-size: 0.8rem;
             line-height: 1.3;
         }
-        .ocr-status[data-state="working"] { color: #2e75b6; }
+        .ocr-status[data-state="working"] { color: var(--accent-ink); }
         .ocr-status[data-state="ok"]      { color: #166534; }
         .ocr-status[data-state="warn"]    { color: #8a6d1f; }
         /* Surlignage temporaire d'un champ pré-rempli par l'OCR */
@@ -1292,7 +1292,7 @@
             min-height: 40px;
         }
         .mp-measure-cell input:focus {
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
             outline: none;
             box-shadow: 0 0 0 2px rgba(46, 117, 182, 0.15);
         }
@@ -1341,7 +1341,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 8px;
         }
         .cheminement-item input[type="file"] {
@@ -1413,8 +1413,8 @@
             height: 18px;
             border-radius: 50%;
             background: white;
-            color: #1f4e79;
-            border: 1.5px solid #1f4e79;
+            color: var(--ink);
+            border: 1.5px solid var(--ink);
             font-size: 11px;
             font-weight: bold;
             display: flex;
@@ -1450,7 +1450,7 @@
         /* --- Carte d'un plan d'évacuation (multi-plans : un par étage) --- */
         .evac-plan-card {
             border: 1px solid #c9d6e2;
-            border-left: 4px solid #2e75b6;
+            border-left: 4px solid var(--accent-ink);
             border-radius: 8px;
             padding: 14px 14px 16px;
             margin-top: 14px;
@@ -1479,7 +1479,7 @@
         }
         .evac-plan-card-icon {
             font-size: 1.1rem;
-            color: #1f4e79;
+            color: var(--ink);
             flex-shrink: 0;
         }
         .evac-plan-card-title-input {
@@ -1488,14 +1488,14 @@
             padding: 6px 10px;
             font-size: 0.95rem;
             font-weight: 600;
-            color: #1f4e79;
+            color: var(--ink);
             border: 1px solid #d8e2ec;
             border-radius: 4px;
             background: #f9fbfd;
         }
         .evac-plan-card-title-input:focus {
             outline: none;
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
             background: #ffffff;
         }
         .evac-plan-card-remove-btn {
@@ -1557,7 +1557,7 @@
             margin-top: 14px;
         }
         .tech-block[data-tech="4g"] {
-            border-left: 4px solid #2e75b6;
+            border-left: 4px solid var(--accent-ink);
         }
         .tech-block[data-tech="5g"] {
             border-left: 4px solid #16a34a;
@@ -1571,7 +1571,7 @@
         .tech-title {
             margin: 0;
             font-size: 1rem;
-            color: #1f4e79;
+            color: var(--ink);
             font-style: normal;
             font-weight: 700;
         }
@@ -1613,7 +1613,7 @@
             min-width: 0;
             font-size: 1rem;
             font-weight: 700;
-            color: #1f4e79;
+            color: var(--ink);
             padding: 8px 10px;
             border: 1px solid #c7d6e6;
             border-radius: 6px;
@@ -1658,7 +1658,7 @@
             min-width: 0;
             font-weight: 600;
             font-size: 1rem;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 0;
         }
         .mp-location-remove { flex-shrink: 0; }
@@ -1681,11 +1681,11 @@
             border-radius: 999px;
             color: #fff;
         }
-        .mp-subhead[data-tech="4g"] .mp-subhead-badge { background: #2e75b6; }
-        .mp-subhead[data-tech="5g"] .mp-subhead-badge { background: #1f4e79; }
+        .mp-subhead[data-tech="4g"] .mp-subhead-badge { background: var(--accent-ink); }
+        .mp-subhead[data-tech="5g"] .mp-subhead-badge { background: var(--ink); }
         /* Liseré coloré à gauche de chaque sous-bloc pour distinguer 4G / 5G */
-        .mp-location-techs .measure-point-group.mp-container-4g { border-left: 4px solid #2e75b6; }
-        .mp-location-techs .measure-point-group.mp-container-5g { border-left: 4px solid #1f4e79; }
+        .mp-location-techs .measure-point-group.mp-container-4g { border-left: 4px solid var(--accent-ink); }
+        .mp-location-techs .measure-point-group.mp-container-5g { border-left: 4px solid var(--ink); }
 
         /* --- Plan d'évacuation : label CENTRÉ près du cercle --- */
         .evac-pin {
@@ -1695,12 +1695,12 @@
             /* Décalage léger en haut-droite par rapport au centre */
             transform: translate(8%, -135%);
             background: white;
-            color: #1f4e79;
+            color: var(--ink);
             padding: 2px 8px;
             border-radius: 4px;
             font-weight: 700;
             font-size: 0.78rem;
-            border: 1.5px solid #1f4e79;
+            border: 1.5px solid var(--ink);
             white-space: nowrap;
             pointer-events: none;
             box-shadow: 0 1px 3px rgba(0,0,0,0.3);
@@ -1717,13 +1717,13 @@
             margin-right: 5px;
             vertical-align: middle;
         }
-        .evac-pin .pin-tech.tech-4g { background: #2e75b6; }
+        .evac-pin .pin-tech.tech-4g { background: var(--accent-ink); }
         .evac-pin .pin-tech.tech-5g { background: #16a34a; }
 
         /* --- Liste des points disponibles à placer sur le plan --- */
         .evac-picker-title {
             font-weight: 700;
-            color: #1f4e79;
+            color: var(--ink);
             margin-bottom: 4px;
             font-size: 0.95rem;
         }
@@ -1748,21 +1748,21 @@
             cursor: pointer;
             font-size: 0.85rem;
             font-weight: 600;
-            color: #1f4e79;
+            color: var(--ink);
             transition: all 0.15s;
             user-select: none;
             touch-action: manipulation;
         }
         .evac-pp-item:hover {
-            background: #eef4fa;
-            border-color: #2e75b6;
+            background: var(--accent-tint);
+            border-color: var(--accent-ink);
         }
         .evac-pp-item .pp-tech-dot {
             width: 8px;
             height: 8px;
             border-radius: 50%;
         }
-        .evac-pp-item .pp-tech-dot.tech-4g { background: #2e75b6; }
+        .evac-pp-item .pp-tech-dot.tech-4g { background: var(--accent-ink); }
         .evac-pp-item .pp-tech-dot.tech-5g { background: #16a34a; }
         .evac-pp-item .pp-name {
             max-width: 200px;
@@ -1838,7 +1838,7 @@
 
         /* ============ SÉLECTEUR MODE AUDIT / TRAVAUX ============ */
         .mode-selector {
-            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
+            background: linear-gradient(135deg, var(--ink) 0%, var(--accent-ink) 100%);
             padding: 25px 20px;
             text-align: center;
             box-shadow: 0 2px 8px rgba(0,0,0,0.15);
@@ -1881,7 +1881,7 @@
         }
         .mode-btn.active {
             background: #fff;
-            color: #1f4e79;
+            color: var(--ink);
             border-color: #fff;
             box-shadow: 0 4px 14px rgba(0,0,0,0.2);
         }
@@ -1900,7 +1900,7 @@
         }
         .cr-category > h4 {
             margin: 0 0 12px 0;
-            color: #1f4e79;
+            color: var(--ink);
             font-size: 0.95rem;
             font-weight: 700;
             border-bottom: 1px solid #d0dae5;
@@ -1937,7 +1937,7 @@
         .cr-subcategory {
             margin: 10px 0 6px 0;
             font-weight: 600;
-            color: #2e75b6;
+            color: var(--accent-ink);
             font-size: 0.85rem;
             font-style: italic;
         }
@@ -1960,7 +1960,7 @@
         }
         .cr-item.checked {
             background: #eef7ff;
-            border-color: #2e75b6;
+            border-color: var(--accent-ink);
         }
         .cr-item-main {
             display: flex;
@@ -1981,7 +1981,7 @@
             height: 22px;
             cursor: pointer;
             flex-shrink: 0;
-            accent-color: #2e75b6;
+            accent-color: var(--accent-ink);
         }
         .cr-item-extras {
             display: flex;
@@ -2011,7 +2011,7 @@
         }
         .cr-status-radios label {
             padding: 8px 12px;
-            background: #f0f4f8;
+            background: var(--paper);
             border: 1px solid #cfdce9;
             border-radius: 4px;
             cursor: pointer;
@@ -2030,9 +2030,9 @@
             transform: scale(0.97);
         }
         .cr-status-radios label:has(input:checked) {
-            background: #2e75b6;
+            background: var(--accent-ink);
             color: #fff;
-            border-color: #1f4e79;
+            border-color: var(--ink);
         }
         .cr-status-radios label.preset-existing:has(input:checked) {
             background: #5cb85c;
@@ -2083,7 +2083,7 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            background: #f0f4f8;
+            background: var(--paper);
             padding: 4px 10px;
             border-radius: 4px;
         }
@@ -2101,7 +2101,7 @@
         }
         #compteRenduPreview {
             background: #fff;
-            border: 2px solid #2e75b6;
+            border: 2px solid var(--accent-ink);
             border-radius: 6px;
             padding: 18px 22px;
             margin-top: 14px;
@@ -2125,7 +2125,7 @@
         }
         .cr-preview-header h3 {
             margin: 0;
-            color: #1f4e79;
+            color: var(--ink);
             font-size: 1rem;
             font-style: normal;
             font-weight: 700;
@@ -2166,6 +2166,9 @@
         /* En mode travaux : on cache les éléments audit-only */
         body[data-mode="travaux"] .audit-only { display: none !important; }
     </style>
+    <link rel="icon" href="../logo-ipkonekt.png">
+    <link rel="preload" href="../fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="../theme.css">
 </head>
 <body>
 
@@ -2185,7 +2188,7 @@
         .conf-badge.ok { background: #dcfce7; color: #166534; }
         .conf-badge.ko { background: #fee2e2; color: #991b1b; }
         .conf-auto-link {
-            background: none; border: none; color: #2e75b6; cursor: pointer;
+            background: none; border: none; color: var(--accent-ink); cursor: pointer;
             font-size: 0.82rem; text-decoration: underline; padding: 4px 0;
         }
         .blocage-toggle-wrap {
@@ -2196,7 +2199,7 @@
         #blocageContent { display: none; }
         body[data-blocage="on"] #blocageContent { display: block; }
         .photo-cat-title {
-            color: #1f4e79; font-size: 1.02rem; font-weight: 700;
+            color: var(--ink); font-size: 1.02rem; font-weight: 700;
             margin: 22px 0 6px 0; padding-top: 14px; border-top: 1px dashed #d5dde5;
         }
         .photo-cat-title:first-of-type { border-top: none; padding-top: 0; margin-top: 8px; }
@@ -2209,7 +2212,7 @@
         .baie-choice label {
             display: flex; align-items: center; gap: 8px; cursor: pointer;
             border: 1px solid #cddbe8; background: #f7fafc; border-radius: 6px;
-            padding: 10px 16px; min-height: 44px; font-weight: 600; color: #1f4e79;
+            padding: 10px 16px; min-height: 44px; font-weight: 600; color: var(--ink);
         }
         .baie-oui-only, .baie-non-only { display: none; }
         body[data-baie="oui"] .baie-oui-only { display: block; }
@@ -2221,7 +2224,7 @@
         .niv-card {
             background: #f7fafd;
             border: 1px solid #cddbe8;
-            border-left: 6px solid #1f4e79;
+            border-left: 6px solid var(--ink);
             border-radius: 8px;
             padding: 14px 16px;
             margin-bottom: 18px;
@@ -2232,16 +2235,16 @@
         .niv-label {
             flex: 1; min-width: 220px;
             display: flex; align-items: center; gap: 10px;
-            font-weight: 700; color: #1f4e79; font-size: 1.05rem;
+            font-weight: 700; color: var(--ink); font-size: 1.05rem;
         }
         .niv-label input { flex: 1; font-weight: 600; font-size: 1rem; }
         .niv-count {
-            background: #e3edf7; color: #1f4e79; font-size: 0.82rem; font-weight: 600;
+            background: #e3edf7; color: var(--ink); font-size: 0.82rem; font-weight: 600;
             padding: 4px 10px; border-radius: 12px; white-space: nowrap;
         }
         .card-toggle {
             width: 36px; height: 36px; min-width: 36px; padding: 0;
-            border: 1px solid #cddbe8; background: #fff; color: #1f4e79;
+            border: 1px solid #cddbe8; background: #fff; color: var(--ink);
             border-radius: 6px; font-size: 1rem; cursor: pointer;
             transition: transform 0.15s;
         }
@@ -2256,19 +2259,19 @@
         .eq-card {
             background: #fff;
             border: 1px solid #dde5ee;
-            border-left: 6px solid var(--eq-color, #2e75b6);
+            border-left: 6px solid var(--eq-color, var(--accent-ink));
             border-radius: 8px;
             padding: 12px 14px;
             margin: 10px 0 14px;
         }
         .eq-dot {
             width: 20px; height: 20px; min-width: 20px; border-radius: 50%;
-            background: var(--eq-color, #2e75b6);
+            background: var(--eq-color, var(--accent-ink));
             box-shadow: 0 0 0 3px #fff, 0 0 0 4px #cfd8e3;
         }
         .eq-nom {
-            flex: 1; min-width: 180px; font-weight: 700; color: #1f4e79;
-            border-bottom: 3px solid var(--eq-color, #2e75b6) !important;
+            flex: 1; min-width: 180px; font-weight: 700; color: var(--ink);
+            border-bottom: 3px solid var(--eq-color, var(--accent-ink)) !important;
         }
         .eq-color-name { font-size: 0.82rem; color: #666; white-space: nowrap; }
         .eq-body { margin-top: 10px; }
@@ -2310,7 +2313,7 @@
         .synth-head .conf-badge { margin-left: 0; font-size: 0.78rem; padding: 3px 10px; }
         #syntheseRegenBtn {
             display: none; align-items: center; gap: 6px;
-            background: #fff; border: 1px solid #2e75b6; color: #2e75b6;
+            background: #fff; border: 1px solid var(--accent-ink); color: var(--accent-ink);
             padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
         }
         #synthese_equipements { min-height: 200px; font-family: Consolas, "Courier New", monospace; font-size: 0.88rem; line-height: 1.45; }
@@ -2352,7 +2355,7 @@
 
         /* ===== Caméras & Alarme : ajouts ===== */
         .eq-type-badge {
-            font-size: 0.78rem; font-weight: 700; color: #fff; background: var(--eq-color, #2e75b6);
+            font-size: 0.78rem; font-weight: 700; color: #fff; background: var(--eq-color, var(--accent-ink));
             padding: 3px 9px; border-radius: 12px; white-space: nowrap;
         }
         .eq-add-bar {
@@ -2360,9 +2363,9 @@
             margin-top: 8px; padding: 10px 12px; background: #fff;
             border: 1px dashed #b8c9db; border-radius: 8px;
         }
-        .eq-add-bar > span { font-weight: 600; color: #1f4e79; font-size: 0.9rem; }
+        .eq-add-bar > span { font-weight: 600; color: var(--ink); font-size: 0.9rem; }
         .eq-add-bar select { flex: 1; min-width: 190px; max-width: 360px; }
-        .eq-add-bar .btn-secondary { margin: 0; background: #1f4e79; color: #fff; }
+        .eq-add-bar .btn-secondary { margin: 0; background: var(--ink); color: #fff; }
         .eq-add-bar .btn-secondary:hover { background: #163a5c; }
         @media (max-width: 640px) { .eq-add-bar select, .eq-add-bar .btn-secondary { width: 100%; max-width: none; } }
         .eq-cable-only[hidden], .eq-fov-only[hidden], .eq-vue-block[hidden] { display: none; }
@@ -2388,7 +2391,7 @@
         .rappels-list { margin: 0; padding: 0; list-style: none; }
         .rappels-list li { margin: 5px 0; font-size: 0.9rem; line-height: 1.35; display: flex; gap: 8px; align-items: flex-start; }
         .rappels-list li button {
-            background: none; border: none; padding: 0; color: #1f4e79; text-decoration: underline;
+            background: none; border: none; padding: 0; color: var(--ink); text-decoration: underline;
             cursor: pointer; font-size: 0.9rem; text-align: left; min-height: 0;
         }
         .rappel-dot { width: 11px; height: 11px; min-width: 11px; border-radius: 50%; margin-top: 4px; }
@@ -2423,26 +2426,25 @@
         .fov-angle-label input { width: 100%; padding: 4px; font-size: 0.82rem; border: 1px solid #ccc; border-radius: 3px; margin-top: 2px; }
     </style>
 
-    <header>
-        <div style="display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap;">
-            <div>
-                <h1>📹 Formulaire Caméras &amp; Alarme — IPKONEKT</h1>
-                <p>Emplacement des caméras et équipements d'alarme, cheminement des câbles jusqu'à la baie, plans annotés. Renseignez les informations ci-dessous, puis générez le rapport Word.</p>
+    <header class="app-header">
+        <div class="app-header-in">
+            <a class="app-home" href="../" title="Tous les outils"><img src="../logo-ipkonekt.png" alt="IPKONEKT" width="147" height="129"></a>
+            <div class="app-title">
+                <h1>Caméras et alarme</h1>
+                <p>Emplacement des caméras et des équipements d'alarme, câbles jusqu'à la baie, plans annotés. Le rapport se génère en bas de page.</p>
             </div>
-            <a href="../" style="background: rgba(255,255,255,0.18); color:#fff; text-decoration:none; padding:10px 16px; border-radius:6px; border:1px solid rgba(255,255,255,0.4); font-size:0.9rem; font-weight:600; white-space:nowrap;">← Retour au portail</a>
+            <div class="app-tools">
+                <a class="app-back" href="../">Tous les outils</a>
+            </div>
         </div>
     </header>
 
     <!-- ===== SÉLECTEUR DE MODE AUDIT / TRAVAUX ===== -->
     <div class="mode-selector">
-        <h3>Type d'intervention</h3>
-        <div class="mode-buttons">
-            <button type="button" class="mode-btn active" id="modeAuditBtn" onclick="setMode('audit')">
-                <span class="mode-icon">🔍</span>AUDIT
-            </button>
-            <button type="button" class="mode-btn" id="modeTravauxBtn" onclick="setMode('travaux')">
-                <span class="mode-icon">🛠️</span>TRAVAUX
-            </button>
+        <span class="mode-label" id="modeLabel">Type d'intervention</span>
+        <div class="mode-buttons" role="group" aria-labelledby="modeLabel">
+            <button type="button" class="mode-btn active" id="modeAuditBtn" onclick="setMode('audit')">Audit</button>
+            <button type="button" class="mode-btn" id="modeTravauxBtn" onclick="setMode('travaux')">Travaux</button>
         </div>
         <input type="hidden" id="modeIntervention" value="audit">
     </div>
@@ -2538,19 +2540,19 @@
                     </div>
                 </div>
 
-                <div class="photo-cat-title">📷 Baie ouverte</div>
+                <div class="photo-cat-title">Baie ouverte</div>
                 <div class="mp-photo-block" style="max-width:520px;">
                     <input type="file" accept="image/*" data-photo-input="photo_baie_ouverte">
                     <img id="preview_photo_baie_ouverte" class="photo-preview" alt="">
                     <div class="mp-photo-actions">
-                        <button type="button" class="annotate-btn" data-annotate="photo_baie_ouverte" disabled>✏ Annoter</button>
-                        <button type="button" class="clear-btn" data-clear="photo_baie_ouverte">🗑 Effacer</button>
+                        <button type="button" class="annotate-btn" data-annotate="photo_baie_ouverte" disabled>Annoter</button>
+                        <button type="button" class="clear-btn" data-clear="photo_baie_ouverte">Effacer</button>
                     </div>
                 </div>
 
-                <div class="photo-cat-title">📷 Baie fermée</div>
+                <div class="photo-cat-title">Baie fermée</div>
                 <div class="gallery-grid" id="baieFermeeContainer"></div>
-                <button type="button" class="btn-secondary" id="addBaieFermeeBtn">➕ Ajouter une photo de baie fermée</button>
+                <button type="button" class="btn-secondary" id="addBaieFermeeBtn">+ Ajouter une photo de baie fermée</button>
             </div>
 
             <div class="baie-non-only">
@@ -2559,24 +2561,24 @@
                     <input type="text" id="emplacement_baie" placeholder="Ex : local technique, placard du 1er étage…">
                 </div>
 
-                <div class="photo-cat-title">📷 Emplacement prévu pour la baie</div>
+                <div class="photo-cat-title">Emplacement prévu pour la baie</div>
                 <p class="photo-cat-note">Dans l'annotation, utilisez « Baie à installer » pour matérialiser la future baie.</p>
                 <div class="mp-photo-block" style="max-width:520px;">
                     <input type="file" accept="image/*" data-photo-input="photo_emplacement_baie">
                     <img id="preview_photo_emplacement_baie" class="photo-preview" alt="">
                     <div class="mp-photo-actions">
-                        <button type="button" class="annotate-btn" data-annotate="photo_emplacement_baie" disabled>✏ Annoter</button>
-                        <button type="button" class="clear-btn" data-clear="photo_emplacement_baie">🗑 Effacer</button>
+                        <button type="button" class="annotate-btn" data-annotate="photo_emplacement_baie" disabled>Annoter</button>
+                        <button type="button" class="clear-btn" data-clear="photo_emplacement_baie">Effacer</button>
                     </div>
                 </div>
 
-                <div class="photo-cat-title">📷 Prise électrique d'alimentation de la baie</div>
+                <div class="photo-cat-title">Prise électrique d'alimentation de la baie</div>
                 <div class="mp-photo-block" style="max-width:520px;">
                     <input type="file" accept="image/*" data-photo-input="photo_prise_baie">
                     <img id="preview_photo_prise_baie" class="photo-preview" alt="">
                     <div class="mp-photo-actions">
-                        <button type="button" class="annotate-btn" data-annotate="photo_prise_baie" disabled>✏ Annoter</button>
-                        <button type="button" class="clear-btn" data-clear="photo_prise_baie">🗑 Effacer</button>
+                        <button type="button" class="annotate-btn" data-annotate="photo_prise_baie" disabled>Annoter</button>
+                        <button type="button" class="clear-btn" data-clear="photo_prise_baie">Effacer</button>
                     </div>
                 </div>
             </div>
@@ -2590,23 +2592,23 @@
         <!-- ===== 3. PHOTOS GÉNÉRALES ===== -->
         <div class="section">
             <h2>3. Photos générales</h2>
-            <div class="photo-cat-title">📷 Devanture</div>
+            <div class="photo-cat-title">Devanture</div>
             <p class="photo-cat-note">Photo de la devanture du site (non annotable).</p>
             <div class="mp-photo-block" style="max-width:520px;">
                 <input type="file" accept="image/*" data-photo-input="photo_devanture">
                 <img id="preview_photo_devanture" class="photo-preview" alt="">
                 <div class="mp-photo-actions">
-                    <button type="button" class="clear-btn" data-clear="photo_devanture">🗑 Effacer</button>
+                    <button type="button" class="clear-btn" data-clear="photo_devanture">Effacer</button>
                 </div>
             </div>
 
-            <div class="photo-cat-title">📷 Travaux en hauteur</div>
+            <div class="photo-cat-title">Travaux en hauteur</div>
             <div class="mp-photo-block" style="max-width:520px;">
                 <input type="file" accept="image/*" data-photo-input="photo_travaux_hauteur">
                 <img id="preview_photo_travaux_hauteur" class="photo-preview" alt="">
                 <div class="mp-photo-actions">
-                    <button type="button" class="annotate-btn" data-annotate="photo_travaux_hauteur" disabled>✏ Annoter</button>
-                    <button type="button" class="clear-btn" data-clear="photo_travaux_hauteur">🗑 Effacer</button>
+                    <button type="button" class="annotate-btn" data-annotate="photo_travaux_hauteur" disabled>Annoter</button>
+                    <button type="button" class="clear-btn" data-clear="photo_travaux_hauteur">Effacer</button>
                 </div>
             </div>
             <div class="field-row" style="margin-top:14px;">
@@ -2635,7 +2637,7 @@
             </div>
             <p id="siteEmpty" hidden>Aucun niveau pour l'instant.</p>
             <div id="siteNiveaux"></div>
-            <button type="button" class="btn-secondary" id="addNiveauBtn">➕ Ajouter un niveau</button>
+            <button type="button" class="btn-secondary" id="addNiveauBtn">+ Ajouter un niveau</button>
         </div>
 
         <!-- ===== 5. BLOCAGE (OPTIONNEL) ===== -->
@@ -2651,15 +2653,15 @@
                 </label>
             </div>
             <div id="blocageContent">
-                <div class="photo-cat-title">🚧 Photos des blocages</div>
+                <div class="photo-cat-title">Photos des blocages</div>
                 <p class="photo-cat-note">Nombre illimité de photos, toutes annotables, chacune avec son commentaire.</p>
                 <div class="gallery-grid" id="blocagesContainer"></div>
-                <button type="button" class="btn-secondary" id="addBlocageBtn">➕ Ajouter une photo de blocage</button>
+                <button type="button" class="btn-secondary" id="addBlocageBtn">+ Ajouter une photo de blocage</button>
 
-                <div class="photo-cat-title">💡 Photos de la solution proposée</div>
+                <div class="photo-cat-title">Photos de la solution proposée</div>
                 <p class="photo-cat-note">Nombre illimité de photos, toutes annotables, chacune avec son commentaire.</p>
                 <div class="gallery-grid" id="solutionsContainer"></div>
-                <button type="button" class="btn-secondary" id="addSolutionBtn">➕ Ajouter une photo de solution</button>
+                <button type="button" class="btn-secondary" id="addSolutionBtn">+ Ajouter une photo de solution</button>
             </div>
         </div>
 
@@ -2694,7 +2696,7 @@
 
         <!-- ===== RAPPELS (non bloquants) ===== -->
         <div class="rappels-box" id="rappelsBox" hidden>
-            <h3>⚠ Rappels avant de générer le rapport</h3>
+            <h3>Rappels avant de générer le rapport</h3>
             <p class="rappels-sub">Ces points ne bloquent pas la génération du Word. Touchez un rappel pour aller à l'équipement concerné.</p>
             <ul class="rappels-list" id="rappelsList"></ul>
         </div>
@@ -2703,22 +2705,22 @@
     </div>
 
     <div class="actions">
-        <button type="button" class="btn-secondary" onclick="resetForm()">🔄 Réinitialiser</button>
-        <button type="button" class="btn-secondary" id="btnExportJSON" onclick="exportJSON()">⬇ Export JSON</button>
-        <button type="button" class="btn-secondary" onclick="document.getElementById('importJSONInput').click()">⬆ Import JSON</button>
+        <button type="button" class="btn-secondary" onclick="resetForm()">Réinitialiser</button>
+        <button type="button" class="btn-secondary" id="btnExportJSON" onclick="exportJSON()">Export JSON</button>
+        <button type="button" class="btn-secondary" onclick="document.getElementById('importJSONInput').click()">Import JSON</button>
         <input type="file" id="importJSONInput" accept=".json,application/json" style="display:none" onchange="importJSON(event)">
-        <button type="button" class="btn-primary" id="btnGenerateWord" onclick="generateDocument()">📄 Générer le rapport Word</button>
+        <button type="button" class="btn-primary" id="btnGenerateWord" onclick="generateDocument()">Générer le rapport Word</button>
     </div>
 
     <!-- ===== MODALE DE RAPPEL (génération du Word) ===== -->
     <div class="rappel-overlay" id="rappelOverlay" role="dialog" aria-modal="true" aria-labelledby="rappelTitle">
         <div class="rappel-modal">
-            <h2 id="rappelTitle">⚠ Avant de générer le rapport</h2>
+            <h2 id="rappelTitle">Avant de générer le rapport</h2>
             <p class="rappels-sub">Certains équipements ne sont pas complets. Vous pouvez compléter le formulaire ou générer le rapport quand même.</p>
             <ul class="rappels-list" id="rappelModalList"></ul>
             <div class="rappel-actions">
                 <button type="button" class="btn-secondary" id="rappelBackBtn">← Compléter le formulaire</button>
-                <button type="button" class="btn-primary" id="rappelGoBtn">📄 Générer quand même</button>
+                <button type="button" class="btn-primary" id="rappelGoBtn">Générer quand même</button>
             </div>
         </div>
     </div>
@@ -2727,7 +2729,7 @@
     <div class="editor-overlay" id="editorOverlay">
         <div class="editor-modal">
             <div class="editor-header">
-                <h2>✏ Annoter — <span id="editorTitle"></span></h2>
+                <h2>Annoter : <span id="editorTitle"></span></h2>
                 <button type="button" class="editor-close" onclick="closeEditor()">Fermer sans enregistrer</button>
             </div>
             <div class="editor-body">
@@ -2742,7 +2744,7 @@
                     </div>
 
                     <div class="selection-panel tool-group" id="selectionPanel">
-                        <h3>✎ Élément sélectionné</h3>
+                        <h3>Élément sélectionné</h3>
                         <div id="selPanelImage">
                             <div class="flip-buttons">
                                 <button type="button" class="flip-btn" id="flipHBtn" title="Retourner horizontalement">
@@ -2815,12 +2817,12 @@
                             <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="currentColor"/></svg>
                             Tracé (plusieurs points)
                         </button>
-                        <button type="button" class="tool-btn" id="toolAddArrow">➡️ Flèche simple</button>
+                        <button type="button" class="tool-btn" id="toolAddArrow">Flèche simple</button>
                     </div>
 
                     <div class="tool-group">
                         <h3>Équipements</h3>
-                        <button type="button" class="tool-btn" id="toolAddEquip" style="display:none;">📍 Poser l'équipement</button>
+                        <button type="button" class="tool-btn" id="toolAddEquip" style="display:none;">Poser l'équipement</button>
                         <button type="button" class="tool-btn" id="toolAddBaieExist">
                             <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><rect x="2" y="2" width="22" height="14" fill="#fff" stroke="#1F3864" stroke-width="2.5"/></svg>
                             Baie existante
@@ -2833,8 +2835,8 @@
 
                     <div class="tool-group">
                         <h3>Repères</h3>
-                        <button type="button" class="tool-btn" id="toolAddCircle">⭕ Cercle</button>
-                        <button type="button" class="tool-btn" id="toolAddText">🅰️ Texte</button>
+                        <button type="button" class="tool-btn" id="toolAddCircle">Cercle</button>
+                        <button type="button" class="tool-btn" id="toolAddText">Texte</button>
                     </div>
 
                     <div class="tool-group">
@@ -2876,7 +2878,7 @@
                                 <div class="swatch" style="background:#000000" data-color="#000000"></div>
                             </div>
                             <div class="style-preview" id="textPreview">Aperçu</div>
-                            <button type="button" class="tool-btn" id="btnAddText" style="background:#2e75b6; color:white; border-color:#1f4e79; justify-content:center; margin-top:6px;">➕ Ajouter le texte</button>
+                            <button type="button" class="tool-btn" id="btnAddText" style="background:var(--accent-ink); color:white; border-color:var(--ink); justify-content:center; margin-top:6px;">+ Ajouter le texte</button>
                         </div>
                     </div>
 
@@ -2899,10 +2901,10 @@
                 </div>
             </div>
             <div class="editor-footer">
-                <span class="hint">💡 Double-cliquez sur un texte pour le modifier.</span>
+                <span class="hint">Double-cliquez sur un texte pour le modifier.</span>
                 <div>
                     <button type="button" class="btn-secondary" onclick="closeEditor()" style="padding:8px 16px;">Annuler</button>
-                    <button type="button" class="btn-primary" onclick="saveAnnotation()" style="padding:8px 16px;">✅ Enregistrer</button>
+                    <button type="button" class="btn-primary" onclick="saveAnnotation()" style="padding:8px 16px;">Enregistrer</button>
                 </div>
             </div>
         </div>

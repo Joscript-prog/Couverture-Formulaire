@@ -3,389 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Portail des outils d'audit et de travaux IPKONEKT — Bouygues Telecom / Bretagne Telecom">
-    <title>Portail Audits & Travaux — IPKONEKT</title>
+    <meta name="description" content="Outils d'audit et de travaux terrain IPKONEKT pour Bouygues Telecom et Bretagne Telecom">
+    <meta name="theme-color" content="#0A25EB">
+    <title>Outils terrain IPKONEKT</title>
+    <link rel="icon" href="logo-ipkonekt.png">
+    <link rel="preload" href="fonts/barlow-semi-condensed-600.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="theme.css">
     <style>
-        * {
-            box-sizing: border-box;
-        }
-        html {
-            -webkit-text-size-adjust: 100%;
-            text-size-adjust: 100%;
-        }
-        body {
-            margin: 0;
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            color: #222;
-            background: linear-gradient(135deg, #1f4e79 0%, #2e75b6 100%);
-            display: flex;
-            flex-direction: column;
-            -webkit-tap-highlight-color: rgba(255, 255, 255, 0.2);
-        }
+        * { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+        body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
 
-        header {
-            color: #fff;
-            padding: 36px 24px 8px;
-            text-align: center;
+        .portal-head { background: var(--ipk); color: #fff; }
+        .portal-head-in {
+            max-width: 880px; margin: 0 auto;
+            padding: 36px 24px 34px;
+            display: flex; align-items: center; gap: 20px;
         }
-        header h1 {
-            margin: 0 0 10px;
-            font-size: 1.7rem;
-            letter-spacing: 0.3px;
+        .portal-logo {
+            flex: none; width: 72px; height: 72px; border-radius: 16px;
+            background: #fff; display: grid; place-items: center;
         }
-        header .subtitle {
-            margin: 0;
-            font-size: 1rem;
-            opacity: 0.92;
+        .portal-logo img { width: 56px; height: auto; display: block; }
+        .portal-head h1 {
+            margin: 0; font: 700 2.4rem/1.05 var(--font-title); letter-spacing: 0.005em;
         }
+        .portal-head p { margin: 8px 0 0; font-size: 1.05rem; line-height: 1.45; max-width: 60ch; opacity: 0.94; }
 
-        .intro {
-            color: #fff;
-            text-align: center;
-            padding: 18px 28px 8px;
-            max-width: 760px;
-            margin: 0 auto;
+        main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 8px 24px 40px; }
+        .tool-group h2 {
+            margin: 30px 0 10px; font: 600 1.2rem var(--font-title); color: var(--muted);
         }
-        .intro p {
-            margin: 0;
-            font-size: 0.95rem;
-            line-height: 1.55;
-            opacity: 0.93;
+        .tool-list {
+            list-style: none; margin: 0; padding: 0;
+            background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
         }
-        .badges {
-            display: inline-flex;
-            gap: 10px;
-            margin-top: 14px;
-            flex-wrap: wrap;
-            justify-content: center;
+        .tool-list li + li { border-top: 1px solid var(--line); }
+        .tool {
+            display: flex; align-items: center; gap: 18px;
+            padding: 16px 18px; min-height: 84px;
+            color: var(--ink); text-decoration: none;
         }
-        .badge {
-            background: rgba(255,255,255,0.18);
-            color: #fff;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.82rem;
-            font-weight: 600;
-            border: 1px solid rgba(255,255,255,0.3);
-            letter-spacing: 0.3px;
+        .tool[data-tool="4g"]       { --tile: #0091D5; --tile-ink: #006FA6; --tile-tint: #E6F4FB; }
+        .tool[data-tool="starlink"] { --tile: #E86F00; --tile-ink: #B85300; --tile-tint: #FDF0E4; }
+        .tool[data-tool="pico"]     { --tile: #4E9F00; --tile-ink: #3B7A00; --tile-tint: #EEF6E5; }
+        .tool[data-tool="cablage"]  { --tile: #8B3DFF; --tile-ink: #6B21E0; --tile-tint: #F3ECFF; }
+        .tool[data-tool="wifi"]     { --tile: #009E7E; --tile-ink: #007A62; --tile-tint: #E5F5F1; }
+        .tool[data-tool="camera"]   { --tile: #E5282F; --tile-ink: #C81E25; --tile-tint: #FDECEC; }
+        .tool-tile {
+            flex: none; width: 56px; height: 56px; border-radius: 12px;
+            background: var(--tile); color: #fff; display: grid; place-items: center;
         }
-        .badge .icon {
-            margin-right: 4px;
-        }
-
-        main {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 24px 20px 40px;
-        }
-
-        .cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
-            gap: 24px;
-            width: 100%;
-            max-width: 880px;
-        }
-
-        .card {
-            display: flex;
-            flex-direction: column;
-            background: #fff;
-            border-radius: 14px;
-            padding: 30px 28px 26px;
-            text-decoration: none;
-            color: inherit;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            min-height: 280px;
-            position: relative;
-            overflow: hidden;
-            touch-action: manipulation;
-        }
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 5px;
-            background: #2e75b6;
-        }
-        .card.starlink::before {
-            background: #f0ad4e;
-        }
-        .card.pico::before {
-            background: #5cb85c;
-        }
-        .card.cablage::before {
-            background: #7c3aed;
-        }
-        .card.wifi::before {
-            background: #0f766e;
-        }
-        .card.camera::before {
-            background: #b42318;
-        }
-        .card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 14px 32px rgba(0, 0, 0, 0.25);
-        }
-        .card:active {
-            transform: translateY(-1px) scale(0.99);
-        }
-        .card:focus-visible {
-            outline: 3px solid #fff;
-            outline-offset: 4px;
-        }
-
-        .card-icon {
-            font-size: 2.6rem;
-            line-height: 1;
-            margin-bottom: 12px;
-        }
-        .card h2 {
-            margin: 0 0 10px;
-            color: #1f4e79;
-            font-size: 1.25rem;
-        }
-        .card-desc {
-            margin: 0 0 14px;
-            color: #555;
-            font-size: 0.92rem;
-            line-height: 1.5;
-        }
-        .card-features {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 18px;
-            flex: 1;
-        }
-        .card-features li {
-            padding: 4px 0 4px 22px;
-            font-size: 0.86rem;
-            color: #444;
-            position: relative;
-            line-height: 1.4;
-        }
-        .card-features li::before {
-            content: '✓';
-            position: absolute;
-            left: 0;
-            top: 4px;
-            color: #2e75b6;
-            font-weight: bold;
-        }
-        .card.starlink .card-features li::before {
-            color: #d68910;
-        }
-        .card.pico .card-features li::before {
-            color: #5cb85c;
-        }
-        .card.cablage .card-features li::before {
-            color: #7c3aed;
-        }
-        .card.wifi .card-features li::before {
-            color: #0f766e;
-        }
-        .card.camera .card-features li::before {
-            color: #b42318;
-        }
-        .card-cta {
-            align-self: flex-start;
-            background: #2e75b6;
-            color: #fff;
-            padding: 11px 22px;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.95rem;
-            min-height: 44px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.15s;
-        }
-        .card.starlink .card-cta {
-            background: #d68910;
-        }
-        .card.pico .card-cta {
-            background: #449d44;
-        }
-        .card.cablage .card-cta {
-            background: #7c3aed;
-        }
-        .card.wifi .card-cta {
-            background: #0f766e;
-        }
-        .card.camera .card-cta {
-            background: #b42318;
-        }
-        .card:hover .card-cta {
-            background: #1f4e79;
-        }
-        .card.starlink:hover .card-cta {
-            background: #b87708;
-        }
-        .card.pico:hover .card-cta {
-            background: #357935;
-        }
-        .card.cablage:hover .card-cta {
-            background: #5b21b6;
-        }
-        .card.wifi:hover .card-cta {
-            background: #115e59;
-        }
-        .card.camera:hover .card-cta {
-            background: #8f1c13;
-        }
-        .card-icon svg {
-            width: 1.2em;
-            height: 1.2em;
-            vertical-align: -0.15em;
-        }
+        .tool-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .tool-name { font: 600 1.4rem/1.15 var(--font-title); }
+        .tool-desc { color: var(--muted); font-size: 0.98rem; line-height: 1.4; }
+        .tool-go { flex: none; color: var(--line-strong); }
+        .tool:hover { background: var(--tile-tint); }
+        .tool:hover .tool-name { color: var(--tile-ink); }
+        .tool:hover .tool-go { color: var(--tile-ink); }
+        .tool:focus-visible { outline: 3px solid var(--tile-ink); outline-offset: -3px; }
 
         footer {
-            text-align: center;
-            color: rgba(255, 255, 255, 0.85);
-            padding: 16px 20px calc(20px + env(safe-area-inset-bottom, 0px));
-            font-size: 0.82rem;
+            max-width: 880px; width: 100%; margin: 0 auto;
+            padding: 8px 24px calc(24px + env(safe-area-inset-bottom, 0px));
+            color: var(--muted); font-size: 0.88rem;
         }
 
-        @media (max-width: 480px) {
-            header {
-                padding: 26px 18px 6px;
-            }
-            header h1 {
-                font-size: 1.35rem;
-            }
-            header .subtitle {
-                font-size: 0.9rem;
-            }
-            .intro {
-                padding: 14px 18px 4px;
-            }
-            .intro p {
-                font-size: 0.88rem;
-            }
-            .badge {
-                font-size: 0.78rem;
-                padding: 5px 12px;
-            }
-            main {
-                padding: 16px 16px 24px;
-            }
-            .cards {
-                gap: 16px;
-            }
-            .card {
-                padding: 24px 22px 22px;
-                min-height: auto;
-            }
-            .card-cta {
-                width: 100%;
-                justify-content: center;
-            }
+        @media (max-width: 560px) {
+            .portal-head-in { padding: 24px 16px 22px; gap: 14px; align-items: flex-start; }
+            .portal-logo { width: 56px; height: 56px; border-radius: 12px; }
+            .portal-logo img { width: 44px; }
+            .portal-head h1 { font-size: 1.9rem; }
+            .portal-head p { font-size: 0.98rem; }
+            main { padding: 0 16px 28px; }
+            .tool-group h2 { margin-top: 24px; }
+            .tool { gap: 14px; padding: 14px; }
+            .tool-tile { width: 48px; height: 48px; border-radius: 10px; }
+            .tool-tile svg { width: 26px; height: 26px; }
+            .tool-name { font-size: 1.25rem; }
+            .tool-desc { font-size: 0.92rem; }
+            footer { padding-left: 16px; padding-right: 16px; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>📋 Portail Audits & Travaux</h1>
-        <p class="subtitle">IPKONEKT — Bouygues Telecom / Bretagne Telecom</p>
+    <header class="portal-head">
+        <div class="portal-head-in">
+            <span class="portal-logo"><img src="logo-ipkonekt.png" alt="IPKONEKT" width="147" height="129"></span>
+            <div>
+                <h1>Outils terrain</h1>
+                <p>Audits et travaux pour Bouygues Telecom et Bretagne Telecom. Ouvrez l'outil de l'intervention : vous choisirez audit ou travaux dans le formulaire.</p>
+            </div>
+        </div>
     </header>
 
-    <div class="intro">
-        <p>Lors de la création d'un dossier, choisissez le type de formulaire : <strong>Couverture</strong> (4G/5G, Starlink, PICO/Quatra) ou <strong>Câblage</strong> (classique ou Wi-Fi), ou <strong>Caméras &amp; Alarme</strong>. Sélectionnez le formulaire correspondant à votre intervention. Chaque outil permet de basculer entre <strong>AUDIT</strong> ou <strong>TRAVAUX</strong> à l'intérieur du formulaire ; le rapport Word généré sera adapté en conséquence.</p>
-        <div class="badges">
-            <span class="badge"><span class="icon">🔍</span>Mode Audit</span>
-            <span class="badge"><span class="icon">🛠️</span>Mode Travaux</span>
-        </div>
-    </div>
-
     <main>
-        <div class="cards">
-            <a class="card" href="4g-5g/" aria-label="Ouvrir le formulaire 4G / 5G">
-                <span class="card-icon" aria-hidden="true">📡</span>
-                <h2>Antenne 4G / 5G</h2>
-                <p class="card-desc">Audit ou travaux d'installation d'antenne 4G/5G chez le client.</p>
-                <ul class="card-features">
-                    <li>Mesures radio (RSRP, SNR) avec interprétation auto</li>
-                    <li>Plan d'évacuation avec points de mesure</li>
-                    <li>Photos annotées (flèches, repères, texte)</li>
-                    <li>Compte rendu généré à partir de cases à cocher</li>
-                </ul>
-                <span class="card-cta">Ouvrir le formulaire →</span>
-            </a>
+        <section class="tool-group" aria-labelledby="g-couv">
+            <h2 id="g-couv">Couverture</h2>
+            <ul class="tool-list">
+                <li>
+                    <a class="tool" href="4g-5g/" data-tool="4g">
+                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4v8" /> <path d="M16 4.5v7" /> <path d="M12 5v16" /> <path d="M8 5.5v5" /> <path d="M4 6v4" /> <path d="M20 8h-16" /></svg></span>
+                        <span class="tool-text">
+                            <span class="tool-name">Antenne 4G / 5G</span>
+                            <span class="tool-desc">Mesures radio interprétées, plan d'évacuation, routeur et bornes intérieures.</span>
+                        </span>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="tool" href="starlink/" data-tool="starlink">
+                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.707 6.293l2.586 -2.586a1 1 0 0 1 1.414 0l5.586 5.586a1 1 0 0 1 0 1.414l-2.586 2.586a1 1 0 0 1 -1.414 0l-5.586 -5.586a1 1 0 0 1 0 -1.414z" /> <path d="M6 10l-3 3l3 3l3 -3" /> <path d="M10 6l3 -3l3 3l-3 3" /> <path d="M12 12l1.5 1.5" /> <path d="M14.5 17a2.5 2.5 0 0 0 2.5 -2.5" /> <path d="M15 21a6 6 0 0 0 6 -6" /></svg></span>
+                        <span class="tool-text">
+                            <span class="tool-name">Antenne Starlink</span>
+                            <span class="tool-desc">Emplacement de l'antenne, test d'obstruction, cheminement du câble et EPI.</span>
+                        </span>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="tool" href="pico-quatra/" data-tool="pico">
+                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /> <path d="M16.616 13.924a5 5 0 1 0 -9.23 0" /> <path d="M20.307 15.469a9 9 0 1 0 -16.615 0" /> <path d="M9 21l3 -9l3 9" /> <path d="M10 19h4" /></svg></span>
+                        <span class="tool-text">
+                            <span class="tool-name">PICO BTS / Cel-Fi Quatra</span>
+                            <span class="tool-desc">Mesures radio et speedtest, forfait BPU, plan d'implantation et fournitures.</span>
+                        </span>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                    </a>
+                </li>
+            </ul>
+        </section>
 
-            <a class="card starlink" href="starlink/" aria-label="Ouvrir le formulaire Starlink">
-                <span class="card-icon" aria-hidden="true">🛰️</span>
-                <h2>Antenne Starlink</h2>
-                <p class="card-desc">Audit ou travaux d'installation d'une antenne Starlink.</p>
-                <ul class="card-features">
-                    <li>Repérage de l'emplacement et test d'obstruction</li>
-                    <li>Cheminement câble et point de pénétration</li>
-                    <li>Photos annotées avec éléments dédiés (mâts, antennes)</li>
-                    <li>Suivi des EPI requis pour l'intervention</li>
-                </ul>
-                <span class="card-cta">Ouvrir le formulaire →</span>
-            </a>
+        <section class="tool-group" aria-labelledby="g-cab">
+            <h2 id="g-cab">Câblage</h2>
+            <ul class="tool-list">
+                <li>
+                    <a class="tool" href="cablage/" data-tool="cablage">
+                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /> <path d="M3 12m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /> <path d="M7 8l0 .01" /> <path d="M7 16l0 .01" /> <path d="M11 8h6" /> <path d="M11 16h6" /></svg></span>
+                        <span class="tool-text">
+                            <span class="tool-name">Câblage</span>
+                            <span class="tool-desc">Baie informatique, adductions, cheminements, percements et blocages éventuels.</span>
+                        </span>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="tool" href="cablage-wifi/" data-tool="wifi">
+                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18l.01 0" /> <path d="M9.172 15.172a4 4 0 0 1 5.656 0" /> <path d="M6.343 12.343a8 8 0 0 1 11.314 0" /> <path d="M3.515 9.515c4.686 -4.687 12.284 -4.687 17 0" /></svg></span>
+                        <span class="tool-text">
+                            <span class="tool-name">Câblage Wi-Fi</span>
+                            <span class="tool-desc">Bornes par niveau, une couleur par borne sur les plans, métrage et synthèse.</span>
+                        </span>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                    </a>
+                </li>
+            </ul>
+        </section>
 
-            <a class="card pico" href="pico-quatra/" aria-label="Ouvrir le formulaire PICO BTS / Cel-Fi Quatra">
-                <span class="card-icon" aria-hidden="true">📶</span>
-                <h2>PICO BTS / Cel-Fi Quatra</h2>
-                <p class="card-desc">Audit ou travaux pour solution PICO BTS et/ou Cel-Fi Quatra (sections cumulables).</p>
-                <ul class="card-features">
-                    <li>Mesures radio RSRP/RSRQ/Band + Speedtest</li>
-                    <li>Choix manuel du forfait selon le BPU (PICO 1-4, Quatra 1-6)</li>
-                    <li>Décompte des PICO/CU posés et plan d'implantation</li>
-                    <li>Liste de fournitures détaillée avec quantités</li>
-                </ul>
-                <span class="card-cta">Ouvrir le formulaire →</span>
-            </a>
-
-            <a class="card cablage" href="cablage/" aria-label="Ouvrir le formulaire Câblage">
-                <span class="card-icon" aria-hidden="true">🔌</span>
-                <h2>Câblage</h2>
-                <p class="card-desc">Audit ou travaux de câblage chez le client (formulaire indépendant des formulaires Couverture).</p>
-                <ul class="card-features">
-                    <li>Baie informatique : équipements, U disponibles, conformité automatique</li>
-                    <li>Photos annotables : devanture, baie, adductions, cheminements, percements...</li>
-                    <li>Section Blocage optionnelle (blocages + solutions proposées)</li>
-                    <li>Compatible tous donneurs d'ordre — ou IPKONEKT seul</li>
-                </ul>
-                <span class="card-cta">Ouvrir le formulaire →</span>
-            </a>
-
-            <a class="card wifi" href="cablage-wifi/" aria-label="Ouvrir le formulaire Câblage Wi-Fi">
-                <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 100 100"><path d="M13 42 A52 52 0 0 1 87 42" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round"/><path d="M27 56 A33 33 0 0 1 73 56" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round"/><path d="M40 70 A15 15 0 0 1 60 70" fill="none" stroke="#0f766e" stroke-width="10" stroke-linecap="round"/><circle cx="50" cy="84" r="7" fill="#0f766e"/></svg></span>
-                <h2>Câblage Wi-Fi</h2>
-                <p class="card-desc">Audit ou travaux de câblage pour la pose de bornes Wi-Fi, sur un ou plusieurs niveaux.</p>
-                <ul class="card-features">
-                    <li>Baie existante (conformité auto) ou baie à installer</li>
-                    <li>Plans d'évacuation par niveau : une couleur par borne, tracé multi-points</li>
-                    <li>Fiche par borne : emplacement, pose, métrage, cheminement, percements</li>
-                    <li>Synthèse par borne générée automatiquement dans le compte rendu</li>
-                </ul>
-                <span class="card-cta">Ouvrir le formulaire →</span>
-            </a>
-
-            <a class="card camera" href="camera-alarme/" aria-label="Ouvrir le formulaire Caméras et Alarme">
-                <span class="card-icon" aria-hidden="true">📹</span>
-                <h2>Caméras &amp; Alarme</h2>
-                <p class="card-desc">Audit ou travaux de pose de caméras, d'alarme et d'équipements associés (matériel fourni par le client).</p>
-                <ul class="card-features">
-                    <li>Équipements par niveau : caméras, détecteurs, contacts, clavier, sirène…</li>
-                    <li>Plans annotés : position, champ de vision des caméras, câble jusqu'à la baie</li>
-                    <li>Rappel si un équipement n'est pas placé sur un plan (sans bloquer le Word)</li>
-                    <li>Synthèse par équipement et métrage total de câble</li>
-                </ul>
-                <span class="card-cta">Ouvrir le formulaire →</span>
-            </a>
-        </div>
+        <section class="tool-group" aria-labelledby="g-sur">
+            <h2 id="g-sur">Sûreté</h2>
+            <ul class="tool-list">
+                <li>
+                    <a class="tool" href="camera-alarme/" data-tool="camera">
+                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z" /> <path d="M12 14m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /> <path d="M19 7v7a7 7 0 0 1 -14 0v-7" /> <path d="M12 14l.01 0" /></svg></span>
+                        <span class="tool-text">
+                            <span class="tool-name">Caméras et alarme</span>
+                            <span class="tool-desc">Équipements par niveau, champ de vision des caméras, câbles jusqu'à la baie.</span>
+                        </span>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                    </a>
+                </li>
+            </ul>
+        </section>
     </main>
 
-    <footer>
-        © IPKONEKT — Outils d'audit et de travaux terrain
-    </footer>
+    <footer>© IPKONEKT. Outils d'audit et de travaux terrain.</footer>
 </body>
 </html>

@@ -91,7 +91,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     // Au moins un plan d'évacuation par défaut (zone d'upload vierge), pour rester
-    // ergonomique : le technicien voit directement le bouton "📷 importer une photo"
+    // ergonomique : le technicien voit directement le bouton "importer une photo"
     if (evacPlans.length === 0) {
         addEvacPlan();
     }
@@ -780,7 +780,7 @@ async function runOcrForMeasurePhoto(group, photoType, dataUrl) {
     // Réimport / remplacement : on efface les valeurs OCR précédentes de CETTE
     // photo pour pouvoir les rafraîchir. Les valeurs manuelles ne sont pas touchées.
     clearOcrValuesForPhoto(group, photoType);
-    _setOcrStatus(group, photoType, "🔎 Lecture automatique…", "working");
+    _setOcrStatus(group, photoType, "Lecture automatique…", "working");
     try {
         let values = {};
 
@@ -806,7 +806,7 @@ async function runOcrForMeasurePhoto(group, photoType, dataUrl) {
         const filled = applyOcrToGroup(group, photoType, values);
         if (filled > 0) {
             _setOcrStatus(group, photoType,
-                `✅ ${filled} valeur${filled > 1 ? "s" : ""} pré-remplie${filled > 1 ? "s" : ""} (vérifiez si besoin).`, "ok");
+                `${filled} valeur${filled > 1 ? "s" : ""} pré-remplie${filled > 1 ? "s" : ""} (vérifiez si besoin).`, "ok");
         } else if (isGauge) {
             _setOcrStatus(group, photoType,
                 "ℹ️ Jauge : RSRP / RSRQ / SNR à saisir à la main (lecture auto non fiable sur cet écran).", "warn");
@@ -951,17 +951,17 @@ function addMeasureLevel(opts = {}) {
     card.innerHTML = `
         <div class="measure-level-header">
             <div class="measure-level-title-wrap">
-                <span class="measure-level-icon">🏢</span>
+                <span class="measure-level-icon"></span>
                 <input type="text" class="measure-level-title-input" value="${escapeHtml(title)}"
                        placeholder="Ex : RDC, 1er étage, Bâtiment A...">
             </div>
-            <button type="button" class="measure-level-remove-btn" title="Supprimer ce niveau">🗑 Supprimer ce niveau</button>
+            <button type="button" class="measure-level-remove-btn" title="Supprimer ce niveau">Supprimer ce niveau</button>
         </div>
 
         <div class="mp-locations-container"></div>
 
         <button type="button" class="btn-secondary add-mp-btn audit-only mp-add-location" style="margin-top:12px;">
-            ➕ Ajouter un point de mesure (lieu : 4G + 5G)
+            + Ajouter un point de mesure (lieu : 4G + 5G)
         </button>
     `;
     container.appendChild(card);
@@ -1062,9 +1062,9 @@ function addMeasureLocation(levelCard, opts = {}) {
     locCard.className = "mp-location-card";
     locCard.innerHTML = `
         <div class="mp-location-header">
-            <span class="mp-location-pin">📍</span>
+            <span class="mp-location-pin"></span>
             <input type="text" class="mp-location-name mp-field" placeholder="Lieu / Pièce (ex : Aile gauche, Hall d'entrée, Aile droite...)" value="${escapeHtml(opts.lieu || "")}">
-            <button type="button" class="btn-delete mp-location-remove" title="Supprimer ce point de mesure">🗑</button>
+            <button type="button" class="btn-delete mp-location-remove" title="Supprimer ce point de mesure"></button>
         </div>
         <div class="mp-location-techs"></div>
     `;
@@ -1130,27 +1130,27 @@ function buildMeasureSubBlock(tech, pid, count) {
     div.dataset.pointId = pid;
     div.innerHTML = `
         <div class="mp-subhead" data-tech="${tech}">
-            <span class="mp-subhead-badge">${tech === "4g" ? "📡 4G" : "🛰️ 5G"}</span>
+            <span class="mp-subhead-badge">${tech === "4g" ? "4G" : "5G"}</span>
         </div>
         <input type="hidden" class="point-lieu">
 
         <div class="mp-photos">
             <div class="mp-photo-block">
-                <label class="mp-photo-label">📷 Copie écran Jauge <span class="mp-photo-hint">(RSRP / RSRQ / SNR)</span></label>
+                <label class="mp-photo-label">Copie écran Jauge <span class="mp-photo-hint">(RSRP / RSRQ / SNR)</span></label>
                 <input type="file" accept="image/*" data-photo-type="lieu">
                 <img id="preview_mesure_lieu_${pid}" class="photo-preview">
                 <div class="mp-photo-actions">
-                    <button class="annotate-btn" data-annotate="mesure_lieu_${pid}" disabled>✏ Annoter</button>
-                    <button class="clear-btn" data-clear="mesure_lieu_${pid}">🗑 Effacer</button>
+                    <button class="annotate-btn" data-annotate="mesure_lieu_${pid}" disabled>Annoter</button>
+                    <button class="clear-btn" data-clear="mesure_lieu_${pid}">Effacer</button>
                 </div>
             </div>
             <div class="mp-photo-block">
-                <label class="mp-photo-label">📱 Copie écran Débit <span class="mp-photo-hint">(↓ / ↑ Mbps)</span></label>
+                <label class="mp-photo-label">Copie écran Débit <span class="mp-photo-hint">(↓ / ↑ Mbps)</span></label>
                 <input type="file" accept="image/*" data-photo-type="screen">
                 <img id="preview_mesure_screen_${pid}" class="photo-preview">
                 <div class="mp-photo-actions">
-                    <button class="annotate-btn" data-annotate="mesure_screen_${pid}" disabled>✏ Annoter</button>
-                    <button class="clear-btn" data-clear="mesure_screen_${pid}">🗑 Effacer</button>
+                    <button class="annotate-btn" data-annotate="mesure_screen_${pid}" disabled>Annoter</button>
+                    <button class="clear-btn" data-clear="mesure_screen_${pid}">Effacer</button>
                 </div>
             </div>
         </div>
@@ -1183,7 +1183,7 @@ function buildMeasureSubBlock(tech, pid, count) {
         </div>
 
         <div class="mp-analysis">
-            <strong>🎯 Qualité globale :</strong>
+            <strong>Qualité globale :</strong>
             <span class="analysis-result">En attente de données (RSRP + SNR requis)</span>
         </div>
     `;
@@ -1239,7 +1239,7 @@ function renumberMeasurePoints() {
         getAllMeasureGroups(tech).forEach(g => {
             i++;
             const h4 = g.querySelector('.mp-header h4');
-            if (h4) h4.textContent = `📍 Point de mesure ${techLabel} ${i}`;
+            if (h4) h4.textContent = `Point de mesure ${techLabel} ${i}`;
             // On NE change PAS dataset.pointId pour ne pas casser les associations
             // (photos, points évac déjà placés). On met juste à jour le label visuel.
             g.dataset.point = i;
@@ -1386,14 +1386,14 @@ function renderEvacPlanCard(plan) {
     card.innerHTML = `
         <div class="evac-plan-card-header">
             <div class="evac-plan-card-title-wrap">
-                <span class="evac-plan-card-icon">📋</span>
+                <span class="evac-plan-card-icon"></span>
                 <input type="text" class="evac-plan-card-title-input" value="${escapeHtml(plan.title)}" placeholder="Ex : Rez-de-chaussée, 1er étage, Bâtiment A...">
             </div>
-            <button type="button" class="evac-plan-card-remove-btn" title="Supprimer ce plan d'évacuation">🗑 Supprimer ce plan</button>
+            <button type="button" class="evac-plan-card-remove-btn" title="Supprimer ce plan d'évacuation">Supprimer ce plan</button>
         </div>
 
         <div class="evacuation-upload-area" data-evac-upload>
-            <span style="font-size:2rem;">📷</span>
+            <span style="font-size:2rem;"></span>
             <p>Cliquez pour importer ce plan d'évacuation (image JPG/PNG <b>ou PDF</b>, multi-pages accepté)</p>
         </div>
         <input type="file" accept="image/*,application/pdf,.pdf" class="evac-file-input" style="display:none">
@@ -1404,23 +1404,23 @@ function renderEvacPlanCard(plan) {
             </div>
             <div class="evac-actions-wrap" style="margin-top:10px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
                 <button type="button" class="annotate-btn" data-annotate="evac_plan_${plan.id}">
-                    ✏ Annoter ce plan (tracés des câbles, flèches, texte)
+                    Annoter ce plan (tracés des câbles, flèches, texte)
                 </button>
                 <button type="button" class="clear-btn evac-replace-photo-btn" title="Remplacer la photo de ce plan (les points placés sont conservés)">
-                    🖼 Remplacer la photo
+                    Remplacer la photo
                 </button>
             </div>
             <div class="bn-legend" data-legend="evac_plan_${plan.id}" hidden></div>
         </div>
 
         <div class="evac-points-picker-wrap audit-only" style="display:none; margin-top:14px;">
-            <div class="evac-picker-title">📍 Points disponibles à placer sur ce plan</div>
+            <div class="evac-picker-title">Points disponibles à placer sur ce plan</div>
             <div class="evac-picker-help">Cliquez sur un point pour le placer ici. Un point déjà placé sur un autre plan est grisé (un point = un seul emplacement).</div>
             <div class="evac-points-picker"></div>
         </div>
 
         <div class="evac-travaux-picker-wrap travaux-only" style="display:none; margin-top:14px;">
-            <div class="evac-picker-title">📍 Repères à placer sur ce plan</div>
+            <div class="evac-picker-title">Repères à placer sur ce plan</div>
             <div class="evac-picker-help">Cliquez sur un repère pour le placer ici. Un repère déjà placé sur un autre plan est grisé. Placez Antenne et Routeur sur le plan correspondant à leur position réelle (étage, bâtiment, etc.).</div>
             <div class="evac-travaux-picker"></div>
         </div>
@@ -2158,7 +2158,7 @@ function deleteEvacPlan() {
     if (evacPlans.length === 1) {
         removeEvacPlan(evacPlans[0].id);
     } else if (evacPlans.length > 1) {
-        showEvacPopup("Utilisez le bouton « 🗑 Supprimer ce plan » de chaque carte pour supprimer un plan précis.");
+        showEvacPopup("Utilisez le bouton « Supprimer ce plan » de chaque carte pour supprimer un plan précis.");
     }
 }
 
@@ -2175,14 +2175,14 @@ function addCheminementItem() {
     div.dataset.idx = idx;
     div.innerHTML = `
         <div class="chem-header">
-            <strong>📷 Photo Cheminement ${idx}</strong>
-            <button class="btn-delete" data-del-chem title="Supprimer">🗑</button>
+            <strong>Photo Cheminement ${idx}</strong>
+            <button class="btn-delete" data-del-chem title="Supprimer"></button>
         </div>
         <input type="file" accept="image/*">
         <img class="photo-preview" id="preview_cheminement_${idx}">
         <div class="chem-actions">
-            <button class="annotate-btn" data-annotate="cheminement_${idx}" disabled>✏ Annoter</button>
-            <button class="clear-btn" data-clear="cheminement_${idx}">🗑 Effacer</button>
+            <button class="annotate-btn" data-annotate="cheminement_${idx}" disabled>Annoter</button>
+            <button class="clear-btn" data-clear="cheminement_${idx}">Effacer</button>
         </div>
         <textarea class="cheminement-comment" placeholder="Description du cheminement (point de pénétration, longueur estimée, type de support, étanchéité...)"></textarea>
     `;
@@ -2435,8 +2435,8 @@ function bnPhotoBlockHtml(key) {
         <input type="file" accept="image/*" data-bn-photo="${key}">
         <img class="photo-preview${has ? " shown" : ""}" id="preview_${key}" alt=""${has ? ` src="${photoStore[key].dataUrl}"` : ""}>
         <div class="chem-actions">
-            <button type="button" class="annotate-btn" data-annotate="${key}"${has ? "" : " disabled"}>✏ Annoter</button>
-            <button type="button" class="clear-btn" data-clear="${key}">🗑 Effacer</button>
+            <button type="button" class="annotate-btn" data-annotate="${key}"${has ? "" : " disabled"}>Annoter</button>
+            <button type="button" class="clear-btn" data-clear="${key}">Effacer</button>
         </div>`;
 }
 
@@ -2445,7 +2445,7 @@ function bnItemHtml(title, key, list, comment, placeholder) {
         <div class="cheminement-item" data-photo-key="${key}" data-list="${list}">
             <div class="chem-header">
                 <strong>${title}</strong>
-                <button type="button" class="btn-delete" data-bn-act="del-item" title="Supprimer">🗑</button>
+                <button type="button" class="btn-delete" data-bn-act="del-item" title="Supprimer"></button>
             </div>
             ${bnPhotoBlockHtml(key)}
             <textarea class="cheminement-comment" data-bn-field="item-comment" placeholder="${escapeHtml(placeholder)}">${escapeHtml(comment || "")}</textarea>
@@ -2468,7 +2468,7 @@ function bnBuildCard(b) {
             <span class="bn-dot" title="Couleur sur les plans : ${bnColorName(b)}"></span>
             <input type="text" class="bn-nom" data-bn-field="nom" value="${escapeHtml(b.nom)}" aria-label="Nom de la borne">
             <span class="bn-color-name">${bnColorName(b)}</span>
-            <button type="button" class="btn-delete" data-bn-act="del-borne" title="Supprimer la borne">🗑</button>
+            <button type="button" class="btn-delete" data-bn-act="del-borne" title="Supprimer la borne"></button>
         </div>
         <div class="bn-body">
             <div class="bn-placement"></div>
@@ -2492,15 +2492,15 @@ function bnBuildCard(b) {
 
             <div class="bn-photo-title">Photos du cheminement</div>
             <div class="bn-gallery">
-                ${b.chem.map((it, i) => bnItemHtml(`📷 Cheminement ${i + 1}`, it.key, "chem", it.comment, "Commentaire (passage de câble, support, traversée…)")).join("")}
+                ${b.chem.map((it, i) => bnItemHtml(`Cheminement ${i + 1}`, it.key, "chem", it.comment, "Commentaire (passage de câble, support, traversée…)")).join("")}
             </div>
-            <button type="button" class="btn-secondary" data-bn-act="add-chem">➕ Ajouter une photo de cheminement</button>
+            <button type="button" class="btn-secondary" data-bn-act="add-chem">+ Ajouter une photo de cheminement</button>
 
             <div class="bn-photo-title">Percements</div>
             <div class="bn-gallery">
-                ${b.perc.map((it, i) => bnItemHtml(`📷 Percement ${i + 1}`, it.key, "perc", it.comment, "Commentaire (emplacement, diamètre, rebouchage…)")).join("")}
+                ${b.perc.map((it, i) => bnItemHtml(`Percement ${i + 1}`, it.key, "perc", it.comment, "Commentaire (emplacement, diamètre, rebouchage…)")).join("")}
             </div>
-            <button type="button" class="btn-secondary" data-bn-act="add-perc">➕ Ajouter une photo de percement</button>
+            <button type="button" class="btn-secondary" data-bn-act="add-perc">+ Ajouter une photo de percement</button>
         </div>`;
     return div;
 }
@@ -2540,7 +2540,7 @@ function bnRefreshDerived() {
         if (pl && traced.length) txt = `Posée et câble tracé sur : ${pl.label}`;
         else if (pl) txt = `Posée sur : ${pl.label} (câble pas encore tracé)`;
         else if (traced.length) txt = `Câble tracé sur : ${traced.map(bnPlanLabel).join(", ")} (borne pas encore posée)`;
-        else txt = "Pas encore sur un plan : section 4, « ✏ Annoter ce plan », puis « Je trace pour » cette borne.";
+        else txt = "Pas encore sur un plan : section 4, « Annoter ce plan », puis « Je trace pour » cette borne.";
         el.textContent = txt;
         el.classList.toggle("placed", !!(pl && traced.length));
     });
@@ -3035,8 +3035,8 @@ function updateGenerateButtonState() {
         banner.className = "banner-ok";
         banner.style.display = "block";
         const _titre = (v.mode === "travaux")
-            ? "✅ Travaux complets — Génération autorisée"
-            : "✅ Audit complet — Génération autorisée";
+            ? "Travaux complets — Génération autorisée"
+            : "Audit complet — Génération autorisée";
         banner.innerHTML = `
             <div class="vb-title">${_titre}</div>
             <div style="font-size:0.9em;">${v.photoCount} photos relevées${v.noPlan ? " — site sans plan d'évacuation (déclaré par le technicien)" : (v.mode === "travaux" ? " — antenne et routeur positionnés sur le plan" : " — tous les points sont positionnés sur le plan")}.</div>
@@ -3046,7 +3046,7 @@ function updateGenerateButtonState() {
         banner.style.display = "block";
         const items = v.errors.map(e => `<li>${escapeHtml(e)}</li>`).join("");
         banner.innerHTML = `
-            <div class="vb-title">🔒 Génération bloquée — Éléments manquants :</div>
+            <div class="vb-title">Génération bloquée — Éléments manquants :</div>
             <ul>${items}</ul>
         `;
     }
@@ -3058,7 +3058,7 @@ async function generateDocument() {
     const validation = validateMeasurementPoints();
     if (!validation.valid) {
         const detail = validation.errors.join("\n");
-        alert("🔒 Génération bloquée — éléments manquants :\n\n" + detail +
+        alert("Génération bloquée — éléments manquants :\n\n" + detail +
               "\n\nComplétez les éléments ci-dessus pour pouvoir générer le rapport.");
         // Rafraîchit le bandeau au cas où l'utilisateur clique malgré le bouton grisé
         updateGenerateButtonState();
@@ -4233,7 +4233,7 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
         }]
     });
 
-    // ⚠️ FIX ENVOI SERVEUR : il faut ATTENDRE la génération du blob.
+    // FIX ENVOI SERVEUR : il faut ATTENDRE la génération du blob.
     // Avant, Packer.toBlob(...).then(...) n'était pas attendu →
     // captureSaveAs() (auth-upload) se terminait AVANT l'appel à saveAs()
     // et l'envoi échouait toujours avec « Aucun fichier généré ».
@@ -4605,7 +4605,7 @@ window.exportJSON = function() {
         const validation = validateMeasurementPoints();
         if (!validation.valid) {
             const detail = validation.errors.join("\n");
-            alert("🔒 Export JSON bloqué — éléments manquants :\n\n" + detail +
+            alert("Export JSON bloqué — éléments manquants :\n\n" + detail +
                   "\n\nComplétez les éléments ci-dessus pour pouvoir exporter.");
             updateGenerateButtonState();
             return;
@@ -4639,7 +4639,7 @@ window.importJSON = function(event) {
         try {
             const data = JSON.parse(e.target.result);
             await applyFormData(data);
-            alert("✅ Données importées avec succès.");
+            alert("Données importées avec succès.");
         } catch (err) {
             console.error("Erreur import JSON :", err);
             alert("Le fichier n'est pas un export valide.");
@@ -4675,7 +4675,7 @@ async function applyFormData(data) {
     }
 
     // Photos (restauration depuis dataUrl + annotations re-éditables)
-    // ⚠️ On RE-NORMALISE chaque dataUrl à travers un canvas pour garantir que
+    // On RE-NORMALISE chaque dataUrl à travers un canvas pour garantir que
     // les octets stockés (utilisés par docx) correspondent bien à un JPEG valide.
     // Cela évite que d'anciens JSON (générés avant le correctif) provoquent à
     // nouveau l'erreur "Word a rencontré une erreur lors de l'ouverture".

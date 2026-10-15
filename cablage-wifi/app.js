@@ -656,14 +656,14 @@ function addGalleryItem(kind, opts = {}) {
     div.dataset.photoKey = key;
     div.innerHTML = `
         <div class="chem-header">
-            <strong>📷 ${cfg.label} ${num}</strong>
-            <button type="button" class="btn-delete" data-del-gallery title="Supprimer">🗑</button>
+            <strong>${cfg.label} ${num}</strong>
+            <button type="button" class="btn-delete" data-del-gallery title="Supprimer"></button>
         </div>
         <input type="file" accept="image/*">
         <img class="photo-preview" id="preview_${key}" alt="">
         <div class="chem-actions">
-            <button type="button" class="annotate-btn" data-annotate="${key}" data-label="${cfg.label} ${num}" disabled>✏ Annoter</button>
-            <button type="button" class="clear-btn" data-clear="${key}">🗑 Effacer</button>
+            <button type="button" class="annotate-btn" data-annotate="${key}" data-label="${cfg.label} ${num}" disabled>Annoter</button>
+            <button type="button" class="clear-btn" data-clear="${key}">Effacer</button>
         </div>
         ${cfg.withComment ? `<textarea class="cheminement-comment" placeholder="${cfg.commentPlaceholder}"></textarea>` : ""}
     `;
@@ -686,7 +686,7 @@ function renumberGallery(kind) {
     if (!container) return;
     container.querySelectorAll(".cheminement-item").forEach((item, i) => {
         const strong = item.querySelector(".chem-header strong");
-        if (strong) strong.textContent = `📷 ${cfg.label} ${i + 1}`;
+        if (strong) strong.textContent = `${cfg.label} ${i + 1}`;
     });
 }
 
@@ -700,8 +700,8 @@ function photoBlockHtml(key, opts = {}) {
         <input type="file" accept="image/*" data-wifi-photo="${key}">
         <img class="photo-preview${has ? " shown" : ""}" id="preview_${key}" alt=""${has ? ` src="${src}"` : ""}>
         <div class="chem-actions">
-            <button type="button" class="annotate-btn" data-annotate="${key}"${has ? "" : " disabled"}>${opts.annotateLabel || "✏ Annoter"}</button>
-            <button type="button" class="clear-btn" data-clear="${key}">🗑 Effacer</button>
+            <button type="button" class="annotate-btn" data-annotate="${key}"${has ? "" : " disabled"}>${opts.annotateLabel || "Annoter"}</button>
+            <button type="button" class="clear-btn" data-clear="${key}">Effacer</button>
         </div>`;
 }
 
@@ -710,7 +710,7 @@ function itemHtml(title, key, list, comment, placeholder, extra = "") {
         <div class="cheminement-item" data-photo-key="${key}" data-list="${list}">
             <div class="chem-header">
                 <strong>${title}</strong>
-                <button type="button" class="btn-delete" data-wifi-act="del-item" title="Supprimer">🗑</button>
+                <button type="button" class="btn-delete" data-wifi-act="del-item" title="Supprimer"></button>
             </div>
             ${photoBlockHtml(key, extra ? { annotateLabel: extra } : {})}
             <textarea class="cheminement-comment" data-wifi-field="item-comment" placeholder="${escapeHtml(placeholder)}">${escapeHtml(comment || "")}</textarea>
@@ -747,7 +747,7 @@ function buildBorneCard(b) {
             <span class="wifi-dot" title="Couleur sur les plans : ${borneColorName(b)}"></span>
             <input type="text" class="wifi-borne-nom" data-wifi-field="nom" value="${escapeHtml(b.nom)}" aria-label="Nom de la borne">
             <span class="wifi-color-name">${borneColorName(b)}</span>
-            <button type="button" class="btn-delete" data-wifi-act="del-borne" title="Supprimer la borne">🗑</button>
+            <button type="button" class="btn-delete" data-wifi-act="del-borne" title="Supprimer la borne"></button>
         </div>
         <div class="wifi-borne-body">
             <div class="wifi-placement"></div>
@@ -772,21 +772,21 @@ function buildBorneCard(b) {
                 <textarea data-wifi-field="cheminement" placeholder="${sameAs ? "Ex : descente en goulotte dans la salle" : "Ex : faux plafond du couloir, puis goulotte jusqu'à l'accueil"}">${escapeHtml(b.cheminement)}</textarea>
             </label>
 
-            <div class="photo-cat-title small">📷 Emplacement de la borne</div>
+            <div class="photo-cat-title small">Emplacement de la borne</div>
             <div class="mp-photo-block wifi-single-photo">${photoBlockHtml(b.empKey)}</div>
 
-            <div class="photo-cat-title small">📷 Photos du cheminement</div>
+            <div class="photo-cat-title small">Photos du cheminement</div>
             <p class="photo-cat-note wifi-sameas-note"${sameAs ? "" : " hidden"}>Cheminement identique à « ${escapeHtml(sameAs ? sameAs.nom : "")} » : ajoutez seulement les photos de la partie propre à cette borne.</p>
             <div class="gallery-grid" data-list-container="chem">
-                ${b.chem.map((it, i) => itemHtml(`📷 Cheminement ${i + 1}`, it.key, "chem", it.comment, "Commentaire (passage de câble, support, traversée…)")).join("")}
+                ${b.chem.map((it, i) => itemHtml(`Cheminement ${i + 1}`, it.key, "chem", it.comment, "Commentaire (passage de câble, support, traversée…)")).join("")}
             </div>
-            <button type="button" class="btn-secondary" data-wifi-act="add-chem">➕ Ajouter une photo de cheminement</button>
+            <button type="button" class="btn-secondary" data-wifi-act="add-chem">+ Ajouter une photo de cheminement</button>
 
-            <div class="photo-cat-title small">📷 Percements</div>
+            <div class="photo-cat-title small">Percements</div>
             <div class="gallery-grid" data-list-container="perc">
-                ${b.perc.map((it, i) => itemHtml(`📷 Percement ${i + 1}`, it.key, "perc", it.comment, "Commentaire (emplacement, diamètre, rebouchage…)")).join("")}
+                ${b.perc.map((it, i) => itemHtml(`Percement ${i + 1}`, it.key, "perc", it.comment, "Commentaire (emplacement, diamètre, rebouchage…)")).join("")}
             </div>
-            <button type="button" class="btn-secondary" data-wifi-act="add-perc">➕ Ajouter une photo de percement</button>
+            <button type="button" class="btn-secondary" data-wifi-act="add-perc">+ Ajouter une photo de percement</button>
         </div>`;
     return div;
 }
@@ -803,28 +803,28 @@ function buildNiveauCard(n) {
                 <input type="text" class="wifi-niveau-nom" data-wifi-field="niveau-nom" value="${escapeHtml(n.nom)}" placeholder="Ex : RDC, R+1, sous-sol, bâtiment B…">
             </label>
             <span class="wifi-niveau-count">${nb} borne${nb > 1 ? "s" : ""}</span>
-            <button type="button" class="btn-delete" data-wifi-act="del-niveau" title="Supprimer le niveau">🗑</button>
+            <button type="button" class="btn-delete" data-wifi-act="del-niveau" title="Supprimer le niveau"></button>
         </div>
         <div class="wifi-niveau-body">
-            <div class="photo-cat-title">🗺️ Plan(s) d'évacuation du niveau</div>
+            <div class="photo-cat-title">Plan(s) d'évacuation du niveau</div>
             <p class="photo-cat-note">Sur chaque plan : posez la baie et les bornes, puis tracez le cheminement de chaque borne. La couleur de chaque borne est appliquée automatiquement. Si plusieurs bornes suivent le même chemin, un seul trait suffit (couleur « Cheminement commun »).</p>
             <div class="gallery-grid" data-list-container="plans">
                 ${n.plans.map((p, i) => `
                     <div class="cheminement-item" data-photo-key="${p.key}" data-list="plans">
                         <div class="chem-header">
-                            <strong>🗺️ Plan ${i + 1} — ${escapeHtml(wifiNiveauLabel(n))}</strong>
-                            <button type="button" class="btn-delete" data-wifi-act="del-item" title="Supprimer ce plan">🗑</button>
+                            <strong>Plan ${i + 1} — ${escapeHtml(wifiNiveauLabel(n))}</strong>
+                            <button type="button" class="btn-delete" data-wifi-act="del-item" title="Supprimer ce plan"></button>
                         </div>
-                        ${photoBlockHtml(p.key, { annotateLabel: "✏ Annoter / tracer" })}
+                        ${photoBlockHtml(p.key, { annotateLabel: "Annoter / tracer" })}
                         <div class="wifi-legend" data-legend="${p.key}"></div>
                         <textarea class="cheminement-comment" data-wifi-field="item-comment" placeholder="Commentaire du plan (optionnel)">${escapeHtml(p.comment || "")}</textarea>
                     </div>`).join("")}
             </div>
-            <button type="button" class="btn-secondary" data-wifi-act="add-plan">➕ Ajouter un plan pour ce niveau</button>
+            <button type="button" class="btn-secondary" data-wifi-act="add-plan">+ Ajouter un plan pour ce niveau</button>
 
-            <div class="photo-cat-title">📶 Bornes Wi-Fi du niveau</div>
+            <div class="photo-cat-title">Bornes Wi-Fi du niveau</div>
             <div class="wifi-bornes"></div>
-            <button type="button" class="btn-secondary" data-wifi-act="add-borne">➕ Ajouter une borne sur ce niveau</button>
+            <button type="button" class="btn-secondary" data-wifi-act="add-borne">+ Ajouter une borne sur ce niveau</button>
         </div>`;
     const list = div.querySelector(".wifi-bornes");
     n.bornes.forEach(id => {
@@ -865,7 +865,7 @@ function wifiRefreshDerived() {
         const el = card.querySelector(".wifi-placement");
         if (!el) return;
         const pl = wifiFindPlacement(card.dataset.borne, null);
-        el.textContent = pl ? `📍 Posée sur : ${pl.label}` : "📍 Pas encore posée sur un plan (bouton « ✏ Annoter / tracer » d'un plan).";
+        el.textContent = pl ? `Posée sur : ${pl.label}` : "Pas encore posée sur un plan (bouton « Annoter / tracer » d'un plan).";
         el.classList.toggle("placed", !!pl);
     });
     scheduleSynthese();
@@ -896,7 +896,7 @@ function wifiSyncNames() {
         const n = wifiNiveau(card.dataset.niveau);
         if (!n) return;
         card.querySelectorAll('[data-list="plans"] .chem-header strong').forEach((s, i) => {
-            s.textContent = `🗺️ Plan ${i + 1} — ${wifiNiveauLabel(n)}`;
+            s.textContent = `Plan ${i + 1} — ${wifiNiveauLabel(n)}`;
         });
     });
     wifiRefreshDerived();
@@ -1434,7 +1434,7 @@ window.importJSON = function (event) {
             }
             await applyFormData(data);
             schedule();
-            alert("✅ Données importées.");
+            alert("Données importées.");
         } catch (err) {
             console.error("Erreur import JSON :", err);
             alert("Le fichier n'est pas un export valide.");
@@ -1451,19 +1451,19 @@ window.importJSON = function (event) {
 async function generateDocument() {
     const btn = document.getElementById("btnGenerateWord");
     const status = document.getElementById("status");
-    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "⏳ Génération…"; }
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "Génération…"; }
     if (status) { status.textContent = "Génération du rapport Word…"; status.className = "status loading"; }
     try {
         // Noms des bornes à jour sur les plans annotés
         await wifiRerenderMarkerPhotos();
         await buildAndSaveDocx();
-        if (status) { status.textContent = "✅ Rapport Word généré."; status.className = "status success"; }
+        if (status) { status.textContent = "Rapport Word généré."; status.className = "status success"; }
     } catch (err) {
         console.error("Erreur génération Word :", err);
-        if (status) { status.textContent = "❌ Erreur lors de la génération : " + (err.message || err); status.className = "status error"; }
+        if (status) { status.textContent = "Erreur lors de la génération : " + (err.message || err); status.className = "status error"; }
         alert("Erreur lors de la génération du rapport Word :\n" + (err.message || err));
     } finally {
-        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "📄 Générer le rapport Word"; }
+        if (btn) { btn.disabled = false; btn.textContent = btn.dataset.label || "Générer le rapport Word"; }
     }
 }
 

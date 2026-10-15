@@ -200,7 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnAddIec.addEventListener("click", () => addIecCaptureBlock());
   }
 
-  // Boutons "📋 Coller" (délégation) — colle une image du presse-papiers dans la case
+  // Boutons "Coller" (délégation) — colle une image du presse-papiers dans la case
   document.body.addEventListener("click", async (e) => {
     const btn = e.target.closest("[data-paste]");
     if (!btn) return;
@@ -217,13 +217,13 @@ document.addEventListener("DOMContentLoaded", () => {
         if (imgType) { blob = await item.getType(imgType); break; }
       }
       if (!blob) {
-        alert("Aucune image trouvée dans le presse-papiers.\nFaites d'abord une capture (ou copiez une image), puis cliquez sur 📋 Coller.");
+        alert("Aucune image trouvée dans le presse-papiers.\nFaites d'abord une capture (ou copiez une image), puis cliquez sur Coller.");
         return;
       }
       const ext = (blob.type.split("/")[1] || "png");
       const file = new File([blob], "collage_" + key + "." + ext, { type: blob.type });
       await ingestPhotoFile(key, file);
-      showStatus("✅ Image collée dans « " + (PHOTO_LABELS[key] || key) + " ».", "success");
+      showStatus("Image collée dans « " + (PHOTO_LABELS[key] || key) + " ».", "success");
     } catch (err) {
       console.error(err);
       alert("Impossible de lire le presse-papiers : " + err.message + "\nAutorisez l'accès au presse-papiers ou utilisez l'import de fichier.");
@@ -240,7 +240,7 @@ document.addEventListener("DOMContentLoaded", () => {
     window.__libsLoaded.then(results => {
       const allOK = results.every(r => r === true);
       if (!allOK) {
-        showStatus("⚠ Impossible de charger les librairies docx/FileSaver. Vérifiez la console (F12).", "error");
+        showStatus("Impossible de charger les librairies docx/FileSaver. Vérifiez la console (F12).", "error");
       }
     });
   }
@@ -359,11 +359,11 @@ function addCheminementBlock(key) {
   block.dataset.cheminementBlock = finalKey;
   block.innerHTML = `
     <div class="photo-upload-label">
-      📷 Cheminement câble ${num}
+      Cheminement câble ${num}
       <input type="file" accept="image/*" data-photo-key="${finalKey}" style="margin-left:8px;">
-      <button class="annotate-btn" data-annotate="${finalKey}" disabled>✏ Annoter</button>
+      <button class="annotate-btn" data-annotate="${finalKey}" disabled>Annoter</button>
       <button class="clear-photo" data-clear="${finalKey}">✕</button>
-      <button type="button" class="clear-photo remove-cheminement-block" title="Retirer ce bloc" style="background:#777;">🗑 Retirer</button>
+      <button type="button" class="clear-photo remove-cheminement-block" title="Retirer ce bloc" style="background:#777;">Retirer</button>
     </div>
     <img class="photo-preview" id="preview_${finalKey}">
   `;
@@ -433,12 +433,12 @@ function addIecCaptureBlock(key) {
   block.dataset.iecCaptureBlock = finalKey;
   block.innerHTML = `
     <div class="photo-upload-label">
-      📷 Capture supplémentaire ${num}
+      Capture supplémentaire ${num}
       <input type="file" accept="image/*" data-photo-key="${finalKey}" style="margin-left:8px;">
-      <button type="button" class="paste-btn" data-paste="${finalKey}" title="Coller une image du presse-papiers">📋 Coller</button>
-      <button class="annotate-btn" data-annotate="${finalKey}" disabled>✏ Annoter</button>
+      <button type="button" class="paste-btn" data-paste="${finalKey}" title="Coller une image du presse-papiers">Coller</button>
+      <button class="annotate-btn" data-annotate="${finalKey}" disabled>Annoter</button>
       <button class="clear-photo" data-clear="${finalKey}">✕</button>
-      <button type="button" class="clear-photo remove-iec-capture-block" title="Retirer ce bloc" style="background:#777;">🗑 Retirer</button>
+      <button type="button" class="clear-photo remove-iec-capture-block" title="Retirer ce bloc" style="background:#777;">Retirer</button>
     </div>
     <img class="photo-preview" id="preview_${finalKey}">
   `;
@@ -1684,10 +1684,10 @@ async function generateDocument() {
     const blob = await Packer.toBlob(doc);
     const filename = buildFilename();
     saveAs(blob, filename);
-    showStatus("✅ Rapport généré : " + filename, "success");
+    showStatus("Rapport généré : " + filename, "success");
   } catch (err) {
     console.error(err);
-    showStatus("❌ Erreur lors de la génération : " + err.message, "error");
+    showStatus("Erreur lors de la génération : " + err.message, "error");
   }
 }
 
@@ -1851,10 +1851,10 @@ async function exportToJSON() {
     const blob = new Blob([jsonStr], { type: "application/json" });
     const filename = buildJsonFilename();
     saveAs(blob, filename);
-    showStatus("✅ Sauvegarde JSON exportée : " + filename, "success");
+    showStatus("Sauvegarde JSON exportée : " + filename, "success");
   } catch (err) {
     console.error(err);
-    showStatus("❌ Erreur lors de l'export JSON : " + err.message, "error");
+    showStatus("Erreur lors de l'export JSON : " + err.message, "error");
   }
 }
 
@@ -1876,10 +1876,10 @@ async function importFromJSON(file) {
       if (window.__autosaveSchedule) window.__autosaveSchedule(); // resynchroniser la sauvegarde auto
       const input = document.getElementById("importJsonInput");
       if (input) input.value = "";
-      showStatus("✅ Sauvegarde importée avec succès.", "success");
+      showStatus("Sauvegarde importée avec succès.", "success");
     } catch (err) {
       console.error(err);
-      showStatus("❌ Erreur lors de l'import : " + err.message, "error");
+      showStatus("Erreur lors de l'import : " + err.message, "error");
     }
   };
   reader.readAsText(file);

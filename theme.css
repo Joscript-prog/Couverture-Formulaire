@@ -1,0 +1,527 @@
+/* =============================================================
+   THÈME COMMUN — Outils terrain IPKONEKT
+   Chargé APRÈS les styles propres à chaque page.
+   • Bleu IPKONEKT en aplat (#0A25EB, couleur du logo).
+   • Une couleur vive par outil : <html data-tool="4g|starlink|pico|cablage|wifi|camera">.
+   • Pas de dégradés, des bordures plutôt que des ombres.
+   • Police Barlow (auto-hébergée dans /fonts, licence OFL).
+   ============================================================= */
+
+@font-face { font-family: "Barlow"; src: url("fonts/barlow-400.woff2") format("woff2"); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: "Barlow"; src: url("fonts/barlow-500.woff2") format("woff2"); font-weight: 500; font-style: normal; font-display: swap; }
+@font-face { font-family: "Barlow"; src: url("fonts/barlow-600.woff2") format("woff2"); font-weight: 600 700; font-style: normal; font-display: swap; }
+@font-face { font-family: "Barlow Semi Condensed"; src: url("fonts/barlow-semi-condensed-600.woff2") format("woff2"); font-weight: 600; font-style: normal; font-display: swap; }
+@font-face { font-family: "Barlow Semi Condensed"; src: url("fonts/barlow-semi-condensed-700.woff2") format("woff2"); font-weight: 700; font-style: normal; font-display: swap; }
+
+:root {
+    --ipk: #0A25EB;
+    --ipk-deep: #0619B8;
+    --ipk-tint: #EDF0FE;
+    --ink: #19203A;
+    --muted: #5B6478;
+    --paper: #F3F5FA;
+    --line: #D6DCE8;
+    --line-strong: #B4BED1;
+    --danger: #C81E25;
+    --ok: #138A4B;
+    /* couleur de l'outil (par défaut : bleu IPKONEKT) */
+    --accent: #0A25EB;
+    --accent-ink: #0619B8;
+    --accent-tint: #EDF0FE;
+    --font: "Barlow", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    --font-title: "Barlow Semi Condensed", "Barlow", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+html[data-tool="4g"]       { --accent: #0091D5; --accent-ink: #006FA6; --accent-tint: #E6F4FB; }
+html[data-tool="starlink"] { --accent: #E86F00; --accent-ink: #B85300; --accent-tint: #FDF0E4; }
+html[data-tool="pico"]     { --accent: #4E9F00; --accent-ink: #3B7A00; --accent-tint: #EEF6E5; }
+html[data-tool="cablage"]  { --accent: #8B3DFF; --accent-ink: #6B21E0; --accent-tint: #F3ECFF; }
+html[data-tool="wifi"]     { --accent: #009E7E; --accent-ink: #007A62; --accent-tint: #E5F5F1; }
+html[data-tool="camera"]   { --accent: #E5282F; --accent-ink: #C81E25; --accent-tint: #FDECEC; }
+
+/* ---------- Base ---------- */
+html body {
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--paper);
+    -webkit-tap-highlight-color: rgba(10, 37, 235, 0.15);
+}
+html body input, html body textarea, html body select, html body button { font-family: var(--font); }
+html body h1, html body h2, html body h3, html body h4 { font-family: var(--font-title); }
+html body a { color: var(--ipk-deep); }
+html body :focus-visible { outline: 3px solid rgba(10, 37, 235, 0.45); outline-offset: 2px; }
+html body .mode-icon:empty,
+html body .measure-level-icon:empty,
+html body .mp-location-pin:empty,
+html body .evac-plan-card-icon:empty,
+html body .card-icon:empty { display: none; }
+
+/* ---------- En-tête des formulaires ---------- */
+html body header.app-header {
+    background: var(--ipk);
+    color: #fff;
+    padding: 0;
+    box-shadow: none;
+    border-bottom: 6px solid var(--accent);
+}
+.app-header-in {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px 18px;
+    flex-wrap: wrap;
+}
+.app-home {
+    flex: none;
+    width: 54px;
+    height: 54px;
+    border-radius: 12px;
+    background: #fff;
+    display: grid;
+    place-items: center;
+}
+.app-home img { width: 42px; height: auto; display: block; }
+.app-title { flex: 1 1 320px; min-width: 0; }
+html body .app-title h1 {
+    margin: 0;
+    font: 700 1.85rem/1.1 var(--font-title);
+    letter-spacing: 0.005em;
+}
+html body .app-title p {
+    margin: 4px 0 0;
+    font-size: 0.98rem;
+    line-height: 1.4;
+    opacity: 0.92;
+    max-width: 68ch;
+}
+.app-tools { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+html body .app-back,
+html body header.app-header #logoutBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    border-radius: 6px;
+    padding: 8px 14px;
+    min-height: 40px;
+    font: 600 0.95rem var(--font);
+    text-decoration: none;
+    white-space: nowrap;
+    cursor: pointer;
+}
+html body .app-back:hover,
+html body header.app-header #logoutBtn:hover { background: rgba(255, 255, 255, 0.14); border-color: #fff; }
+html body .app-back::before {
+    content: "";
+    width: 18px; height: 18px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12l14 0%22 /%3E %3Cpath d=%22M5 12l6 6%22 /%3E %3Cpath d=%22M5 12l6 -6%22 /%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12l14 0%22 /%3E %3Cpath d=%22M5 12l6 6%22 /%3E %3Cpath d=%22M5 12l6 -6%22 /%3E%3C/svg%3E") center / contain no-repeat;
+}
+html body header.app-header #loggedUserBadge {
+    align-items: center;
+    gap: 6px;
+    color: #fff;
+    font-weight: 600;
+    font-size: 0.92rem;
+    padding: 0 4px;
+}
+html body header.app-header #loggedUserBadge::before {
+    content: "";
+    width: 18px; height: 18px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0%22 /%3E %3Cpath d=%22M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2%22 /%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0%22 /%3E %3Cpath d=%22M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2%22 /%3E%3C/svg%3E") center / contain no-repeat;
+}
+@media (max-width: 600px) {
+    .app-header-in { padding: 12px 14px; }
+    .app-home { width: 46px; height: 46px; border-radius: 10px; }
+    .app-home img { width: 36px; }
+    html body .app-title h1 { font-size: 1.5rem; }
+    html body .app-title p { font-size: 0.9rem; }
+    .app-tools { width: 100%; }
+}
+
+/* ---------- Audit / Travaux ---------- */
+html body .mode-selector {
+    background: #fff;
+    box-shadow: none;
+    border-bottom: 1px solid var(--line);
+    padding: 14px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px 16px;
+    flex-wrap: wrap;
+    text-align: left;
+}
+html body .mode-selector .mode-label {
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 1rem;
+}
+html body .mode-selector .mode-buttons {
+    display: inline-flex;
+    flex-direction: row;
+    gap: 0;
+    padding: 0;
+    border: 2px solid var(--accent-ink);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+html body .mode-selector .mode-btn {
+    width: auto;
+    min-width: 150px;
+    min-height: 46px;
+    margin: 0;
+    padding: 10px 24px;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    color: var(--accent-ink);
+    font: 600 1.08rem var(--font);
+    letter-spacing: 0;
+    text-transform: none;
+    box-shadow: none;
+    transform: none;
+    justify-content: center;
+}
+html body .mode-selector .mode-btn + .mode-btn { border-left: 2px solid var(--accent-ink); }
+html body .mode-selector .mode-btn:hover { background: var(--accent-tint); transform: none; }
+html body .mode-selector .mode-btn.active { background: var(--accent-ink); color: #fff; box-shadow: none; }
+@media (max-width: 600px) {
+    html body .mode-selector { padding: 12px 14px; }
+    html body .mode-selector .mode-buttons { width: 100%; }
+    html body .mode-selector .mode-btn { flex: 1; min-width: 0; padding: 10px 8px; }
+}
+
+/* ---------- Sections ---------- */
+html body .container { max-width: 1100px; }
+html body .section {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    box-shadow: none;
+}
+html body .section h2 {
+    font: 600 1.45rem/1.2 var(--font-title);
+    color: var(--ink);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 8px;
+    margin: 0 0 16px;
+    letter-spacing: 0.005em;
+}
+html body .section h3 {
+    font-family: var(--font-title);
+    font-style: normal;
+    font-weight: 600;
+    font-size: 1.15rem;
+    color: var(--accent-ink);
+}
+html body .field-row label { color: var(--ink); font-weight: 600; font-size: 0.95rem; }
+
+/* ---------- Champs ---------- */
+html body input[type="text"], html body input[type="date"], html body input[type="time"],
+html body input[type="number"], html body input[type="email"], html body input[type="tel"],
+html body input[type="password"], html body textarea, html body select {
+    border: 1.5px solid var(--line-strong);
+    border-radius: 6px;
+    color: var(--ink);
+    background-color: #fff;
+}
+html body select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%2319203A%22 stroke-width=%222.2%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 9l6 6l6 -6%22/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 14px 14px;
+}
+html body input:focus, html body textarea:focus, html body select:focus {
+    border-color: var(--ipk);
+    box-shadow: 0 0 0 3px rgba(10, 37, 235, 0.16);
+}
+html body input::placeholder, html body textarea::placeholder { color: #8A93A6; }
+html body input[type="checkbox"], html body input[type="radio"] { accent-color: var(--accent-ink); }
+html body .checkbox-group label {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+}
+html body .checkbox-group label:hover { background: var(--accent-tint); }
+html body .checkbox-group label:has(input:checked) {
+    background: var(--accent-tint);
+    border-color: var(--accent-ink);
+    color: var(--ink);
+}
+
+/* ---------- Encadrés ---------- */
+html body .info-box {
+    background: var(--accent-tint);
+    border-left: 4px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    color: var(--ink);
+    font-size: 0.93rem;
+    line-height: 1.5;
+}
+
+/* ---------- Photos ---------- */
+html body .photo-upload,
+html body .cheminement-item,
+html body .mp-photo-block {
+    border: 1.5px dashed var(--line-strong);
+    border-radius: 8px;
+    background: #FAFBFD;
+}
+html body .photo-upload-label,
+html body .chem-header strong { color: var(--ink); }
+html body .photo-preview { border-radius: 6px; border: 1px solid var(--line); }
+html body .evacuation-upload-area {
+    border: 2px dashed var(--accent);
+    background: var(--accent-tint);
+    color: var(--accent-ink);
+    border-radius: 8px;
+}
+html body .evacuation-upload-area::before {
+    content: "";
+    width: 40px; height: 40px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 8h.01%22 /%3E %3Cpath d=%22M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12z%22 /%3E %3Cpath d=%22M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5%22 /%3E %3Cpath d=%22M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3%22 /%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M15 8h.01%22 /%3E %3Cpath d=%22M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12z%22 /%3E %3Cpath d=%22M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5%22 /%3E %3Cpath d=%22M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3%22 /%3E%3C/svg%3E") center / contain no-repeat;
+    margin-bottom: 6px;
+}
+
+/* ---------- Boutons ---------- */
+html body button { border-radius: 6px; font-family: var(--font); letter-spacing: 0; }
+html body button:active { transform: none; }
+html body .btn-primary {
+    background: var(--ipk);
+    color: #fff;
+    border: 1.5px solid var(--ipk);
+}
+html body .btn-primary:hover { background: var(--ipk-deep); border-color: var(--ipk-deep); }
+html body .btn-secondary {
+    background: #fff;
+    color: var(--ink);
+    border: 1.5px solid var(--line-strong);
+}
+html body .btn-secondary:hover { background: var(--paper); border-color: var(--ink); }
+html body .btn-success,
+html body #sendToServerBtn {
+    background: var(--ok);
+    color: #fff;
+    border: 1.5px solid var(--ok);
+}
+html body .btn-success:hover,
+html body #sendToServerBtn:hover { background: #0E6E3B; border-color: #0E6E3B; }
+html body #btnGeneratePDF {
+    background: #fff;
+    color: var(--ipk-deep);
+    border: 1.5px solid var(--ipk);
+}
+html body #btnGeneratePDF:hover { background: var(--ipk-tint); }
+html body .btn-primary:disabled, html body .btn-primary[disabled],
+html body .btn-secondary:disabled, html body .btn-secondary[disabled],
+html body #btnGeneratePDF:disabled {
+    background: #E4E8F0 !important;
+    color: #8A93A6 !important;
+    border-color: #E4E8F0 !important;
+    opacity: 1;
+}
+html body .annotate-btn {
+    background: var(--ipk);
+    color: #fff;
+    border: 1.5px solid var(--ipk);
+    border-radius: 6px;
+    font-weight: 600;
+}
+html body .annotate-btn:hover:not(:disabled) { background: var(--ipk-deep); }
+html body .annotate-btn:disabled { background: #E4E8F0; border-color: #E4E8F0; color: #8A93A6; cursor: not-allowed; }
+html body .clear-btn,
+html body .clear-photo {
+    background: #fff;
+    color: var(--danger);
+    border: 1.5px solid #E9B9BB;
+    border-radius: 6px;
+    font-weight: 600;
+}
+html body .clear-btn:hover,
+html body .clear-photo:hover { background: #FDF0F0; border-color: var(--danger); }
+/* Boutons « supprimer » (icône seule) */
+html body .btn-delete {
+    background: #fff;
+    border: 1.5px solid #E9B9BB;
+    color: var(--danger);
+    border-radius: 6px;
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0;
+    font-size: 0;
+    display: inline-grid;
+    place-items: center;
+}
+html body .btn-delete::before {
+    content: "";
+    width: 20px; height: 20px;
+    background: currentColor;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 7l16 0%22 /%3E %3Cpath d=%22M10 11l0 6%22 /%3E %3Cpath d=%22M14 11l0 6%22 /%3E %3Cpath d=%22M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12%22 /%3E %3Cpath d=%22M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3%22 /%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 7l16 0%22 /%3E %3Cpath d=%22M10 11l0 6%22 /%3E %3Cpath d=%22M14 11l0 6%22 /%3E %3Cpath d=%22M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12%22 /%3E %3Cpath d=%22M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3%22 /%3E%3C/svg%3E") center / contain no-repeat;
+}
+html body .btn-delete:hover { background: #FDF0F0; border-color: var(--danger); }
+
+/* ---------- Barre d'actions ---------- */
+html body div.actions {
+    background: #fff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -6px 18px rgba(25, 32, 58, 0.06);
+}
+html body div.actions > button:first-child { margin-right: auto; }
+@media (max-width: 700px) {
+    html body div.actions > button:first-child { margin-right: 0; }
+}
+html body .status { border-radius: 6px; }
+
+/* ---------- Écran de connexion des formulaires ---------- */
+html body #loginOverlay { background: var(--ipk); }
+html body #loginOverlay .login-card { border-radius: 12px; box-shadow: none; }
+html body #loginOverlay h2 { font-family: var(--font-title); color: var(--ink); }
+html body #loginOverlay #loginBtn { background: var(--ipk); }
+html body #loginOverlay #loginBtn:hover { background: var(--ipk-deep); }
+
+/* ---------- Éditeur d'annotation ---------- */
+html body .editor-overlay { background: rgba(25, 32, 58, 0.72); }
+html body .editor-modal { background: var(--paper); border-radius: 10px; }
+html body .editor-header { background: var(--ipk); }
+html body .editor-header h2 { font: 600 1.3rem var(--font-title); }
+html body .editor-toolbar { background: #fff; border-color: var(--line); }
+html body .editor-toolbar h3,
+html body .tool-group h3 {
+    font: 600 1.02rem var(--font-title);
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--ink);
+}
+html body .tool-btn {
+    background: #fff;
+    border: 1.5px solid var(--line);
+    color: var(--ink);
+    font-family: var(--font);
+    font-weight: 600;
+    border-radius: 6px;
+}
+html body .tool-btn:hover:not(:disabled) { border-color: var(--ipk); color: var(--ipk-deep); background: var(--ipk-tint); }
+html body .editor-canvas-wrap { background: #DDE3EE; }
+html body .editor-footer { border-color: var(--line); }
+html body .selection-panel { border-radius: 8px; }
+
+/* ---------- Page d'administration ---------- */
+html body #adminLoginScreen { background: var(--ipk); }
+html body .admin-login-card { border-radius: 12px; box-shadow: none; }
+html body .admin-login-card h1 { font: 700 1.6rem/1.15 var(--font-title); color: var(--ink); }
+html body .admin-login-btn { background: var(--ipk); border-radius: 6px; }
+html body .admin-login-btn:hover { background: var(--ipk-deep); }
+html body .admin-header {
+    background: var(--ipk);
+    box-shadow: none;
+    border-bottom: 6px solid var(--ipk-deep);
+}
+html body .admin-header h1 { font: 700 1.6rem/1.15 var(--font-title); }
+html body .admin-header .header-btn {
+    background: transparent;
+    color: #fff;
+    border: 1.5px solid rgba(255, 255, 255, 0.7);
+    border-radius: 6px;
+}
+html body .stat-card,
+html body .filters-card,
+html body .table-card {
+    box-shadow: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+}
+html body .stat-card { border-left: 4px solid var(--ipk); }
+html body .stat-card .label,
+html body .filters-card label,
+html body th {
+    text-transform: none;
+    letter-spacing: 0;
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+html body .stat-card .value { font-family: var(--font-title); color: var(--ink); }
+html body .badge { text-transform: none; letter-spacing: 0; font-size: 0.8rem; }
+html body .storage-progress-bar { background: var(--ok); }
+html body .storage-progress-bar.warning { background: #D97706; }
+html body .storage-progress-bar.danger { background: var(--danger); }
+html body .action-btn {
+    width: 36px; height: 36px;
+    padding: 0;
+    font-size: 0;
+    display: inline-grid;
+    place-items: center;
+    color: var(--ink);
+    border: 1.5px solid var(--line);
+    border-radius: 6px;
+    background: #fff;
+}
+html body .action-btn::before {
+    content: "";
+    width: 18px; height: 18px;
+    background: currentColor;
+}
+html body .action-btn[data-act="edit"]::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4%22 /%3E %3Cpath d=%22M13.5 6.5l4 4%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4%22 /%3E %3Cpath d=%22M13.5 6.5l4 4%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body .action-btn[data-act="view"]::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0%22 /%3E %3Cpath d=%22M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0%22 /%3E %3Cpath d=%22M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body .action-btn[data-act="docx"]::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M14 3v4a1 1 0 0 0 1 1h4%22 /%3E %3Cpath d=%22M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z%22 /%3E %3Cpath d=%22M9 9l1 0%22 /%3E %3Cpath d=%22M9 13l6 0%22 /%3E %3Cpath d=%22M9 17l6 0%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M14 3v4a1 1 0 0 0 1 1h4%22 /%3E %3Cpath d=%22M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z%22 /%3E %3Cpath d=%22M9 9l1 0%22 /%3E %3Cpath d=%22M9 13l6 0%22 /%3E %3Cpath d=%22M9 17l6 0%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body .action-btn[data-act="json"]::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M7 4a2 2 0 0 0 -2 2v3a2 3 0 0 1 -2 3a2 3 0 0 1 2 3v3a2 2 0 0 0 2 2%22 /%3E %3Cpath d=%22M17 4a2 2 0 0 1 2 2v3a2 3 0 0 0 2 3a2 3 0 0 0 -2 3v3a2 2 0 0 1 -2 2%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M7 4a2 2 0 0 0 -2 2v3a2 3 0 0 1 -2 3a2 3 0 0 1 2 3v3a2 2 0 0 0 2 2%22 /%3E %3Cpath d=%22M17 4a2 2 0 0 1 2 2v3a2 3 0 0 0 2 3a2 3 0 0 0 -2 3v3a2 2 0 0 1 -2 2%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body .action-btn[data-act="del"]::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 7l16 0%22 /%3E %3Cpath d=%22M10 11l0 6%22 /%3E %3Cpath d=%22M14 11l0 6%22 /%3E %3Cpath d=%22M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12%22 /%3E %3Cpath d=%22M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M4 7l16 0%22 /%3E %3Cpath d=%22M10 11l0 6%22 /%3E %3Cpath d=%22M14 11l0 6%22 /%3E %3Cpath d=%22M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12%22 /%3E %3Cpath d=%22M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body .action-btn:hover { border-color: var(--ipk); color: var(--ipk-deep); background: var(--ipk-tint); }
+html body .action-btn.delete { color: var(--danger); border-color: #E9B9BB; }
+html body .action-btn.delete:hover { background: #FDF0F0; border-color: var(--danger); color: var(--danger); }
+html body .empty-state .icon:empty { display: none; }
+
+/* ---------- Compte rendu 4G/5G : icônes de catégorie retirées ---------- */
+html body .cr-cat-icon:empty { display: none; }
+
+/* ---------- Corrections ---------- */
+html body select { -webkit-appearance: none; -moz-appearance: none; appearance: none; padding-right: 38px; }
+@media (max-width: 600px) {
+    .app-header-in { gap: 10px 12px; }
+    .app-title { flex: 1 1 0; }
+    html body .app-title h1 { font-size: 1.45rem; }
+    html body .app-title p { font-size: 0.88rem; }
+    html body .app-back, html body header.app-header #logoutBtn { min-height: 38px; padding: 6px 12px; font-size: 0.9rem; }
+}
+
+/* ---------- Icônes des outils de l'éditeur ---------- */
+html body .editor-toolbar .tool-btn { gap: 10px; }
+html body #toolAddArrow::before, html body #toolAddCircle::before, html body #toolAddText::before,
+html body #toolAddMeasurePoint::before, html body #toolAddBorne::before, html body #toolAddEquip::before {
+    content: "";
+    flex: none;
+    width: 22px; height: 22px;
+    background: currentColor;
+}
+html body #toolAddArrow::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12l14 0%22 /%3E %3Cpath d=%22M15 16l4 -4%22 /%3E %3Cpath d=%22M15 8l4 4%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M5 12l14 0%22 /%3E %3Cpath d=%22M15 16l4 -4%22 /%3E %3Cpath d=%22M15 8l4 4%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body #toolAddCircle::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body #toolAddText::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 4l12 0%22 /%3E %3Cpath d=%22M12 4l0 16%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M6 4l12 0%22 /%3E %3Cpath d=%22M12 4l0 16%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body #toolAddMeasurePoint::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0%22 /%3E %3Cpath d=%22M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0%22 /%3E %3Cpath d=%22M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body #toolAddBorne::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12 18l.01 0%22 /%3E %3Cpath d=%22M9.172 15.172a4 4 0 0 1 5.656 0%22 /%3E %3Cpath d=%22M6.343 12.343a8 8 0 0 1 11.314 0%22 /%3E %3Cpath d=%22M3.515 9.515c4.686 -4.687 12.284 -4.687 17 0%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M12 18l.01 0%22 /%3E %3Cpath d=%22M9.172 15.172a4 4 0 0 1 5.656 0%22 /%3E %3Cpath d=%22M6.343 12.343a8 8 0 0 1 11.314 0%22 /%3E %3Cpath d=%22M3.515 9.515c4.686 -4.687 12.284 -4.687 17 0%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body #toolAddEquip::before { -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0%22 /%3E %3Cpath d=%22M12.794 21.322a2 2 0 0 1 -2.207 -.422l-4.244 -4.243a8 8 0 1 1 13.59 -4.616%22 /%3E %3Cpath d=%22M16 19h6%22 /%3E %3Cpath d=%22M19 16v6%22 /%3E%3C/svg%3E") center / contain no-repeat; mask: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22 fill=%22none%22 stroke=%22%23000%22 stroke-width=%222%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22%3E%3Cpath d=%22M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0%22 /%3E %3Cpath d=%22M12.794 21.322a2 2 0 0 1 -2.207 -.422l-4.244 -4.243a8 8 0 1 1 13.59 -4.616%22 /%3E %3Cpath d=%22M16 19h6%22 /%3E %3Cpath d=%22M19 16v6%22 /%3E%3C/svg%3E") center / contain no-repeat; }
+html body .evac-plan-card-remove-btn,
+html body .measure-level-remove-btn {
+    background: #fff;
+    color: var(--danger);
+    border: 1.5px solid #E9B9BB;
+    border-radius: 6px;
+}
+html body .evac-plan-card-remove-btn:hover,
+html body .measure-level-remove-btn:hover { background: #FDF0F0; border-color: var(--danger); }
+@media (max-width: 600px) {
+    .app-header-in { align-items: flex-start; }
+    .app-home { width: 44px; height: 44px; }
+    .app-home img { width: 34px; }
+}

@@ -77,7 +77,7 @@ function applyLoggedInState(user) {
     hideLoginScreen();
     const badge = document.getElementById("loggedUserBadge");
     if (badge) {
-        badge.textContent = "👤 " + user;
+        badge.textContent = "" + user;
         badge.style.display = "inline-flex";
     }
     const logoutBtn = document.getElementById("logoutBtn");
@@ -90,7 +90,7 @@ function applyLoggedInState(user) {
 
 // =================================================================
 //  AUTO-IMPORT JSON depuis le dashboard admin
-//  Si l'admin a cliqué sur ✏️ "Ouvrir dans le formulaire", il a
+//  Si l'admin a cliqué sur "Ouvrir dans le formulaire", il a
 //  stocké le JSON dans localStorage. On le récupère et on l'injecte
 //  dans le formulaire via la fonction d'import existante.
 // =================================================================
@@ -165,7 +165,7 @@ function showAutoImportBanner(fileName) {
         gap: 12px; flex-wrap: wrap;
     `;
     banner.innerHTML = `
-        ✏️ <span>Formulaire pré-rempli depuis le dashboard admin : <strong>${escapeHtmlSafe(fileName)}</strong></span>
+        <span>Formulaire pré-rempli depuis le dashboard admin : <strong>${escapeHtmlSafe(fileName)}</strong></span>
         <button id="__closeBanner__" style="background:rgba(255,255,255,0.25); color:#fff; border:none; padding:6px 14px; border-radius:4px; cursor:pointer; font-weight:600;">Fermer</button>
     `;
     document.body.appendChild(banner);
@@ -259,7 +259,7 @@ function buildServerFilename() {
     const ville   = val("ville") || "VILLE";
     const pvMode  = (getMode() === "travaux") ? "PV TRAVAUX" : "PV AUDIT";
 
-    // ⚠️ Supabase Storage REFUSE les clés contenant des caractères non-ASCII
+    // Supabase Storage REFUSE les clés contenant des caractères non-ASCII
     // (accents : é, è, à...) ou certains caractères spéciaux → erreur
     // « Invalid key » et l'envoi échouait pour les villes/raisons sociales
     // accentuées (ex : "Saint-Étienne", "Société Générale").
@@ -294,7 +294,7 @@ export async function sendToServer() {
     // 1) vérifier connexion technicien
     const tech = sessionStorage.getItem(SESSION_KEY);
     if (!tech || !TECHNICIENS.includes(tech)) {
-        showMessage("❌ Vous devez être connecté pour envoyer.", "error");
+        showMessage("Vous devez être connecté pour envoyer.", "error");
         showLoginScreen();
         return;
     }
@@ -302,7 +302,7 @@ export async function sendToServer() {
     // 2) vérifier numéro de ticket
     const ticket = val("numero_ticket");
     if (!ticket) {
-        showMessage("❌ Le champ « Numéro de ticket » est obligatoire avant l'envoi.", "error");
+        showMessage("Le champ « Numéro de ticket » est obligatoire avant l'envoi.", "error");
         const f = document.getElementById("numero_ticket");
         if (f) { f.focus(); f.scrollIntoView({behavior:"smooth", block:"center"}); }
         return;
@@ -311,15 +311,15 @@ export async function sendToServer() {
     // 3) vérifier que les hooks Word + JSON sont fournis par le formulaire
     if (typeof window.__GET_DOCX_BLOB !== "function" ||
         typeof window.__GET_JSON_BLOB !== "function") {
-        showMessage("❌ Erreur interne : hooks Word/JSON non disponibles.", "error");
+        showMessage("Erreur interne : hooks Word/JSON non disponibles.", "error");
         console.error("Hooks manquants : window.__GET_DOCX_BLOB / window.__GET_JSON_BLOB");
         return;
     }
 
     // 4) désactiver le bouton et afficher la progression
     const btn = document.getElementById("sendToServerBtn");
-    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "📤 Envoi en cours..."; }
-    showMessage("📤 Génération des fichiers...", "info");
+    if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = "Envoi en cours..."; }
+    showMessage("Génération des fichiers...", "info");
 
     try {
         // 5) générer Word et JSON
@@ -327,7 +327,7 @@ export async function sendToServer() {
         const jsonBlob = await window.__GET_JSON_BLOB();
         if (!docxBlob || !jsonBlob) throw new Error("Génération Word ou JSON impossible.");
 
-        showMessage("☁️ Envoi vers Supabase...", "info");
+        showMessage("Envoi vers Supabase...", "info");
 
         // 6) construire le nom de fichier
         const baseName = buildServerFilename();
@@ -373,17 +373,17 @@ export async function sendToServer() {
 
         // 9) succès — ne PAS réinitialiser le formulaire
         showMessage(
-            `✅ Rapport envoyé avec succès !\nFichiers : ${baseName}.docx et ${baseName}.json`,
+            `Rapport envoyé avec succès !\nFichiers : ${baseName}.docx et ${baseName}.json`,
             "success"
         );
 
     } catch (err) {
         console.error("Erreur d'envoi :", err);
-        showMessage("❌ Erreur lors de l'envoi : " + (err.message || err), "error");
+        showMessage("Erreur lors de l'envoi : " + (err.message || err), "error");
     } finally {
         if (btn) {
             btn.disabled = false;
-            btn.textContent = btn.dataset.label || "📧 Envoyer au serveur";
+            btn.textContent = btn.dataset.label || "Envoyer au serveur";
         }
     }
 }

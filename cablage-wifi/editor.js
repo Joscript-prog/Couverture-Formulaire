@@ -202,7 +202,7 @@ const Editor = (function () {
     if (btn) {
       const isBorne = valid !== "commun";
       btn.disabled = !isBorne;
-      btn.textContent = isBorne ? `📶 Poser « ${o.nom} »` : "📶 Poser la borne (choisissez une borne)";
+      btn.textContent = isBorne ? `Poser « ${o.nom} »` : "Poser la borne (choisissez une borne)";
     }
     trace.setStyle({ owner: valid, color: o ? o.color : FREE_COLOR });
   }
