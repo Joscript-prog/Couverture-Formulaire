@@ -777,8 +777,10 @@
                 padding: 8px;
             }
             .editor-canvas-wrap {
-                height: 60%;
-                min-height: 300px;
+                /* prend la place restante sous la barre d'outils (plus de débordement sous le pied) */
+                flex: 1 1 auto;
+                height: auto;
+                min-height: 0;
             }
             .tool-btn {
                 padding: 12px 8px;
@@ -2664,7 +2666,11 @@
 
                     <div class="tool-group">
                         <h3>Outils d'annotation</h3>
-                        <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche</button>
+                        <button type="button" class="tool-btn" id="toolAddPolyline">
+                            <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="currentColor"/></svg>
+                            Tracé (plusieurs points)
+                        </button>
+                        <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche simple</button>
                         <button class="tool-btn" id="toolAddCircle">⭕ Ajouter un cercle</button>
                         <button class="tool-btn" id="toolAddText">🅰️ Ajouter du texte</button>
                         <button class="tool-btn" id="toolAddMeasurePoint">📍 Ajouter un point de mesure</button>
@@ -2716,6 +2722,7 @@
                     <div class="tool-group">
                         <h3>Conseils</h3>
                         <p style="font-size:0.78rem; color:#555; margin:4px 0;">
+                            • <b>Tracé</b> : posez les points un par un (le point suit le doigt tant qu'il est posé), puis « Terminer » ou touchez deux fois le dernier point.<br>
                             • Glissez un élément pour le déplacer.<br>
                             • Coin bleu (bas-droite) : redimensionner.<br>
                             • Pastille orange (en haut) : pivoter.<br>
@@ -2744,6 +2751,7 @@
     <script src="logos.js"></script>
     <script src="../client-config.js"></script>
     <script src="assets.js"></script>
+    <script src="../annotation-trace.js"></script>
     <script src="editor.js"></script>
     <script src="app.js"></script>
 

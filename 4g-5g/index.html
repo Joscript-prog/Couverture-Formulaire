@@ -778,8 +778,10 @@
                 padding: 8px;
             }
             .editor-canvas-wrap {
-                height: 60%;
-                min-height: 300px;
+                /* prend la place restante sous la barre d'outils (plus de débordement sous le pied) */
+                flex: 1 1 auto;
+                height: auto;
+                min-height: 0;
             }
             .tool-btn {
                 padding: 12px 8px;
@@ -2158,6 +2160,105 @@
             color: #5a4628;
         }
 
+        /* ============ BORNES / RÉPÉTEURS INTÉRIEURS ============ */
+        .bn-subtitle {
+            color: #1f4e79; font-size: 1.05rem; font-weight: 700;
+            margin: 24px 0 8px; padding-top: 14px; border-top: 1px dashed #d5dde5;
+        }
+        .bn-subtitle.first { border-top: none; padding-top: 0; margin-top: 6px; }
+        #bornesEmpty { color: #666; font-style: italic; margin: 6px 0 12px; }
+        #bornesEmpty[hidden] { display: none; }
+        .bn-card {
+            background: #fff; border: 1px solid #dde5ee;
+            border-left: 6px solid var(--borne-color, #2e75b6);
+            border-radius: 8px; padding: 12px 14px; margin: 10px 0 14px;
+        }
+        .bn-head { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .bn-toggle {
+            width: 36px; height: 36px; min-width: 36px; padding: 0;
+            border: 1px solid #cddbe8; background: #fff; color: #1f4e79;
+            border-radius: 6px; font-size: 1rem; cursor: pointer; transition: transform 0.15s;
+        }
+        .bn-card.collapsed .bn-toggle { transform: rotate(-90deg); }
+        .bn-card.collapsed > .bn-body { display: none; }
+        .bn-dot {
+            width: 20px; height: 20px; min-width: 20px; border-radius: 50%;
+            background: var(--borne-color, #2e75b6);
+            box-shadow: 0 0 0 3px #fff, 0 0 0 4px #cfd8e3;
+        }
+        input.bn-nom {
+            flex: 1; min-width: 160px; width: auto; font-weight: 700; color: #1f4e79;
+            border-bottom: 3px solid var(--borne-color, #2e75b6) !important;
+        }
+        .bn-color-name { font-size: 0.82rem; color: #666; white-space: nowrap; }
+        .bn-body { margin-top: 10px; }
+        .bn-placement {
+            font-size: 0.86rem; color: #8a6d1f; background: #fff8e1;
+            border: 1px solid #ffe0a3; border-radius: 6px; padding: 7px 10px; margin-bottom: 12px;
+        }
+        .bn-placement.placed { color: #166534; background: #ecfdf3; border-color: #bbf7d0; }
+        .bn-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 10px 16px; }
+        @media (max-width: 760px) { .bn-grid { grid-template-columns: 1fr; } }
+        .bn-grid label, .bn-full { display: block; font-weight: 600; color: #333; font-size: 0.88rem; }
+        .bn-grid label input, .bn-grid label select, .bn-full textarea { margin-top: 4px; width: 100%; }
+        .bn-full { margin-top: 10px; }
+        .bn-full textarea { min-height: 64px; }
+        .bn-photo-title {
+            color: #1f4e79; font-weight: 700; font-size: 0.95rem;
+            margin: 16px 0 8px; padding-top: 10px; border-top: 1px dashed #d5dde5;
+        }
+        .bn-single-photo { max-width: 520px; }
+        .bn-gallery {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px; margin-bottom: 10px;
+        }
+        @media (max-width: 640px) { .bn-gallery { grid-template-columns: 1fr; } }
+        .bn-legend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0 0; justify-content: center; }
+        .bn-legend[hidden] { display: none; }
+        .bn-legend-title { font-size: 0.8rem; color: #555; font-weight: 600; }
+        .bn-chip {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 0.78rem; font-weight: 600; color: #222;
+            padding: 3px 9px; border-radius: 12px; background: #fff; border: 1px solid var(--chip);
+        }
+        .bn-chip::before { content: ""; width: 10px; height: 10px; border-radius: 50%; background: var(--chip); }
+        #syntheseBornesWrap { margin: 6px 0 18px; }
+        #syntheseBornesWrap[hidden] { display: none; }
+        .synth-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+        .synth-head label { font-weight: 700; color: #1f4e79; font-size: 1rem; }
+        .conf-badge { display: inline-block; padding: 3px 10px; border-radius: 16px; font-weight: 700; font-size: 0.78rem; }
+        .conf-badge.ok { background: #dcfce7; color: #166534; }
+        .conf-badge.ko { background: #fef3c7; color: #92400e; }
+        #syntheseRegenBtn {
+            display: none; align-items: center; gap: 6px;
+            background: #fff; border: 1px solid #2e75b6; color: #2e75b6;
+            padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; cursor: pointer;
+        }
+        .bn-help { color: #666; font-size: 0.86rem; margin: 0 0 8px; }
+        #synthese_bornes { min-height: 160px; font-family: Consolas, "Courier New", monospace; font-size: 0.88rem; line-height: 1.45; width: 100%; }
+
+        /* --- Éditeur : « Je trace pour », borne posée --- */
+        .owner-row { display: flex; align-items: center; gap: 8px; }
+        .owner-row select { flex: 1; padding: 8px; font-size: 0.85rem; }
+        .owner-chip {
+            width: 22px; height: 22px; min-width: 22px; border-radius: 50%;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 3px #b8c6d6;
+        }
+        .editor-toolbar .small-help { font-size: 0.76rem; color: #666; margin: 6px 0 0; line-height: 1.35; }
+        .tool-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+        .tool-btn svg { flex-shrink: 0; }
+        #selOwnerRow label { display: block; font-size: 0.78rem; color: #555; margin-bottom: 8px; }
+        #selOwnerRow select { width: 100%; padding: 6px; font-size: 0.82rem; margin-top: 3px; }
+        .editor-element.arrow-element.selected { outline: none; }
+        .editor-element.borne-marker { overflow: visible; }
+        .editor-element.borne-marker.selected { outline-offset: 4px; border-radius: 50%; }
+        .borne-marker .bm-icon { width: 100%; height: 100%; display: block; pointer-events: none; }
+        .borne-marker .bm-label {
+            position: absolute; left: 50%; transform: translateX(-50%);
+            color: #fff; font-family: Arial, sans-serif; font-weight: bold;
+            line-height: 1; white-space: nowrap; pointer-events: none;
+        }
+
         /* ============ BASCULE DYNAMIQUE AUDIT / TRAVAUX ============ */
         /* Par défaut (et en mode audit) : on cache les éléments travaux-only */
         body[data-mode="audit"] .travaux-only,
@@ -2505,16 +2606,27 @@
         </div>
 
         <!-- ===== SECTION 5 - CHEMINEMENT / INSTALLATION ===== -->
-      <div class="section">
-    <h2>5. Cheminement câble / Installation</h2>
-    <div class="info-box">
-        Ajoutez des photos du cheminement, de l'installation et des points de pénétration. Utilisez l'éditeur pour annoter (flèches, cercles, texte).
-    </div>
-    <div id="cheminementContainer">
-        <!-- Les cheminements sont ajoutés dynamiquement par app.js -->
-    </div>
-    <button class="btn-secondary" id="addCheminementBtn">➕ Ajouter une photo de cheminement</button>
-</div>
+        <div class="section">
+            <h2>5. Cheminement câble / Installation</h2>
+            <div class="bn-subtitle first">Câble antenne → routeur</div>
+            <div class="info-box">
+                Ajoutez des photos du cheminement, de l'installation et des points de pénétration. Utilisez l'éditeur pour annoter (flèches, cercles, texte).
+            </div>
+            <div id="cheminementContainer">
+                <!-- Les cheminements sont ajoutés dynamiquement par app.js -->
+            </div>
+            <button class="btn-secondary" id="addCheminementBtn">➕ Ajouter une photo de cheminement</button>
+
+            <div class="bn-subtitle">Bornes / répéteurs intérieurs</div>
+            <div class="info-box">
+                Une fiche par borne ou répéteur <span class="audit-only">à prévoir</span><span class="travaux-only">posé</span> : emplacement, câble, photos du cheminement et des percements. Chaque borne a sa couleur.<br>
+                Sur un plan d'évacuation (section 4, bouton « ✏ Annoter ce plan »), choisissez la borne dans <b>« Je trace pour »</b>, posez-la, puis tracez son cheminement : il prend automatiquement sa couleur.
+            </div>
+            <p id="bornesEmpty">Aucune borne pour l'instant.</p>
+            <div id="bornesContainer"></div>
+            <button type="button" class="btn-secondary" id="addBorneBtn">➕ Ajouter une borne / un répéteur</button>
+        </div>
+
         <!-- ===== SECTION 6 - SYNTHÈSE ===== -->
         <div class="section">
             <h2>6. Synthèse de l'intervention</h2>
@@ -2551,6 +2663,16 @@
                     <label><input type="radio" name="echelle_prevoir" value="Non"> Non</label>
                 </div>
             </div>
+            <div id="syntheseBornesWrap" hidden>
+                <div class="synth-head">
+                    <label for="synthese_bornes">Synthèse par borne</label>
+                    <span class="conf-badge ok" id="syntheseBadge">Mise à jour automatique</span>
+                    <button type="button" id="syntheseRegenBtn">🔄 Régénérer depuis les fiches</button>
+                </div>
+                <p class="bn-help">Rédigée automatiquement à partir des fiches des bornes (section 5). Vous pouvez la modifier : elle est reprise telle quelle dans le Word.</p>
+                <textarea id="synthese_bornes"></textarea>
+            </div>
+
             <div class="field-row full">
                 <label style="font-size:1rem; color:#1f4e79; margin-bottom:8px;">📝 Compte rendu principal</label>
                 <div class="cr-info-banner">
@@ -2604,6 +2726,15 @@
             </div>
             <div class="editor-body">
                 <div class="editor-toolbar">
+                    <div class="tool-group" id="ownerPanel" style="display:none;">
+                        <h3>Je trace pour</h3>
+                        <div class="owner-row">
+                            <span class="owner-chip" id="ownerChip"></span>
+                            <select id="ownerSelect" aria-label="Borne active"></select>
+                        </div>
+                        <p class="small-help">La borne posée, les flèches et les tracés prennent automatiquement cette couleur.</p>
+                    </div>
+
                     <div class="selection-panel tool-group" id="selectionPanel">
                         <h3>✎ Élément sélectionné</h3>
                         <div id="selPanelImage">
@@ -2618,6 +2749,11 @@
                             <div class="small-help">Cliquez à nouveau pour annuler le retournement.</div>
                         </div>
                         <div id="selPanelArrow">
+                            <div id="selOwnerRow">
+                                <label>Attribuer à
+                                    <select id="selOwnerSelect"></select>
+                                </label>
+                            </div>
                             <div class="row" style="display:flex; gap:6px; align-items:center;">
                                 <label style="flex:1; font-size:0.78rem; color:#555;">Couleur
                                     <input type="color" id="selArrowColor" value="#FF0000" style="width:100%; padding:1px; height:28px; border:1px solid #ccc; border-radius:3px;">
@@ -2641,11 +2777,19 @@
                             </div>
                             <div class="small-help">Tirez les poignées d'extrémité pour allonger / orienter la flèche.</div>
                         </div>
+                        <div id="selPanelBorne">
+                            <p class="small-help"><b id="selBorneInfo"></b><br>Glissez pour déplacer, coin bleu pour agrandir.</p>
+                        </div>
                     </div>
 
                     <div class="tool-group">
                         <h3>Outils d'annotation</h3>
-                        <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche</button>
+                        <button type="button" class="tool-btn" id="toolAddPolyline">
+                            <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="currentColor"/></svg>
+                            Tracé (plusieurs points)
+                        </button>
+                        <button type="button" class="tool-btn" id="toolAddBorne" style="display:none;">📶 Poser la borne</button>
+                        <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche simple</button>
                         <button class="tool-btn" id="toolAddCircle">⭕ Ajouter un cercle</button>
                         <button class="tool-btn" id="toolAddText">🅰️ Ajouter du texte</button>
                         <button class="tool-btn" id="toolAddMeasurePoint">📍 Ajouter un point de mesure</button>
@@ -2697,6 +2841,8 @@
                     <div class="tool-group">
                         <h3>Conseils</h3>
                         <p style="font-size:0.78rem; color:#555; margin:4px 0;">
+                            • <b>Tracé</b> : posez les points un par un (le point suit le doigt tant qu'il est posé), puis « Terminer » ou touchez deux fois le dernier point.<br>
+                            • <b>Bornes</b> (plans) : choisissez la borne dans « Je trace pour », posez-la, puis tracez son câble.<br>
                             • Glissez un élément pour le déplacer.<br>
                             • Coin bleu (bas-droite) : redimensionner.<br>
                             • Pastille orange (en haut) : pivoter.<br>
@@ -2724,7 +2870,8 @@
     <script src="logos.js"></script>
     <script src="../client-config.js"></script>
 <script src="assets.js"></script> 
-<script src="editor.js"></script>
+<script src="../annotation-trace.js"></script>
+    <script src="editor.js"></script>
 <script src="compteRendu.js"></script>
 <script src="app.js"></script>
 <script src="pdfReport.js"></script>

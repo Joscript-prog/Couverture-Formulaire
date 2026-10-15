@@ -1,58 +1,114 @@
 // ============================================================
-//  ÉDITEUR D'ANNOTATION DE PHOTOS — v3
-//  Permet de poser des PNG (mâts, antennes, supports), du texte
-//  stylé et des flèches type Excel sur une photo, avec
-//  déplacement / redimensionnement / rotation / retournement.
-//  À la sauvegarde, exporte en PNG via <canvas>.
+//  ÉDITEUR D'ANNOTATION DE PHOTOS — version 4G/5G
+//  Même base que l'éditeur du formulaire Câblage Wi-Fi (flèches,
+//  cercles, textes, tracés multi-points), avec :
+//   • « Je trace pour » : chaque borne / répéteur intérieur a sa
+//     couleur ; le câble antenne → routeur garde la sienne. Les flèches
+//     et les tracés prennent automatiquement la couleur choisie.
+//     (Seulement sur les plans et les photos de bornes, et seulement
+//     s'il existe au moins une borne : sinon, couleur libre comme avant.)
+//   • Asset BORNE : pastille + nom de la borne (toujours à jour).
+//   • Point de mesure (P1, P2…).
+//   • Outil TRACÉ multi-points : voir ../annotation-trace.js (partagé).
+//
+//  Le lien avec le formulaire passe par window.BorneBridge (app.js).
 // ============================================================
 
 const Editor = (function () {
-  // État de l'éditeur
-  let currentPhotoKey = null;     // clé du photoStore en cours d'édition
-  let stageEl = null;             // élément .editor-stage
-  let bgPhotoEl = null;           // <img> de fond
+  // ---- État de l'éditeur ----
+  let currentPhotoKey = null;
+  let stageEl = null;
+  let bgPhotoEl = null;
   let elements = [];              // [{el, data}]
   let selectedEl = null;
   let stageW = 0, stageH = 0;     // taille naturelle de la photo (px)
-  let scale = 1;                  // facteur d'échelle d'affichage
+  let scale = 1;
+  let ctx = { kind: "other" };    // contexte : plan | borne | other
+  let activeOwner = null;         // id de borne, "commun" ou null
+  let pendingRemovals = [];       // bornes à retirer d'autres plans (appliqué à l'enregistrement)
 
-  // ---- Initialisation des miniatures de la barre d'outils ----
+  const SVGNS = "http://www.w3.org/2000/svg";
+
+  // ---- Outil « Tracé » (flèche à plusieurs points) : annotation-trace.js ----
+  const trace = (window.AnnotTrace || { create: () => ({ start() {}, cancel() {}, commit() {}, setStyle() {}, isDrawing: () => false, render() {}, addHandles() {}, startMove() {}, syncPanel() {}, drawCanvas() {} }) }).create({   // repli si annotation-trace.js n'est pas chargé (ancienne page en cache)
+    stage: () => stageEl || document.getElementById("editorStage"),
+    scale: () => scale,
+    size: () => ({ w: stageW, h: stageH }),
+    style: () => {
+      const owner = usesOwners() ? activeOwner : null;
+      const last = elements.slice().reverse().find(it => it.data && it.data.type === "polyline");
+      const thickness = last ? last.data.thickness : defaultThickness();
+      return {
+        owner,
+        color: owner ? activeColor() : (last ? last.data.color : FREE_COLOR),
+        thickness,
+        headSize: last && last.data.headSize ? last.data.headSize : Math.round(thickness * 3.2)
+      };
+    },
+    create: (data) => createPolylineElement(data, true),
+    select: (el) => select(el),
+    remove: (el) => deleteElement(el)
+  });
+  const FREE_COLOR = "#FF0000";
+  const BAIE_COLOR = "#1F3864";
+
+  // ---- Lien avec le formulaire ----
+  function bridge() { return window.BorneBridge || null; }
+  function ownerInfo(id) {
+    const b = bridge();
+    return (b && id) ? b.getOwner(id) : null;
+  }
+  function usesOwners() {
+    const b = bridge();
+    return !!b && (!b.active || b.active()) && (ctx.kind === "plan" || ctx.kind === "borne");
+  }
+  function activeColor() {
+    const o = ownerInfo(activeOwner);
+    return o ? o.color : FREE_COLOR;
+  }
+  function defaultThickness() {
+    return Math.max(4, Math.round(Math.max(stageW, stageH) / 250));
+  }
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  // ---- Miniatures des assets PNG (s'il y en a) ----
   function initThumbnails() {
+    if (typeof ANNOTATION_ASSETS === "undefined") return;
     Object.keys(ANNOTATION_ASSETS).forEach(key => {
       const img = document.getElementById("thumb_" + key);
       if (img) img.src = ANNOTATION_ASSETS[key];
     });
   }
 
-  // ---- Ouvrir l'éditeur ----
-  function open(photoKey, label) {
+  // ============================================================
+  //  OUVERTURE / FERMETURE
+  // ============================================================
+  function open(photoKey, label, context) {
     currentPhotoKey = photoKey;
+    ctx = context || { kind: "other" };
+    pendingRemovals = [];
     document.getElementById("editorTitle").textContent = label;
 
     stageEl = document.getElementById("editorStage");
     bgPhotoEl = document.getElementById("editorBgPhoto");
 
-    // Réinitialiser l'éditeur
+    trace.cancel();
     elements = [];
     selectedEl = null;
     [...stageEl.querySelectorAll(".editor-element")].forEach(e => e.remove());
     hideSelectionPanel();
 
-    // Charger la photo de fond
     const photo = photoStore[photoKey];
     if (!photo) return;
 
-    // Si la photo a déjà été annotée, on repart de la photo ORIGINALE en bg
-    // et on recréera les annotations par-dessus depuis photo.annotations
-    const srcUrl = photo.originalDataUrl || photo.dataUrl;
+    setupOwnerPanel();
 
+    const srcUrl = photo.originalDataUrl || photo.dataUrl;
     bgPhotoEl.onload = () => {
       stageW = bgPhotoEl.naturalWidth;
       stageH = bgPhotoEl.naturalHeight;
       fitStage();
-
-      // ⭐ Restaurer les annotations sauvegardées (si présentes)
-      if (photo.annotations && Array.isArray(photo.annotations) && photo.annotations.length > 0) {
+      if (Array.isArray(photo.annotations)) {
         photo.annotations.forEach(d => recreateElementFromData(d));
       }
     };
@@ -61,10 +117,114 @@ const Editor = (function () {
     document.getElementById("editorOverlay").classList.add("shown");
   }
 
-  // Recréer un élément à partir de son data (pour la ré-édition)
+  function close() {
+    trace.cancel();
+    document.getElementById("editorOverlay").classList.remove("shown");
+    currentPhotoKey = null;
+    pendingRemovals = [];
+  }
+
+  function fitStage() {
+    const wrap = document.getElementById("editorCanvasWrap");
+    const padding = 40;
+    const availW = wrap.clientWidth - padding;
+    const availH = wrap.clientHeight - padding;
+    scale = Math.min(availW / stageW, availH / stageH, 1.5);
+    stageEl.style.width = (stageW * scale) + "px";
+    stageEl.style.height = (stageH * scale) + "px";
+    bgPhotoEl.style.width = "100%";
+    bgPhotoEl.style.height = "100%";
+  }
+
+  // ============================================================
+  //  « JE TRACE POUR » — borne active
+  // ============================================================
+  function setupOwnerPanel() {
+    const panel = document.getElementById("ownerPanel");
+    const toolBorne = document.getElementById("toolAddBorne");
+    if (!panel) return;
+    if (!usesOwners()) {
+      panel.style.display = "none";
+      if (toolBorne) toolBorne.style.display = "none";
+      activeOwner = null;
+      return;
+    }
+    panel.style.display = "block";
+    if (toolBorne) toolBorne.style.display = "";
+    fillOwnerSelect(document.getElementById("ownerSelect"), { withPlacement: ctx.kind === "plan" });
+    setActiveOwner(bridge().defaultOwner(ctx, activeOwner));
+  }
+
+  function fillOwnerSelect(sel, opts = {}) {
+    if (!sel) return;
+    sel.innerHTML = "";
+    if (opts.withFree) {
+      const f = document.createElement("option");
+      f.value = "";
+      f.textContent = "Couleur libre (non attribuée)";
+      sel.appendChild(f);
+    }
+    const owners = bridge().getOwners();
+    let lastGroup = null, group = null;
+    owners.forEach(o => {
+      if (o.niveauNom !== lastGroup) {
+        group = document.createElement("optgroup");
+        group.label = o.niveauNom;
+        sel.appendChild(group);
+        lastGroup = o.niveauNom;
+      }
+      const opt = document.createElement("option");
+      opt.value = o.id;
+      let txt = "● " + o.nom;
+      if (opts.withPlacement) {
+        const pl = bridge().findPlanPlacement(o.id, currentPhotoKey);
+        if (pl && !pendingRemovals.some(r => r.borneId === o.id)) txt += "  (posée sur " + pl.label + ")";
+      }
+      opt.textContent = txt;
+      opt.style.color = o.color;
+      group.appendChild(opt);
+    });
+    const commun = bridge().getOwner("commun");
+    const c = document.createElement("option");
+    c.value = "commun";
+    c.textContent = "● " + commun.nom + (commun.colorName ? " (" + commun.colorName + ")" : "");
+    c.style.color = commun.color;
+    sel.appendChild(c);
+  }
+
+  function setActiveOwner(id) {
+    const valid = id && ownerInfo(id) ? id : "commun";
+    activeOwner = valid;
+    const sel = document.getElementById("ownerSelect");
+    if (sel) sel.value = valid;
+    const o = ownerInfo(valid);
+    const chip = document.getElementById("ownerChip");
+    if (chip && o) chip.style.background = o.color;
+    const btn = document.getElementById("toolAddBorne");
+    if (btn) {
+      const isBorne = valid !== "commun";
+      btn.disabled = !isBorne;
+      btn.textContent = isBorne ? `📶 Poser « ${o.nom} »` : "📶 Poser la borne (choisissez une borne)";
+    }
+    trace.setStyle({ owner: valid, color: o ? o.color : FREE_COLOR });
+  }
+
+  // ============================================================
+  //  RECRÉATION DES ÉLÉMENTS (ré-édition)
+  // ============================================================
+  function registerElement(wrapper, data, doSelect) {
+    wrapper.dataset.uid = uid();
+    wrapper._data = data;
+    stageEl.appendChild(wrapper);
+    elements.push({ el: wrapper, data });
+    attachHandlers(wrapper);
+    applyTransform(wrapper, data);
+    if (doSelect) select(wrapper);
+  }
+
   function recreateElementFromData(d) {
     if (!d || !d.type) return;
-    const data = JSON.parse(JSON.stringify(d)); // clone
+    const data = JSON.parse(JSON.stringify(d));
 
     if (data.type === "image") {
       const wrapper = document.createElement("div");
@@ -73,252 +233,138 @@ const Editor = (function () {
       img.src = data.src;
       img.draggable = false;
       wrapper.appendChild(img);
-      wrapper.dataset.uid = uid();
-      wrapper._data = data;
-      stageEl.appendChild(wrapper);
-      elements.push({ el: wrapper, data });
-      attachHandlers(wrapper);
-      applyTransform(wrapper, data);
-    }
-    else if (data.type === "text") {
-      const wrapper = document.createElement("div");
-      wrapper.className = "editor-element text-element";
-      wrapper.textContent = data.text;
-      applyTextStyle(wrapper, data);
-      wrapper.dataset.uid = uid();
-      wrapper._data = data;
-      stageEl.appendChild(wrapper);
-      elements.push({ el: wrapper, data });
-      attachHandlers(wrapper);
-      applyTransform(wrapper, data);
-      wrapper.addEventListener("dblclick", (e) => {
-        e.stopPropagation();
-        const newText = prompt("Modifier le texte :", data.text);
-        if (newText !== null && newText.trim() !== "") {
-          data.text = newText;
-          wrapper.textContent = newText;
-        }
-      });
-    }
-    else if (data.type === "arrow") {
+      registerElement(wrapper, data, false);
+    } else if (data.type === "text") {
+      createTextElement(data, false);
+    } else if (data.type === "arrow") {
       const wrapper = document.createElement("div");
       wrapper.className = "editor-element arrow-element";
-      wrapper.dataset.uid = uid();
-      wrapper._data = data;
-      stageEl.appendChild(wrapper);
-      elements.push({ el: wrapper, data });
-      renderArrow(wrapper, data);
-      attachHandlers(wrapper);
+      registerElement(wrapper, data, false);
+    } else if (data.type === "polyline") {
+      createPolylineElement(data, false);
+    } else if (data.type === "borne") {
+      createMarkerElement(data, false);
+    } else if (data.type === "baie") {
+      createBaieElement(data, false);
     }
-  }
-
-  // Adapter la taille d'affichage au conteneur
-  function fitStage() {
-    const wrap = document.getElementById("editorCanvasWrap");
-    const padding = 40;
-    const availW = wrap.clientWidth - padding;
-    const availH = wrap.clientHeight - padding;
-    const sW = availW / stageW;
-    const sH = availH / stageH;
-    scale = Math.min(sW, sH, 1.5); // jamais au-delà de 1.5x
-    stageEl.style.width = (stageW * scale) + "px";
-    stageEl.style.height = (stageH * scale) + "px";
-    bgPhotoEl.style.width = "100%";
-    bgPhotoEl.style.height = "100%";
-  }
-
-  // ---- Fermer ----
-  function close() {
-    document.getElementById("editorOverlay").classList.remove("shown");
-    currentPhotoKey = null;
   }
 
   // ============================================================
   //  AJOUT D'ÉLÉMENTS
   // ============================================================
-
-  // ---- Ajouter un asset image (PNG mât/antenne/etc.) ----
   function addAsset(assetKey) {
+    if (typeof ANNOTATION_ASSETS === "undefined") return;
     const src = ANNOTATION_ASSETS[assetKey];
     if (!src) return;
-
     const wrapper = document.createElement("div");
     wrapper.className = "editor-element";
-
     const img = document.createElement("img");
     img.src = src;
     img.draggable = false;
     wrapper.appendChild(img);
-
-    // Taille initiale : largeur = 25% de la photo (en coords naturelles)
     const initialNatW = stageW * 0.25;
-
     const data = {
-      type: "image",
-      src: src,
-      assetKey: assetKey,
-      x: stageW * 0.4,
-      y: stageH * 0.4,
-      w: initialNatW,
-      h: initialNatW,    // recalculé après onload
-      rotation: 0,
-      flipH: false,
-      flipV: false,
+      type: "image", src, assetKey,
+      x: stageW * 0.4, y: stageH * 0.4,
+      w: initialNatW, h: initialNatW,
+      rotation: 0, flipH: false, flipV: false
     };
-
     img.onload = () => {
-      const ratio = img.naturalHeight / img.naturalWidth;
-      data.h = data.w * ratio;
+      data.h = data.w * (img.naturalHeight / img.naturalWidth);
       applyTransform(wrapper, data);
     };
-
-    wrapper.dataset.uid = uid();
-    wrapper._data = data;
-    stageEl.appendChild(wrapper);
-    elements.push({ el: wrapper, data });
-
-    attachHandlers(wrapper);
-    select(wrapper);
-    applyTransform(wrapper, data);
+    registerElement(wrapper, data, true);
   }
 
-  // ---- Ajouter un texte (style "WordArt") ----
-  function addText() {
-    const text = document.getElementById("textInput").value.trim();
-    if (!text) {
-      alert("Tapez d'abord un texte dans le champ.");
-      return;
-    }
-    const font = document.getElementById("textFont").value;
-    const size = parseInt(document.getElementById("textSize").value, 10) || 20;
-    const color = document.getElementById("textColor").value;
-    const stroke = document.getElementById("textStroke").value;
-    const bold = document.getElementById("textBold").checked;
-    const shadow = document.getElementById("textShadow").checked;
-
+  // ---- Texte ----
+  function createTextElement(data, doSelect) {
     const wrapper = document.createElement("div");
     wrapper.className = "editor-element text-element";
-    wrapper.textContent = text;
-    applyTextStyle(wrapper, { font, size, color, stroke, bold, shadow });
-
-    const data = {
-      type: "text",
-      text, font, size, color, stroke, bold, shadow,
-      x: stageW * 0.3,
-      y: stageH * 0.5,
-      rotation: 0,
-    };
-
-    wrapper.dataset.uid = uid();
-    wrapper._data = data;
-    stageEl.appendChild(wrapper);
-    elements.push({ el: wrapper, data });
-
-    attachHandlers(wrapper);
-    select(wrapper);
-    applyTransform(wrapper, data);
-
-    // double-clic pour éditer le texte
+    wrapper.textContent = data.text;
+    applyTextStyle(wrapper, data);
+    registerElement(wrapper, data, doSelect);
     wrapper.addEventListener("dblclick", (e) => {
       e.stopPropagation();
       const newText = prompt("Modifier le texte :", data.text);
       if (newText !== null && newText.trim() !== "") {
         data.text = newText;
         wrapper.textContent = newText;
+        if (selectedEl === wrapper) addHandles(wrapper);
       }
     });
   }
 
-  // ---- Ajouter une flèche ----
+  function addText() {
+    const text = document.getElementById("textInput").value.trim();
+    if (!text) {
+      alert("Tapez d'abord un texte dans le champ.");
+      return;
+    }
+    const data = {
+      type: "text",
+      text,
+      font: document.getElementById("textFont").value,
+      size: parseInt(document.getElementById("textSize").value, 10) || 20,
+      color: document.getElementById("textColor").value,
+      stroke: document.getElementById("textStroke").value,
+      bold: document.getElementById("textBold").checked,
+      shadow: document.getElementById("textShadow").checked,
+      x: stageW * 0.3,
+      y: stageH * 0.5,
+      rotation: 0
+    };
+    createTextElement(data, true);
+  }
+
+  // ---- Flèche simple (2 points) ----
   function addArrow() {
-    // Récupération sécurisée — fallback si les inputs n'existent pas dans le HTML
-    const colorEl = document.getElementById("arrowColor");
-    const thickEl = document.getElementById("arrowThickness");
-    const headEl  = document.getElementById("arrowHeadSize");
-    // Si l'élément sélectionné est déjà une flèche, on reprend ses derniers paramètres
     const lastArrow = elements.slice().reverse().find(e => e.data && e.data.type === "arrow");
-    const color     = (colorEl && colorEl.value) || (lastArrow ? lastArrow.data.color : "#FF0000");
-    const thickness = parseInt(thickEl && thickEl.value, 10) || (lastArrow ? lastArrow.data.thickness : 6);
-    const headSize  = parseInt(headEl  && headEl.value,  10) || (lastArrow ? lastArrow.data.headSize  : 18);
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "editor-element arrow-element";
-
-    // Coordonnées initiales en pixels naturels de la photo
-    // Flèche horizontale qui occupe ~30% de la largeur, centrée
-    const x1 = stageW * 0.35;
-    const y1 = stageH * 0.5;
-    const x2 = stageW * 0.65;
-    const y2 = stageH * 0.5;
+    const owner = usesOwners() ? activeOwner : null;
+    const color = owner ? activeColor() : (lastArrow ? lastArrow.data.color : FREE_COLOR);
+    const thickness = lastArrow ? lastArrow.data.thickness : defaultThickness();
+    const headSize = lastArrow ? lastArrow.data.headSize : Math.round(thickness * 3.2);
 
     const data = {
       type: "arrow",
-      x1, y1, x2, y2,
-      color,
-      thickness,
-      headSize,
-      // Pas de flip ni rotation séparés : on les obtient en bougeant les extrémités
+      x1: stageW * 0.35, y1: stageH * 0.5,
+      x2: stageW * 0.65, y2: stageH * 0.5,
+      color, thickness, headSize, owner
     };
-
-    // SVG sera construit/mis à jour par renderArrow()
-    wrapper.dataset.uid = uid();
-    wrapper._data = data;
-    stageEl.appendChild(wrapper);
-    elements.push({ el: wrapper, data });
-
-    renderArrow(wrapper, data);
-    attachHandlers(wrapper);
-    select(wrapper);
+    const wrapper = document.createElement("div");
+    wrapper.className = "editor-element arrow-element";
+    registerElement(wrapper, data, true);
   }
 
-  // ---- Ajouter un cercle (rouge, transparent au centre) ----
-  let circleColorIdx = 0;
+  // ---- Cercle ----
   function addCircle() {
-    // Cercle SVG inline (rouge épais par défaut, fond transparent)
-    const colors = ["#FF0000", "#FFFF00", "#00B050", "#0070C0", "#FFFFFF", "#000000"];
-    const color = colors[0]; // rouge par défaut, on peut changer ensuite via swatch
+    const color = usesOwners() ? activeColor() : FREE_COLOR;
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
       <circle cx="50" cy="50" r="44" fill="none" stroke="${color}" stroke-width="6"/>
     </svg>`;
     const dataUrl = "data:image/svg+xml;base64," + btoa(svg);
-
     const wrapper = document.createElement("div");
     wrapper.className = "editor-element";
-
     const img = document.createElement("img");
     img.src = dataUrl;
     img.draggable = false;
     wrapper.appendChild(img);
-
-    const initialNatW = stageW * 0.20;
+    const initialNatW = stageW * 0.12;
     const data = {
-      type: "image",
-      src: dataUrl,
-      assetKey: "_circle",
-      x: stageW * 0.4,
-      y: stageH * 0.4,
-      w: initialNatW,
-      h: initialNatW,
-      rotation: 0,
-      flipH: false,
-      flipV: false,
+      type: "image", src: dataUrl, assetKey: "_circle",
+      x: stageW * 0.44, y: stageH * 0.44,
+      w: initialNatW, h: initialNatW,
+      rotation: 0, flipH: false, flipV: false
     };
-
-    wrapper.dataset.uid = uid();
-    wrapper._data = data;
-    stageEl.appendChild(wrapper);
-    elements.push({ el: wrapper, data });
-
-    attachHandlers(wrapper);
-    select(wrapper);
-    applyTransform(wrapper, data);
+    registerElement(wrapper, data, true);
   }
 
   // ---- Ajouter un point de mesure (dot rouge + label P1, P2...) ----
-  let measurePointCounter = 0;
   function addMeasurePoint() {
-    measurePointCounter++;
-    const label = "P" + measurePointCounter;
+    // numéro suivant sur CETTE photo (P1, P2…)
+    const used = elements
+      .map(it => it.data && it.data.assetKey === "_measurePoint" ? parseInt(String(it.data.label || "").replace(/\D/g, ""), 10) : 0)
+      .filter(n => n > 0);
+    const label = "P" + ((used.length ? Math.max(...used) : 0) + 1);
 
     // SVG : dot rouge + label numéroté au-dessus
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140">
@@ -356,16 +402,90 @@ const Editor = (function () {
       flipV: false,
     };
 
-    wrapper.dataset.uid = uid();
-    wrapper._data = data;
-    stageEl.appendChild(wrapper);
-    elements.push({ el: wrapper, data });
-
-    attachHandlers(wrapper);
-    select(wrapper);
-    applyTransform(wrapper, data);
+    registerElement(wrapper, data, true);
   }
 
+
+  // ---- Borne (pastille + nom) ----
+  function addBorneMarker() {
+    if (!usesOwners() || !activeOwner || activeOwner === "commun") {
+      alert("Choisissez d'abord une borne dans la liste « Je trace pour ».");
+      return;
+    }
+    const o = ownerInfo(activeOwner);
+    // Déjà posée sur ce plan ? → on la sélectionne
+    const here = elements.find(it => it.data.type === "borne" && it.data.owner === activeOwner);
+    if (here && ctx.kind === "plan") {
+      select(here.el);
+      alert(`« ${o.nom} » est déjà posée sur ce plan (elle vient d'être sélectionnée).`);
+      return;
+    }
+    // Déjà posée sur un AUTRE plan ? → proposer de la déplacer
+    if (ctx.kind === "plan") {
+      const pl = bridge().findPlanPlacement(activeOwner, currentPhotoKey);
+      if (pl && !pendingRemovals.some(r => r.borneId === activeOwner)) {
+        const ok = confirm(`« ${o.nom} » est déjà posée sur « ${pl.label} ».\n\nLa déplacer sur ce plan ?\n(Elle sera retirée de l'autre plan à l'enregistrement.)`);
+        if (!ok) return;
+        pendingRemovals.push({ key: pl.key, borneId: activeOwner });
+        fillOwnerSelect(document.getElementById("ownerSelect"), { withPlacement: true });
+        document.getElementById("ownerSelect").value = activeOwner;
+      }
+    }
+    const size = Math.max(44, Math.round(Math.max(stageW, stageH) * 0.05));
+    const data = {
+      type: "borne",
+      owner: activeOwner,
+      label: o.nom,
+      color: o.color,
+      x: stageW * 0.5,
+      y: stageH * 0.5,
+      size
+    };
+    createMarkerElement(data, true);
+  }
+
+  function createMarkerElement(data, doSelect) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "editor-element borne-marker";
+    wrapper.innerHTML = `<svg class="bm-icon" viewBox="0 0 100 100" xmlns="${SVGNS}"></svg><div class="bm-label"></div>`;
+    registerElement(wrapper, data, doSelect);
+  }
+
+  // ---- Baie (rectangle) ----
+  function addBaie(existante) {
+    const w = Math.round(stageW * 0.09);
+    const h = Math.round(stageW * 0.06);
+    const data = {
+      type: "baie",
+      existante: !!existante,
+      x: stageW * 0.5 - w / 2,
+      y: stageH * 0.5 - h / 2,
+      w, h,
+      lw: Math.max(3, Math.round(defaultThickness() * 0.7)),
+      rotation: 0
+    };
+    createBaieElement(data, true);
+  }
+
+  function createBaieElement(data, doSelect) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "editor-element baie-element";
+    wrapper.innerHTML = `<div class="baie-box"><span class="baie-title">BAIE</span><span class="baie-sub">à installer</span></div>`;
+    registerElement(wrapper, data, doSelect);
+  }
+
+  // ============================================================
+  //  OUTIL TRACÉ (multi-points)
+  // ============================================================
+  function createPolylineElement(data, doSelect) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "editor-element polyline-element";
+    registerElement(wrapper, data, doSelect);
+  }
+
+  // ============================================================
+  //  RENDU DOM
+  // ============================================================
   function applyTextStyle(el, s) {
     el.style.fontFamily = s.font;
     el.style.fontSize = (s.size * scale) + "px";
@@ -373,29 +493,21 @@ const Editor = (function () {
     el.style.fontWeight = s.bold ? "900" : "400";
     el.dataset.naturalSize = s.size;
     const strokes = [
-      `-1px -1px 0 ${s.stroke}`,
-      `1px -1px 0 ${s.stroke}`,
-      `-1px 1px 0 ${s.stroke}`,
-      `1px 1px 0 ${s.stroke}`,
-      `0 -1px 0 ${s.stroke}`,
-      `0 1px 0 ${s.stroke}`,
-      `-1px 0 0 ${s.stroke}`,
-      `1px 0 0 ${s.stroke}`,
+      `-1px -1px 0 ${s.stroke}`, `1px -1px 0 ${s.stroke}`,
+      `-1px 1px 0 ${s.stroke}`, `1px 1px 0 ${s.stroke}`,
+      `0 -1px 0 ${s.stroke}`, `0 1px 0 ${s.stroke}`,
+      `-1px 0 0 ${s.stroke}`, `1px 0 0 ${s.stroke}`
     ];
     if (s.shadow) strokes.push(`2px 2px 4px rgba(0,0,0,0.6)`);
     el.style.textShadow = strokes.join(", ");
   }
 
-  // ============================================================
-  //  RENDU DES TRANSFORMATIONS
-  // ============================================================
-
-  // ---- Application du transform (position + taille + rotation + flip) ----
   function applyTransform(el, data) {
-    if (data.type === "arrow") {
-      // les flèches gèrent leur propre rendu via renderArrow()
-      renderArrow(el, data);
-      return;
+    switch (data.type) {
+      case "arrow":    renderArrow(el, data); return;
+      case "polyline": trace.render(el, data); return;
+      case "borne":    renderMarker(el, data); return;
+      case "baie":     renderBaie(el, data); return;
     }
     el.style.left = (data.x * scale) + "px";
     el.style.top = (data.y * scale) + "px";
@@ -405,65 +517,93 @@ const Editor = (function () {
     } else {
       el.style.fontSize = (data.size * scale) + "px";
     }
-    // Compose rotation + flip (uniquement pour images)
     let transform = `rotate(${data.rotation || 0}deg)`;
     if (data.type === "image") {
       const sx = data.flipH ? -1 : 1;
       const sy = data.flipV ? -1 : 1;
-      if (sx !== 1 || sy !== 1) {
-        transform += ` scale(${sx}, ${sy})`;
-      }
+      if (sx !== 1 || sy !== 1) transform += ` scale(${sx}, ${sy})`;
     }
     el.style.transform = transform;
   }
 
-  // ---- Rendu d'une flèche : SVG positionné sur la stage ----
-  function renderArrow(wrapper, d) {
-    // On place le wrapper à 0,0 et il a la taille de la stage,
-    // le SVG dedans dessine la flèche en coords naturelles → on le met à l'échelle
+  // Wrapper couvrant toute la scène + SVG en coordonnées naturelles
+  function prepareFullStageSvg(wrapper) {
     wrapper.style.left = "0";
     wrapper.style.top = "0";
     wrapper.style.width = (stageW * scale) + "px";
     wrapper.style.height = (stageH * scale) + "px";
     wrapper.style.transform = "none";
-    wrapper.style.pointerEvents = "none"; // le SVG seul reçoit les events
-
-    // (Re)construire ou mettre à jour le SVG
-    let svg = wrapper.querySelector("svg");
+    wrapper.style.pointerEvents = "none";
+    let svg = wrapper.querySelector("svg.full-stage");
     if (!svg) {
-      svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
-      svg.style.width = "100%";
-      svg.style.height = "100%";
+      svg = document.createElementNS(SVGNS, "svg");
+      svg.setAttribute("class", "full-stage");
       svg.style.position = "absolute";
       svg.style.left = "0";
       svg.style.top = "0";
+      svg.style.width = "100%";
+      svg.style.height = "100%";
       svg.style.overflow = "visible";
       svg.style.pointerEvents = "none";
-      wrapper.appendChild(svg);
+      wrapper.insertBefore(svg, wrapper.firstChild);
     }
     svg.setAttribute("viewBox", `0 0 ${stageW} ${stageH}`);
-    svg.innerHTML = ""; // on régénère
+    svg.innerHTML = "";
+    return svg;
+  }
 
-    // Ligne (le tronc de la flèche) — on s'arrête avant la pointe
-    const dx = d.x2 - d.x1;
-    const dy = d.y2 - d.y1;
+  // Géométrie d'une pointe de flèche entre (x1,y1) → (x2,y2)
+  function headGeom(x1, y1, x2, y2, thickness, headSize) {
+    const dx = x2 - x1, dy = y2 - y1;
     const len = Math.hypot(dx, dy);
-    if (len < 1) return;
-
-    // Géométrie de la pointe en triangle
-    const head = Math.max(d.thickness * 1.8, d.headSize);
-    // On rétrécit la ligne pour ne pas dépasser dans la pointe
+    const head = Math.max(thickness * 1.8, headSize);
     const shrink = Math.min(head * 0.6, len * 0.3);
-    const tx = d.x1 + dx * (1 - shrink / len);
-    const ty = d.y1 + dy * (1 - shrink / len);
+    const tx = len > 0 ? x1 + dx * (1 - shrink / len) : x2;
+    const ty = len > 0 ? y1 + dy * (1 - shrink / len) : y2;
+    const ang = Math.atan2(dy, dx);
+    const halfBase = head * 0.55;
+    const baseX = x2 - Math.cos(ang) * head;
+    const baseY = y2 - Math.sin(ang) * head;
+    return {
+      len, head, tx, ty,
+      tri: [
+        [x2, y2],
+        [baseX + Math.cos(ang + Math.PI / 2) * halfBase, baseY + Math.sin(ang + Math.PI / 2) * halfBase],
+        [baseX - Math.cos(ang + Math.PI / 2) * halfBase, baseY - Math.sin(ang + Math.PI / 2) * halfBase]
+      ]
+    };
+  }
 
-    // Tronc
-    const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+  function hitWidth(thickness) {
+    const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+    return Math.max((isTouch ? 44 : 30) / Math.max(scale, 0.05), thickness * (isTouch ? 6 : 4));
+  }
+
+  function selectionBox(svg, minX, minY, maxX, maxY) {
+    const box = document.createElementNS(SVGNS, "rect");
+    box.setAttribute("x", minX);
+    box.setAttribute("y", minY);
+    box.setAttribute("width", maxX - minX);
+    box.setAttribute("height", maxY - minY);
+    box.setAttribute("fill", "none");
+    box.setAttribute("stroke", "#2e75b6");
+    box.setAttribute("stroke-width", 2 / scale);
+    box.setAttribute("stroke-dasharray", `${6 / scale},${4 / scale}`);
+    box.style.pointerEvents = "none";
+    svg.appendChild(box);
+  }
+
+  // ---- Flèche simple ----
+  function renderArrow(wrapper, d) {
+    const svg = prepareFullStageSvg(wrapper);
+    const g = headGeom(d.x1, d.y1, d.x2, d.y2, d.thickness, d.headSize);
+    if (g.len < 1) return;
+
+    const line = document.createElementNS(SVGNS, "line");
     line.setAttribute("x1", d.x1);
     line.setAttribute("y1", d.y1);
-    line.setAttribute("x2", tx);
-    line.setAttribute("y2", ty);
+    line.setAttribute("x2", g.tx);
+    line.setAttribute("y2", g.ty);
     line.setAttribute("stroke", d.color);
     line.setAttribute("stroke-width", d.thickness);
     line.setAttribute("stroke-linecap", "round");
@@ -471,73 +611,107 @@ const Editor = (function () {
     line.style.cursor = "grab";
     svg.appendChild(line);
 
-    // Triangle de la pointe
-    const ang = Math.atan2(dy, dx);
-    const halfBase = head * 0.55;
-    const baseX = d.x2 - Math.cos(ang) * head;
-    const baseY = d.y2 - Math.sin(ang) * head;
-    const px1 = baseX + Math.cos(ang + Math.PI / 2) * halfBase;
-    const py1 = baseY + Math.sin(ang + Math.PI / 2) * halfBase;
-    const px2 = baseX - Math.cos(ang + Math.PI / 2) * halfBase;
-    const py2 = baseY - Math.sin(ang + Math.PI / 2) * halfBase;
-
-    const tri = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-    tri.setAttribute("points", `${d.x2},${d.y2} ${px1},${py1} ${px2},${py2}`);
+    const tri = document.createElementNS(SVGNS, "polygon");
+    tri.setAttribute("points", g.tri.map(p => p.join(",")).join(" "));
     tri.setAttribute("fill", d.color);
     tri.style.pointerEvents = "auto";
     tri.style.cursor = "grab";
     svg.appendChild(tri);
 
-    // Si sélectionnée, on dessine une zone de hit "fat" invisible le long de la ligne
-    // pour faciliter le clic
-    const hit = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    const hit = document.createElementNS(SVGNS, "line");
     hit.setAttribute("x1", d.x1);
     hit.setAttribute("y1", d.y1);
     hit.setAttribute("x2", d.x2);
     hit.setAttribute("y2", d.y2);
     hit.setAttribute("stroke", "transparent");
-    // /// AMÉLIORATION TACTILE : zone de capture beaucoup plus large
-    // Détecte si on est sur un appareil tactile pour augmenter encore la zone
-    const isTouchDevice = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
-    const touchMultiplier = isTouchDevice ? 6 : 4;
-    const touchMin = isTouchDevice ? 44 : 30;
-    hit.setAttribute("stroke-width", Math.max(touchMin, d.thickness * touchMultiplier));
+    hit.setAttribute("stroke-width", hitWidth(d.thickness));
     hit.setAttribute("stroke-linecap", "round");
     hit.style.pointerEvents = "stroke";
     hit.style.cursor = "grab";
     svg.appendChild(hit);
 
-    // sélection visuelle (cadre pointillé)
     if (wrapper.classList.contains("selected")) {
-      const minX = Math.min(d.x1, d.x2) - head;
-      const minY = Math.min(d.y1, d.y2) - head;
-      const maxX = Math.max(d.x1, d.x2) + head;
-      const maxY = Math.max(d.y1, d.y2) + head;
-      const box = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      box.setAttribute("x", minX);
-      box.setAttribute("y", minY);
-      box.setAttribute("width", maxX - minX);
-      box.setAttribute("height", maxY - minY);
-      box.setAttribute("fill", "none");
-      box.setAttribute("stroke", "#2e75b6");
-      box.setAttribute("stroke-width", 2 / scale);
-      box.setAttribute("stroke-dasharray", `${6 / scale},${4 / scale}`);
-      box.style.pointerEvents = "none";
-      svg.appendChild(box);
+      selectionBox(svg,
+        Math.min(d.x1, d.x2) - g.head, Math.min(d.y1, d.y2) - g.head,
+        Math.max(d.x1, d.x2) + g.head, Math.max(d.y1, d.y2) + g.head);
     }
+  }
+
+  // ---- Borne ----
+  function markerIconSvg(color) {
+    const arc = (r) => {
+      const c = Math.SQRT1_2;
+      return `<path d="M ${50 - r * c} ${68 - r * c} A ${r} ${r} 0 0 1 ${50 + r * c} ${68 - r * c}" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round"/>`;
+    };
+    return `<circle cx="50" cy="50" r="46" fill="#ffffff" stroke="${color}" stroke-width="7"/>` +
+      arc(14) + arc(26) + arc(38) +
+      `<circle cx="50" cy="68" r="6" fill="${color}"/>`;
+  }
+
+  function resolveMarker(d) {
+    const o = ownerInfo(d.owner);
+    return { color: o ? o.color : (d.color || FREE_COLOR), label: o ? o.nom : (d.label || "Borne") };
+  }
+
+  function renderMarker(el, d) {
+    const { color, label } = resolveMarker(d);
+    const s = d.size * scale;
+    el.style.left = ((d.x - d.size / 2) * scale) + "px";
+    el.style.top = ((d.y - d.size / 2) * scale) + "px";
+    el.style.width = s + "px";
+    el.style.height = s + "px";
+    el.style.transform = "none";
+    const icon = el.querySelector(".bm-icon");
+    if (icon) icon.innerHTML = markerIconSvg(color);
+    const lab = el.querySelector(".bm-label");
+    if (lab) {
+      const fs = Math.max(10, d.size * 0.42) * scale;
+      lab.textContent = label;
+      lab.style.background = color;
+      lab.style.fontSize = fs + "px";
+      lab.style.padding = `${fs * 0.25}px ${fs * 0.45}px`;
+      lab.style.borderRadius = `${fs * 0.3}px`;
+      lab.style.top = `${s + d.size * 0.08 * scale}px`;
+    }
+  }
+
+  // ---- Baie ----
+  function renderBaie(el, d) {
+    el.style.left = (d.x * scale) + "px";
+    el.style.top = (d.y * scale) + "px";
+    el.style.width = (d.w * scale) + "px";
+    el.style.height = (d.h * scale) + "px";
+    el.style.transform = `rotate(${d.rotation || 0}deg)`;
+    const box = el.querySelector(".baie-box");
+    if (box) {
+      box.style.borderWidth = Math.max(1, d.lw * scale) + "px";
+      box.style.borderStyle = d.existante ? "solid" : "dashed";
+    }
+    const fs = baieFontSize(d);
+    const title = el.querySelector(".baie-title");
+    if (title) title.style.fontSize = (fs * scale) + "px";
+    const sub = el.querySelector(".baie-sub");
+    if (sub) {
+      sub.style.display = d.existante ? "none" : "block";
+      sub.style.fontSize = (fs * 0.45 * scale) + "px";
+    }
+  }
+
+  function baieFontSize(d) {
+    return Math.max(8, Math.min(d.w * 0.26, d.h * (d.existante ? 0.45 : 0.36)));
   }
 
   // ============================================================
   //  SÉLECTION + POIGNÉES
   // ============================================================
+  function isLineType(t) { return t === "arrow" || t === "polyline"; }
 
   function select(el) {
     if (selectedEl) {
       selectedEl.classList.remove("selected");
       [...selectedEl.querySelectorAll(".handle")].forEach(h => h.remove());
-      // Pour les flèches : redessiner sans le cadre de sélection
-      if (selectedEl._data && selectedEl._data.type === "arrow") {
-        renderArrow(selectedEl, selectedEl._data);
+      if (selectedEl._data && isLineType(selectedEl._data.type)) {
+        applyTransform(selectedEl, selectedEl._data);
       }
     }
     selectedEl = el;
@@ -546,9 +720,13 @@ const Editor = (function () {
       return;
     }
     el.classList.add("selected");
-    if (el._data.type === "arrow") {
-      renderArrow(el, el._data); // redessiner avec cadre
+    const t = el._data.type;
+    if (t === "arrow") {
+      renderArrow(el, el._data);
       addArrowHandles(el);
+    } else if (t === "polyline") {
+      trace.render(el, el._data);
+      trace.addHandles(el);
     } else {
       addHandles(el);
     }
@@ -556,20 +734,21 @@ const Editor = (function () {
   }
 
   function addHandles(el) {
-    // Resize (bottom-right)
+    [...el.querySelectorAll(".handle")].forEach(h => h.remove());
+    const t = el._data.type;
     const r = document.createElement("div");
     r.className = "handle resize";
     el.appendChild(r);
     r.addEventListener("pointerdown", startResize);
 
-    // Rotate (top center)
-    const rot = document.createElement("div");
-    rot.className = "handle rotate";
-    rot.title = "Pivoter";
-    el.appendChild(rot);
-    rot.addEventListener("pointerdown", startRotate);
+    if (t !== "borne") {
+      const rot = document.createElement("div");
+      rot.className = "handle rotate";
+      rot.title = "Pivoter";
+      el.appendChild(rot);
+      rot.addEventListener("pointerdown", startRotate);
+    }
 
-    // Delete (top right)
     const d = document.createElement("div");
     d.className = "handle delete";
     d.textContent = "✕";
@@ -581,24 +760,22 @@ const Editor = (function () {
     });
   }
 
-  // ---- Poignées spécifiques aux flèches : 2 extrémités ----
-  function addArrowHandles(el) {
-    const data = el._data;
-    // Poignée à chaque extrémité
-    const h1 = document.createElement("div");
-    h1.className = "handle arrow-end";
-    h1.style.background = "#fff";
-    h1.style.border = "2px solid #2e75b6";
-    el.appendChild(h1);
+  function makePointHandle(el, filled) {
+    const h = document.createElement("div");
+    h.className = "handle arrow-end";
+    h.style.background = filled ? "#2e75b6" : "#fff";
+    h.style.border = filled ? "2px solid #fff" : "2px solid #2e75b6";
+    el.appendChild(h);
+    return h;
+  }
 
-    const h2 = document.createElement("div");
-    h2.className = "handle arrow-end";
-    h2.style.background = "#2e75b6";
-    h2.style.border = "2px solid #fff";
-    h2.title = "Pointe de la flèche";
-    el.appendChild(h2);
+  function placeAt(h, x, y) {
+    const half = (h.offsetWidth || 16) / 2;
+    h.style.left = (x * scale - half) + "px";
+    h.style.top = (y * scale - half) + "px";
+  }
 
-    // Bouton supprimer (au milieu, légèrement décalé)
+  function makeDeleteHandle(el) {
     const del = document.createElement("div");
     del.className = "handle delete arrow-delete";
     del.textContent = "✕";
@@ -608,42 +785,39 @@ const Editor = (function () {
       e.stopPropagation();
       deleteElement(el);
     });
+    return del;
+  }
 
+  function addArrowHandles(el) {
+    const data = el._data;
+    const h1 = makePointHandle(el, false);
+    const h2 = makePointHandle(el, true);
+    h2.title = "Pointe de la flèche";
+    const del = makeDeleteHandle(el);
     function placeHandles() {
-      h1.style.left = (data.x1 * scale - 8) + "px";
-      h1.style.top  = (data.y1 * scale - 8) + "px";
-      h2.style.left = (data.x2 * scale - 8) + "px";
-      h2.style.top  = (data.y2 * scale - 8) + "px";
-      // bouton supprimer : juste au-dessus du milieu de la flèche
+      placeAt(h1, data.x1, data.y1);
+      placeAt(h2, data.x2, data.y2);
       const mx = (data.x1 + data.x2) / 2;
       const my = Math.min(data.y1, data.y2);
       del.style.left = (mx * scale - 8) + "px";
-      del.style.top  = (my * scale - 28) + "px";
+      del.style.top = (my * scale - 28) + "px";
     }
     placeHandles();
     el._placeArrowHandles = placeHandles;
-
-    h1.addEventListener("pointerdown", (e) => startArrowEndDrag(e, el, "p1"));
-    h2.addEventListener("pointerdown", (e) => startArrowEndDrag(e, el, "p2"));
+    h1.addEventListener("pointerdown", (e) => startPointDrag(e, el, (x, y) => { data.x1 = x; data.y1 = y; }, [data.x1, data.y1]));
+    h2.addEventListener("pointerdown", (e) => startPointDrag(e, el, (x, y) => { data.x2 = x; data.y2 = y; }, [data.x2, data.y2]));
   }
 
-  function startArrowEndDrag(e, el, which) {
+  function startPointDrag(e, el, setter, origin) {
     e.stopPropagation();
     e.preventDefault();
-    const data = el._data;
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const ox = which === "p1" ? data.x1 : data.x2;
-    const oy = which === "p1" ? data.y1 : data.y2;
-
+    const startX = e.clientX, startY = e.clientY;
+    const [ox, oy] = origin;
     function onMove(ev) {
-      const dx = (ev.clientX - startX) / scale;
-      const dy = (ev.clientY - startY) / scale;
-      const nx = Math.max(0, Math.min(stageW, ox + dx));
-      const ny = Math.max(0, Math.min(stageH, oy + dy));
-      if (which === "p1") { data.x1 = nx; data.y1 = ny; }
-      else                { data.x2 = nx; data.y2 = ny; }
-      renderArrow(el, data);
+      const nx = clamp(ox + (ev.clientX - startX) / scale, 0, stageW);
+      const ny = clamp(oy + (ev.clientY - startY) / scale, 0, stageH);
+      setter(nx, ny);
+      applyTransform(el, el._data);
       if (el._placeArrowHandles) el._placeArrowHandles();
     }
     function onUp() {
@@ -664,26 +838,41 @@ const Editor = (function () {
   }
 
   // ============================================================
-  //  PANEL DE SÉLECTION (flip H/V, couleur de flèche, etc.)
+  //  PANNEAU « ÉLÉMENT SÉLECTIONNÉ »
   // ============================================================
-
   function showSelectionPanel(data) {
     const panel = document.getElementById("selectionPanel");
     if (!panel) return;
-    // Sections distinctes selon le type
-    const imgPanel = document.getElementById("selPanelImage");
-    const arrPanel = document.getElementById("selPanelArrow");
+    const show = (id, on) => {
+      const e = document.getElementById(id);
+      if (e) e.style.display = on ? "block" : "none";
+    };
     panel.style.display = "block";
-    imgPanel.style.display = (data.type === "image") ? "block" : "none";
-    arrPanel.style.display = (data.type === "arrow") ? "block" : "none";
+    show("selPanelImage", data.type === "image");
+    show("selPanelArrow", isLineType(data.type));
+    trace.syncPanel(data);
+    show("selPanelBaie", data.type === "baie");
+    show("selPanelBorne", data.type === "borne");
+    show("selOwnerRow", isLineType(data.type) && usesOwners());
 
     if (data.type === "image") {
       document.getElementById("flipHBtn").classList.toggle("active", !!data.flipH);
       document.getElementById("flipVBtn").classList.toggle("active", !!data.flipV);
-    } else if (data.type === "arrow") {
+    } else if (isLineType(data.type)) {
       document.getElementById("selArrowColor").value = data.color;
       document.getElementById("selArrowThickness").value = data.thickness;
       document.getElementById("selArrowHeadSize").value = data.headSize;
+      if (usesOwners()) {
+        const sel = document.getElementById("selOwnerSelect");
+        fillOwnerSelect(sel, { withFree: true });
+        sel.value = (data.owner && ownerInfo(data.owner)) ? data.owner : "";
+      }
+    } else if (data.type === "baie") {
+      document.getElementById("baieExistBtn").classList.toggle("active", !!data.existante);
+      document.getElementById("baieNewBtn").classList.toggle("active", !data.existante);
+    } else if (data.type === "borne") {
+      const info = document.getElementById("selBorneInfo");
+      if (info) info.textContent = resolveMarker(data).label;
     }
   }
 
@@ -693,39 +882,28 @@ const Editor = (function () {
   }
 
   // ============================================================
-  //  DRAG / RESIZE / ROTATE (images & textes)
+  //  DRAG / RESIZE / ROTATE
   // ============================================================
-
   function attachHandlers(el) {
     el.addEventListener("pointerdown", (e) => {
-      if (e.target.classList.contains("handle")) return;
-      if (e.target.tagName === "polygon" || e.target.tagName === "line") {
-        // c'est une flèche : on sélectionne et on drag (translation entière)
-        e.stopPropagation();
-        e.preventDefault();
-        select(el);
-        if (el._data.type === "arrow") startArrowDrag(e, el);
-        return;
-      }
+      if (trace.isDrawing()) return;
+      if (e.target.classList && e.target.classList.contains("handle")) return;
       e.stopPropagation();
       e.preventDefault();
       select(el);
-      if (el._data.type !== "arrow") startDrag(e, el);
+      if (el._data.type === "polyline") trace.startMove(e, el);
+      else if (el._data.type === "arrow") startLineDrag(e, el);
+      else startDrag(e, el);
     });
   }
 
   function startDrag(e, el) {
     const data = el._data;
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const origX = data.x;
-    const origY = data.y;
-
+    const startX = e.clientX, startY = e.clientY;
+    const origX = data.x, origY = data.y;
     function onMove(ev) {
-      const dx = (ev.clientX - startX) / scale;
-      const dy = (ev.clientY - startY) / scale;
-      data.x = origX + dx;
-      data.y = origY + dy;
+      data.x = origX + (ev.clientX - startX) / scale;
+      data.y = origY + (ev.clientY - startY) / scale;
       applyTransform(el, data);
     }
     function onUp() {
@@ -736,18 +914,22 @@ const Editor = (function () {
     window.addEventListener("pointerup", onUp);
   }
 
-  function startArrowDrag(e, el) {
+  function startLineDrag(e, el) {
     const data = el._data;
-    const startX = e.clientX;
-    const startY = e.clientY;
-    const ox1 = data.x1, oy1 = data.y1, ox2 = data.x2, oy2 = data.y2;
-
+    const startX = e.clientX, startY = e.clientY;
+    const orig = data.type === "arrow"
+      ? { x1: data.x1, y1: data.y1, x2: data.x2, y2: data.y2 }
+      : { points: data.points.map(p => ({ x: p.x, y: p.y })) };
     function onMove(ev) {
       const dx = (ev.clientX - startX) / scale;
       const dy = (ev.clientY - startY) / scale;
-      data.x1 = ox1 + dx; data.y1 = oy1 + dy;
-      data.x2 = ox2 + dx; data.y2 = oy2 + dy;
-      renderArrow(el, data);
+      if (data.type === "arrow") {
+        data.x1 = orig.x1 + dx; data.y1 = orig.y1 + dy;
+        data.x2 = orig.x2 + dx; data.y2 = orig.y2 + dy;
+      } else {
+        data.points.forEach((p, i) => { p.x = orig.points[i].x + dx; p.y = orig.points[i].y + dy; });
+      }
+      applyTransform(el, data);
       if (el._placeArrowHandles) el._placeArrowHandles();
     }
     function onUp() {
@@ -764,41 +946,34 @@ const Editor = (function () {
     const el = selectedEl;
     if (!el) return;
     const data = el._data;
-    const startX = e.clientX;
-    const startY = e.clientY;
+    const startX = e.clientX, startY = e.clientY;
+    const orig = JSON.parse(JSON.stringify(data));
 
-    if (data.type === "image") {
-      const origW = data.w;
-      const origH = data.h;
-      const ratio = origH / origW;
-      function onMove(ev) {
-        const dx = (ev.clientX - startX) / scale;
-        const newW = Math.max(20, origW + dx);
-        data.w = newW;
-        data.h = newW * ratio;
-        applyTransform(el, data);
+    function onMove(ev) {
+      const dx = (ev.clientX - startX) / scale;
+      const dy = (ev.clientY - startY) / scale;
+      if (data.type === "image") {
+        const ratio = orig.h / orig.w;
+        data.w = Math.max(20, orig.w + dx);
+        data.h = data.w * ratio;
+      } else if (data.type === "borne") {
+        data.size = Math.max(20, orig.size + dx * 2);
+        data.x = orig.x;
+        data.y = orig.y;
+      } else if (data.type === "baie") {
+        data.w = Math.max(20, orig.w + dx);
+        data.h = Math.max(14, orig.h + dy);
+      } else {
+        data.size = Math.max(10, orig.size + dx * 0.5);
       }
-      function onUp() {
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", onUp);
-      }
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
-    } else {
-      const origSize = data.size;
-      function onMove(ev) {
-        const dx = (ev.clientX - startX) / scale;
-        const newSize = Math.max(10, origSize + dx * 0.5);
-        data.size = newSize;
-        applyTransform(el, data);
-      }
-      function onUp() {
-        window.removeEventListener("pointermove", onMove);
-        window.removeEventListener("pointerup", onUp);
-      }
-      window.addEventListener("pointermove", onMove);
-      window.addEventListener("pointerup", onUp);
+      applyTransform(el, data);
     }
+    function onUp() {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    }
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
   }
 
   function startRotate(e) {
@@ -811,7 +986,7 @@ const Editor = (function () {
     const cx = rect.left + rect.width / 2;
     const cy = rect.top + rect.height / 2;
     const startAngle = Math.atan2(e.clientY - cy, e.clientX - cx) * 180 / Math.PI;
-    const origRot = data.rotation;
+    const origRot = data.rotation || 0;
     function onMove(ev) {
       const a = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI;
       data.rotation = origRot + (a - startAngle);
@@ -825,21 +1000,22 @@ const Editor = (function () {
     window.addEventListener("pointerup", onUp);
   }
 
-  // ---- Désélection au clic sur la stage ----
+  // ---- Clic sur la scène : désélection (les points du tracé sont gérés par annotation-trace.js) ----
   function setupStageClick() {
-    document.getElementById("editorStage").addEventListener("pointerdown", (e) => {
-      if (e.target === stageEl || e.target === bgPhotoEl) {
-        select(null);
-      }
+    const stage = document.getElementById("editorStage");
+    stage.addEventListener("pointerdown", (e) => {
+      if (trace.isDrawing()) return;
+      if (e.target === stageEl || e.target === bgPhotoEl) select(null);
     });
   }
 
-  // ---- Suppression au clavier ----
   function setupKeyboard() {
     document.addEventListener("keydown", (e) => {
       if (!document.getElementById("editorOverlay").classList.contains("shown")) return;
+      const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName);
+      if (trace.isDrawing()) return;   // Entrée / Échap / Retour arrière : gérés par l'outil Tracé
       if ((e.key === "Delete" || e.key === "Backspace") && selectedEl) {
-        if (["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) return;
+        if (typing) return;
         e.preventDefault();
         deleteElement(selectedEl);
       }
@@ -847,70 +1023,80 @@ const Editor = (function () {
     });
   }
 
-  // ---- Aperçu du style de texte ----
   function updateTextPreview() {
     const prev = document.getElementById("textPreview");
+    if (!prev) return;
     const txt = document.getElementById("textInput").value || "Aperçu";
-    const font = document.getElementById("textFont").value;
-    const size = parseInt(document.getElementById("textSize").value, 10) || 20;
-    const color = document.getElementById("textColor").value;
-    const stroke = document.getElementById("textStroke").value;
-    const bold = document.getElementById("textBold").checked;
-    const shadow = document.getElementById("textShadow").checked;
+    const s = {
+      font: document.getElementById("textFont").value,
+      size: parseInt(document.getElementById("textSize").value, 10) || 20,
+      color: document.getElementById("textColor").value,
+      stroke: document.getElementById("textStroke").value,
+      bold: document.getElementById("textBold").checked,
+      shadow: document.getElementById("textShadow").checked
+    };
     prev.textContent = txt;
-    applyTextStyle(prev, { font, size, color, stroke, bold, shadow });
-    prev.style.fontSize = Math.min(size, 30) + "px";
+    const keepScale = scale;
+    scale = 1;
+    applyTextStyle(prev, s);
+    scale = keepScale;
+    prev.style.fontSize = Math.min(s.size, 30) + "px";
   }
 
   // ============================================================
-  //  EXPORT — rendu canvas haute résolution
+  //  RENDU CANVAS (export et rendu « à froid »)
   // ============================================================
-
-  async function exportAnnotated() {
-    const canvas = document.createElement("canvas");
-    canvas.width = stageW;
-    canvas.height = stageH;
-    const ctx = canvas.getContext("2d");
-
-    // 1) Photo de fond
-    await new Promise((resolve) => {
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
       const img = new Image();
-      img.onload = () => {
-        ctx.drawImage(img, 0, 0, stageW, stageH);
-        resolve();
-      };
-      img.src = bgPhotoEl.src;
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("image"));
+      img.src = src;
     });
+  }
 
-    // 2) Chaque élément, dans l'ordre du DOM (=> z-order correct)
-    for (const it of elements) {
-      const d = it.data;
-      if (d.type === "image") {
-        await drawImageEl(ctx, d);
-      } else if (d.type === "text") {
-        drawTextEl(ctx, d);
-      } else if (d.type === "arrow") {
-        drawArrowEl(ctx, d);
-      }
+  async function drawAll(c, anns) {
+    for (const d of anns) {
+      if (!d || !d.type) continue;
+      if (d.type === "image") await drawImageEl(c, d);
+      else if (d.type === "text") drawTextEl(c, d);
+      else if (d.type === "arrow") drawArrowEl(c, d);
+      else if (d.type === "polyline") trace.drawCanvas(c, d);
+      else if (d.type === "borne") drawMarkerEl(c, d);
+      else if (d.type === "baie") drawBaieEl(c, d);
     }
+  }
 
+  async function renderToCanvas(bgSrc, w, h, anns) {
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const c = canvas.getContext("2d");
+    c.fillStyle = "#FFFFFF";
+    c.fillRect(0, 0, w, h);
+    const img = await loadImage(bgSrc);
+    c.drawImage(img, 0, 0, w, h);
+    await drawAll(c, anns);
     return canvas;
   }
 
-  function drawImageEl(ctx, d) {
+  async function exportAnnotated() {
+    const anns = elements.map(it => it.data);
+    return renderToCanvas(bgPhotoEl.src, stageW, stageH, anns);
+  }
+
+  function drawImageEl(c, d) {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
-        ctx.save();
-        const cx = d.x + d.w / 2;
-        const cy = d.y + d.h / 2;
-        ctx.translate(cx, cy);
-        ctx.rotate((d.rotation || 0) * Math.PI / 180);
+        c.save();
+        c.translate(d.x + d.w / 2, d.y + d.h / 2);
+        c.rotate((d.rotation || 0) * Math.PI / 180);
         const sx = d.flipH ? -1 : 1;
         const sy = d.flipV ? -1 : 1;
-        if (sx !== 1 || sy !== 1) ctx.scale(sx, sy);
-        ctx.drawImage(img, -d.w / 2, -d.h / 2, d.w, d.h);
-        ctx.restore();
+        if (sx !== 1 || sy !== 1) c.scale(sx, sy);
+        c.drawImage(img, -d.w / 2, -d.h / 2, d.w, d.h);
+        c.restore();
         resolve();
       };
       img.onerror = () => resolve();
@@ -918,190 +1104,316 @@ const Editor = (function () {
     });
   }
 
-  function drawTextEl(ctx, d) {
-    ctx.save();
-    const fontWeight = d.bold ? "900" : "400";
-    ctx.font = `${fontWeight} ${d.size}px ${d.font}`;
-    ctx.textBaseline = "top";
-    const metrics = ctx.measureText(d.text);
-    const textW = metrics.width;
+  function drawTextEl(c, d) {
+    c.save();
+    c.font = `${d.bold ? "900" : "400"} ${d.size}px ${d.font}`;
+    c.textBaseline = "top";
+    const textW = c.measureText(d.text).width;
     const textH = d.size * 1.1;
-    const cx = d.x + textW / 2;
-    const cy = d.y + textH / 2;
-    ctx.translate(cx, cy);
-    ctx.rotate(d.rotation * Math.PI / 180);
-
+    c.translate(d.x + textW / 2, d.y + textH / 2);
+    c.rotate((d.rotation || 0) * Math.PI / 180);
     if (d.shadow) {
-      ctx.shadowColor = "rgba(0,0,0,0.6)";
-      ctx.shadowBlur = 4;
-      ctx.shadowOffsetX = 2;
-      ctx.shadowOffsetY = 2;
+      c.shadowColor = "rgba(0,0,0,0.6)";
+      c.shadowBlur = 4;
+      c.shadowOffsetX = 2;
+      c.shadowOffsetY = 2;
     }
-    ctx.lineWidth = Math.max(2, d.size / 12);
-    ctx.strokeStyle = d.stroke;
-    ctx.lineJoin = "round";
-    ctx.miterLimit = 2;
-    ctx.strokeText(d.text, -textW / 2, -textH / 2);
-
-    ctx.shadowColor = "transparent";
-    ctx.fillStyle = d.color;
-    ctx.fillText(d.text, -textW / 2, -textH / 2);
-    ctx.restore();
+    c.lineWidth = Math.max(2, d.size / 12);
+    c.strokeStyle = d.stroke;
+    c.lineJoin = "round";
+    c.miterLimit = 2;
+    c.strokeText(d.text, -textW / 2, -textH / 2);
+    c.shadowColor = "transparent";
+    c.fillStyle = d.color;
+    c.fillText(d.text, -textW / 2, -textH / 2);
+    c.restore();
   }
 
-  function drawArrowEl(ctx, d) {
-    ctx.save();
-    const dx = d.x2 - d.x1;
-    const dy = d.y2 - d.y1;
-    const len = Math.hypot(dx, dy);
-    if (len < 1) { ctx.restore(); return; }
-
-    const head = Math.max(d.thickness * 1.8, d.headSize);
-    const shrink = Math.min(head * 0.6, len * 0.3);
-    const tx = d.x1 + dx * (1 - shrink / len);
-    const ty = d.y1 + dy * (1 - shrink / len);
-
-    // Tronc
-    ctx.beginPath();
-    ctx.moveTo(d.x1, d.y1);
-    ctx.lineTo(tx, ty);
-    ctx.strokeStyle = d.color;
-    ctx.lineWidth = d.thickness;
-    ctx.lineCap = "round";
-    ctx.stroke();
-
-    // Pointe
-    const ang = Math.atan2(dy, dx);
-    const halfBase = head * 0.55;
-    const baseX = d.x2 - Math.cos(ang) * head;
-    const baseY = d.y2 - Math.sin(ang) * head;
-    const px1 = baseX + Math.cos(ang + Math.PI / 2) * halfBase;
-    const py1 = baseY + Math.sin(ang + Math.PI / 2) * halfBase;
-    const px2 = baseX - Math.cos(ang + Math.PI / 2) * halfBase;
-    const py2 = baseY - Math.sin(ang + Math.PI / 2) * halfBase;
-
-    ctx.beginPath();
-    ctx.moveTo(d.x2, d.y2);
-    ctx.lineTo(px1, py1);
-    ctx.lineTo(px2, py2);
-    ctx.closePath();
-    ctx.fillStyle = d.color;
-    ctx.fill();
-    ctx.restore();
+  function fillTriangle(c, tri, color) {
+    c.beginPath();
+    c.moveTo(tri[0][0], tri[0][1]);
+    c.lineTo(tri[1][0], tri[1][1]);
+    c.lineTo(tri[2][0], tri[2][1]);
+    c.closePath();
+    c.fillStyle = color;
+    c.fill();
   }
 
-  // ---- Sauvegarde (appelée depuis le bouton "Enregistrer") ----
+  function drawArrowEl(c, d) {
+    const g = headGeom(d.x1, d.y1, d.x2, d.y2, d.thickness, d.headSize);
+    if (g.len < 1) return;
+    c.save();
+    c.beginPath();
+    c.moveTo(d.x1, d.y1);
+    c.lineTo(g.tx, g.ty);
+    c.strokeStyle = d.color;
+    c.lineWidth = d.thickness;
+    c.lineCap = "round";
+    c.stroke();
+    fillTriangle(c, g.tri, d.color);
+    c.restore();
+  }
+
+  function roundRectPath(c, x, y, w, h, r) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.lineTo(x + w - r, y);
+    c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r);
+    c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r);
+    c.quadraticCurveTo(x, y, x + r, y);
+    c.closePath();
+  }
+
+  function drawMarkerEl(c, d) {
+    const { color, label } = resolveMarker(d);
+    const r = d.size / 2;
+    const k = d.size / 100;
+    c.save();
+    c.translate(d.x - r, d.y - r);
+    c.scale(k, k);
+    c.beginPath();
+    c.arc(50, 50, 46, 0, Math.PI * 2);
+    c.fillStyle = "#FFFFFF";
+    c.fill();
+    c.lineWidth = 7;
+    c.strokeStyle = color;
+    c.stroke();
+    c.lineCap = "round";
+    [14, 26, 38].forEach(rad => {
+      c.beginPath();
+      c.arc(50, 68, rad, -3 * Math.PI / 4, -Math.PI / 4);
+      c.stroke();
+    });
+    c.beginPath();
+    c.arc(50, 68, 6, 0, Math.PI * 2);
+    c.fillStyle = color;
+    c.fill();
+    c.restore();
+
+    // Étiquette avec le nom de la borne
+    const fs = Math.max(10, d.size * 0.42);
+    c.save();
+    c.font = `bold ${fs}px Arial, sans-serif`;
+    const tw = c.measureText(label).width;
+    const padX = fs * 0.45, padY = fs * 0.25;
+    const bw = tw + padX * 2, bh = fs + padY * 2;
+    const bx = d.x - bw / 2;
+    const by = d.y + r + d.size * 0.08;
+    roundRectPath(c, bx, by, bw, bh, fs * 0.3);
+    c.fillStyle = color;
+    c.fill();
+    c.fillStyle = "#FFFFFF";
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.fillText(label, d.x, by + bh / 2 + fs * 0.04);
+    c.restore();
+  }
+
+  function drawBaieEl(c, d) {
+    c.save();
+    c.translate(d.x + d.w / 2, d.y + d.h / 2);
+    c.rotate((d.rotation || 0) * Math.PI / 180);
+    const x = -d.w / 2, y = -d.h / 2;
+    c.fillStyle = "rgba(255,255,255,0.9)";
+    c.fillRect(x, y, d.w, d.h);
+    c.lineWidth = d.lw;
+    c.strokeStyle = BAIE_COLOR;
+    if (!d.existante) c.setLineDash([d.lw * 2.5, d.lw * 1.6]);
+    c.strokeRect(x + d.lw / 2, y + d.lw / 2, d.w - d.lw, d.h - d.lw);
+    c.setLineDash([]);
+    const fs = baieFontSize(d);
+    c.fillStyle = BAIE_COLOR;
+    c.textAlign = "center";
+    c.textBaseline = "middle";
+    c.font = `bold ${fs}px Arial, sans-serif`;
+    if (d.existante) {
+      c.fillText("BAIE", 0, fs * 0.04);
+    } else {
+      const sub = fs * 0.45;
+      const total = fs + sub * 1.1;
+      c.fillText("BAIE", 0, -total / 2 + fs / 2);
+      c.font = `italic ${sub}px Arial, sans-serif`;
+      c.fillText("à installer", 0, total / 2 - sub / 2);
+    }
+    c.restore();
+  }
+
+  // ---- Rendu « à froid » d'une photo annotée (sans ouvrir l'éditeur) ----
+  async function renderPhoto(photo) {
+    const src = photo.originalDataUrl || photo.dataUrl;
+    const img = await loadImage(src);
+    const w = img.naturalWidth, h = img.naturalHeight;
+    const canvas = await renderToCanvas(src, w, h, photo.annotations || []);
+    return { dataUrl: canvas.toDataURL("image/jpeg", 0.9), width: w, height: h };
+  }
+
+  // ============================================================
+  //  ENREGISTREMENT
+  // ============================================================
   async function save() {
     if (!currentPhotoKey) return;
-    const photo = photoStore[currentPhotoKey];
+    trace.commit();   // un tracé en cours (≥ 2 points) est gardé
+    const key = currentPhotoKey;
+    const photo = photoStore[key];
     if (!photo) return;
 
-    const canvas = await exportAnnotated();
-    const dataUrl = canvas.toDataURL("image/png");
+    // Libellés à jour dans les données (repli si la borne est supprimée plus tard)
+    elements.forEach(it => {
+      if (it.data.type === "borne") {
+        const r = resolveMarker(it.data);
+        it.data.label = r.label;
+        it.data.color = r.color;
+      }
+    });
 
-    const u8 = await dataUrlToUint8Array(dataUrl);
+    const canvas = await exportAnnotated();
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
 
     if (!photo.originalDataUrl) photo.originalDataUrl = photo.dataUrl;
-
-    photo.data = u8;
-    photo.type = "png";
+    photo.data = dataUrlToBytes(dataUrl);
+    photo.type = "jpg";
     photo.dataUrl = dataUrl;
+    photo.naturalWidth = stageW;
+    photo.naturalHeight = stageH;
     photo.annotated = true;
-
-    // ⭐ Sauvegarder les annotations pour une ré-édition future
-    // On clone profondément les data pour qu'ils soient indépendants des éléments DOM
     photo.annotations = elements.map(e => JSON.parse(JSON.stringify(e.data)));
 
-    const prev = document.getElementById("preview_" + currentPhotoKey);
+    const prev = document.getElementById("preview_" + key);
     if (prev) {
       prev.src = dataUrl;
       prev.classList.add("shown");
     }
 
+    const removals = pendingRemovals.slice();
     close();
+
+    const b = bridge();
+    for (const r of removals) {
+      if (b && b.removeBorneMarker) await b.removeBorneMarker(r.key, r.borneId);
+    }
+    if (b && b.afterSave) b.afterSave(key);
+    if (window.__autosaveSchedule) window.__autosaveSchedule();
   }
 
-  // ---- Helpers ----
   function uid() {
     return "el_" + Math.random().toString(36).slice(2, 9);
   }
 
-  async function dataUrlToUint8Array(dataUrl) {
-    const res = await fetch(dataUrl);
-    const buf = await res.arrayBuffer();
-    return new Uint8Array(buf);
+  function dataUrlToBytes(dataUrl) {
+    const bin = atob(dataUrl.split(",")[1] || "");
+    const out = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) out[i] = bin.charCodeAt(i);
+    return out;
   }
 
   // ============================================================
   //  INIT
   // ============================================================
-
+  let _initDone = false;
   function init() {
+    if (_initDone) return;
+    if (!document.getElementById("editorStage")) return;
+    _initDone = true;
+
     initThumbnails();
     setupStageClick();
     setupKeyboard();
 
-    // Helper pour attacher un listener seulement si l'élément existe
     const on = (id, evt, fn) => {
       const el = document.getElementById(id);
       if (el) el.addEventListener(evt, fn);
     };
 
-    // Boutons "Ajouter" assets
     document.querySelectorAll("[data-add-asset]").forEach(btn => {
       btn.addEventListener("click", () => addAsset(btn.dataset.addAsset));
     });
 
-    // Bouton "Ajouter texte" (gros bouton bleu en bas du panel texte)
     on("btnAddText", "click", addText);
-
-    // Bouton "Ajouter flèche" (legacy, peut ne pas exister)
-    on("btnAddArrow", "click", addArrow);
-
-    // ---- BOUTONS SIDEBAR (toolAddXxx) ----
     on("toolAddArrow", "click", addArrow);
     on("toolAddCircle", "click", addCircle);
+    on("toolAddMeasurePoint", "click", addMeasurePoint);
+    on("toolAddBorne", "click", addBorneMarker);
+    on("toolAddBaieExist", "click", () => addBaie(true));
+    on("toolAddBaieNew", "click", () => addBaie(false));
     on("toolAddText", "click", () => {
-      // Met le focus sur le champ texte ; si l'utilisateur a déjà tapé qqch, on ajoute direct
       const txt = document.getElementById("textInput");
-      if (txt && txt.value.trim()) {
-        addText();
-      } else if (txt) {
+      if (txt && txt.value.trim()) addText();
+      else if (txt) {
         txt.focus();
         txt.scrollIntoView({ behavior: "smooth", block: "nearest" });
       }
     });
-    on("toolAddMeasurePoint", "click", addMeasurePoint);
 
-    // Aperçu live texte
-    ["textInput","textFont","textSize","textColor","textStroke","textBold","textShadow"].forEach(id => {
-      on(id, "input", updateTextPreview);
+
+    // Borne active
+    on("ownerSelect", "change", (e) => setActiveOwner(e.target.value));
+
+    // Attribution d'une flèche / d'un tracé sélectionné à une borne
+    on("selOwnerSelect", "change", (e) => {
+      if (!selectedEl || !isLineType(selectedEl._data.type)) return;
+      const v = e.target.value;
+      selectedEl._data.owner = v || null;
+      if (v) {
+        const o = ownerInfo(v);
+        if (o) {
+          selectedEl._data.color = o.color;
+          document.getElementById("selArrowColor").value = o.color;
+        }
+      }
+      applyTransform(selectedEl, selectedEl._data);
     });
 
-    // Swatches couleur (texte)
-    document.querySelectorAll(".swatch").forEach(s => {
+    // Baie existante / à installer
+    const setBaieState = (existante) => {
+      if (!selectedEl || selectedEl._data.type !== "baie") return;
+      selectedEl._data.existante = existante;
+      applyTransform(selectedEl, selectedEl._data);
+      showSelectionPanel(selectedEl._data);
+    };
+    on("baieExistBtn", "click", () => setBaieState(true));
+    on("baieNewBtn", "click", () => setBaieState(false));
+
+    // Aperçu live du texte
+    ["textInput", "textFont", "textSize", "textColor", "textStroke", "textBold", "textShadow"].forEach(id => {
+      on(id, "input", updateTextPreview);
+    });
+    document.querySelectorAll(".swatch:not(.sel-arrow-swatch)").forEach(s => {
       s.addEventListener("click", () => {
         document.getElementById("textColor").value = s.dataset.color;
         updateTextPreview();
       });
     });
 
-    // Swatches couleur (flèche par défaut + sélection)
-    document.querySelectorAll(".arrow-swatch").forEach(s => {
-      s.addEventListener("click", () => {
-        document.getElementById("arrowColor").value = s.dataset.color;
-      });
-    });
+    // Couleur libre d'une flèche / d'un tracé (détache la borne)
+    const applyFreeColor = (color) => {
+      if (!selectedEl || !isLineType(selectedEl._data.type)) return;
+      selectedEl._data.color = color;
+      selectedEl._data.owner = null;
+      document.getElementById("selArrowColor").value = color;
+      const so = document.getElementById("selOwnerSelect");
+      if (so) so.value = "";
+      applyTransform(selectedEl, selectedEl._data);
+    };
     document.querySelectorAll(".sel-arrow-swatch").forEach(s => {
-      s.addEventListener("click", () => {
-        if (!selectedEl || selectedEl._data.type !== "arrow") return;
-        selectedEl._data.color = s.dataset.color;
-        document.getElementById("selArrowColor").value = s.dataset.color;
-        renderArrow(selectedEl, selectedEl._data);
-      });
+      s.addEventListener("click", () => applyFreeColor(s.dataset.color));
+    });
+    on("selArrowColor", "input", (e) => applyFreeColor(e.target.value));
+    on("selArrowThickness", "input", (e) => {
+      if (!selectedEl || !isLineType(selectedEl._data.type)) return;
+      selectedEl._data.thickness = parseInt(e.target.value, 10) || 6;
+      applyTransform(selectedEl, selectedEl._data);
+    });
+    on("selArrowHeadSize", "input", (e) => {
+      if (!selectedEl || !isLineType(selectedEl._data.type)) return;
+      selectedEl._data.headSize = parseInt(e.target.value, 10) || 18;
+      applyTransform(selectedEl, selectedEl._data);
     });
 
-    // Boutons Flip H/V dans le panel de sélection
+    // Miroirs (images)
     const flipH = document.getElementById("flipHBtn");
     const flipV = document.getElementById("flipVBtn");
     if (flipH) flipH.addEventListener("click", () => {
@@ -1117,73 +1429,38 @@ const Editor = (function () {
       applyTransform(selectedEl, selectedEl._data);
     });
 
-    // Édition live des flèches sélectionnées
-    const selColor = document.getElementById("selArrowColor");
-    const selThick = document.getElementById("selArrowThickness");
-    const selHead  = document.getElementById("selArrowHeadSize");
-    if (selColor) selColor.addEventListener("input", () => {
-      if (!selectedEl || selectedEl._data.type !== "arrow") return;
-      selectedEl._data.color = selColor.value;
-      renderArrow(selectedEl, selectedEl._data);
-    });
-    if (selThick) selThick.addEventListener("input", () => {
-      if (!selectedEl || selectedEl._data.type !== "arrow") return;
-      selectedEl._data.thickness = parseInt(selThick.value, 10) || 6;
-      renderArrow(selectedEl, selectedEl._data);
-    });
-    if (selHead) selHead.addEventListener("input", () => {
-      if (!selectedEl || selectedEl._data.type !== "arrow") return;
-      selectedEl._data.headSize = parseInt(selHead.value, 10) || 18;
-      renderArrow(selectedEl, selectedEl._data);
-    });
-
     updateTextPreview();
 
-    // Resize de la fenêtre → réajuster
     window.addEventListener("resize", () => {
-      if (currentPhotoKey && stageW) {
-        fitStage();
-        elements.forEach(it => {
-          if (it.data.type === "text") {
-            applyTextStyle(it.el, it.data);
-          }
-          applyTransform(it.el, it.data);
-          if (it.data.type === "arrow" && it.el === selectedEl && it.el._placeArrowHandles) {
-            it.el._placeArrowHandles();
-          }
-        });
-      }
+      if (!currentPhotoKey || !stageW) return;
+      fitStage();
+      elements.forEach(it => {
+        if (it.data.type === "text") applyTextStyle(it.el, it.data);
+        applyTransform(it.el, it.data);
+        if (it.el === selectedEl) {
+          if (it.el._placeArrowHandles) it.el._placeArrowHandles();
+        }
+      });
     });
   }
 
-  return { init, open, close, save };
+  return { init, open, close, save, renderPhoto };
 })();
 
 // =============================================
 //  INITIALISATION ET EXPOSITION GLOBALE
 // =============================================
-
-// Initialisation immédiate (plus fiable car les scripts sont chargés à la fin)
 if (typeof Editor !== "undefined" && typeof Editor.init === "function") {
-    Editor.init();
+  Editor.init();
 }
-
-// Fallback au cas où
 document.addEventListener("DOMContentLoaded", () => {
-    if (typeof Editor !== "undefined" && typeof Editor.init === "function") {
-        Editor.init();
-    }
+  if (typeof Editor !== "undefined" && typeof Editor.init === "function") Editor.init();
 });
 
-// Exposer les fonctions pour le HTML et app.js
-window.closeEditor = function() {
-    if (Editor && typeof Editor.close === "function") Editor.close();
+window.closeEditor = function () {
+  if (Editor && typeof Editor.close === "function") Editor.close();
 };
-
-window.saveAnnotation = function() {
-    if (Editor && typeof Editor.save === "function") Editor.save();
+window.saveAnnotation = function () {
+  if (Editor && typeof Editor.save === "function") Editor.save();
 };
-
-// Rendre l'objet Editor accessible globalement
 window.Editor = Editor;
-

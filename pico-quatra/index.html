@@ -769,7 +769,7 @@
             .editor-toolbar .tool-group { margin-bottom: 10px; padding-bottom: 8px; }
             .editor-toolbar h3 { margin-bottom: 6px; }
             .tool-btn { margin-bottom: 5px; padding: 10px; font-size: 0.9rem; }
-            .editor-canvas-wrap { flex: 1; min-height: 340px; }
+            .editor-canvas-wrap { flex: 1 1 auto; min-height: 0; } /* prend la place restante : plus de débordement sous le pied */
             .handle { width: 28px; height: 28px; border-width: 3px; }
             .handle.resize { bottom: -14px; right: -14px; }
             .handle.rotate { top: -36px; width: 28px; height: 28px; }
@@ -1461,7 +1461,11 @@
 
                 <div class="tool-group">
                     <h3>Outils d'annotation</h3>
-                    <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche</button>
+                    <button type="button" class="tool-btn" id="toolAddPolyline">
+                        <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="currentColor"/></svg>
+                        Tracé (plusieurs points)
+                    </button>
+                    <button class="tool-btn" id="toolAddArrow">➡️ Ajouter une flèche simple</button>
                     <button class="tool-btn" id="toolAddCircle">⭕ Ajouter un cercle</button>
                     <button class="tool-btn" id="toolAddText">🅰️ Ajouter du texte</button>
                     <button class="tool-btn" id="toolAddMeasurePoint">📍 Ajouter un point de mesure</button>
@@ -1513,6 +1517,7 @@
                 <div class="tool-group">
                     <h3>Conseils</h3>
                     <p style="font-size:0.78rem; color:#555; margin:4px 0;">
+                        • <b>Tracé</b> : posez les points un par un (le point suit le doigt tant qu'il est posé), puis « Terminer » ou touchez deux fois le dernier point.<br>
                         • Glissez un élément pour le déplacer.<br>
                         • Coin bleu (bas-droite) : redimensionner.<br>
                         • Pastille orange (en haut) : pivoter.<br>
@@ -1541,6 +1546,7 @@
     <script src="../client-config.js"></script>
     <script src="assets.js"></script>
     <script src="data.js"></script>
+    <script src="../annotation-trace.js"></script>
     <script src="editor.js"></script>
     <script src="app.js"></script>
 

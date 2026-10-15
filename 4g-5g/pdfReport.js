@@ -219,7 +219,7 @@
 
     // ---------- Cheminements ----------
     function cheminementsBlock(photos) {
-        const items = document.querySelectorAll('.cheminement-item');
+        const items = document.querySelectorAll('#cheminementContainer .cheminement-item');
         if (!items.length) return "";
         let html = "";
         items.forEach((it) => {
@@ -232,6 +232,41 @@
                     ${comment ? `<div style="font-size:11px; margin:4px 4px 8px 4px;"><b>Commentaire :</b> ${nl2br(comment)}</div>` : ""}
                 </div>`;
         });
+        return html;
+    }
+
+    // ---------- Bornes / répéteurs intérieurs ----------
+    function bornesBlock() {
+        const rep = (typeof window.__bornesReport === "function") ? window.__bornesReport() : null;
+        if (!rep || !rep.bornes.length) return "";
+        let html = "";
+        rep.bornes.forEach((b) => {
+            html += `
+                <div class="no-break" style="margin:12px 0 4px 0; font-weight:700; color:${COL_TITLE}; font-size:12px;">
+                    <span style="display:inline-block; width:11px; height:11px; border-radius:50%; background:${b.color}; vertical-align:-1px; margin-right:6px;"></span>${htmlEscape(b.nom)}
+                </div>`;
+            const rows = [["Couleur sur les plans", b.colorName]];
+            if (b.emplacement) rows.push(["Emplacement", b.emplacement]);
+            rows.push(["Raccordée depuis", b.raccordement]);
+            rows.push(["Métrage de câble", b.metrage]);
+            rows.push(["Cheminement", b.cheminement || "Non renseigné"]);
+            if (b.percements) rows.push(["Percements", b.percements]);
+            rows.push(["Sur les plans", b.position]);
+            html += infoTable(rows);
+            b.photos.forEach(ph => {
+                html += `
+                <div class="no-break" style="margin:10px 0;">
+                    ${photoBlock(ph.title, ph.dataUrl, { maxH: 300 })}
+                    ${ph.comment ? `<div style="font-size:11px; margin:4px 4px 8px 4px;"><b>Commentaire :</b> ${nl2br(ph.comment)}</div>` : ""}
+                </div>`;
+            });
+        });
+        if (rep.synthese) {
+            html += `<div class="no-break" style="margin:12px 0; border:1px solid ${COL_BORDER}; border-radius:4px;">
+                <div style="background:${COL_LABEL_BG}; padding:6px 10px; font-weight:600; font-size:11px;">Synthèse par borne / répéteur</div>
+                <div style="padding:8px 10px; font-size:11px; white-space:pre-wrap;">${htmlEscape(rep.synthese)}</div>
+            </div>`;
+        }
         return html;
     }
 
@@ -324,6 +359,11 @@
         if (chemHtml) {
             html += subTitle("3.1", "Cheminements identifiés");
             html += chemHtml;
+        }
+        const bornesHtml = bornesBlock();
+        if (bornesHtml) {
+            html += subTitle(chemHtml ? "3.2" : "3.1", "Bornes / répéteurs intérieurs");
+            html += bornesHtml;
         }
 
         // === Section 4 : Points de mesure 4G ===

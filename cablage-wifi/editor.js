@@ -6,7 +6,7 @@
 //   • « Je trace pour » : chaque borne a sa couleur. Les flèches et
 //     les tracés prennent automatiquement la couleur de la borne
 //     active (ou le gris pour un cheminement commun).
-//   • Outil TRACÉ multi-points (pointe de flèche au dernier point).
+//   • Outil TRACÉ multi-points : voir ../annotation-trace.js (partagé).
 //   • Asset BORNE Wi-Fi : pastille + nom de la borne (toujours à jour).
 //   • Asset BAIE : rectangle plein = existante, pointillés = à installer.
 //   • Export JPEG (bien plus léger que PNG) + rendu « à froid »
@@ -26,10 +26,30 @@ const Editor = (function () {
   let scale = 1;
   let ctx = { kind: "other" };    // contexte : plan | borne | other
   let activeOwner = null;         // id de borne, "commun" ou null
-  let draw = null;                // tracé en cours { points, el, owner, color, thickness }
   let pendingRemovals = [];       // bornes à retirer d'autres plans (appliqué à l'enregistrement)
 
   const SVGNS = "http://www.w3.org/2000/svg";
+
+  // ---- Outil « Tracé » (flèche à plusieurs points) : annotation-trace.js ----
+  const trace = (window.AnnotTrace || { create: () => ({ start() {}, cancel() {}, commit() {}, setStyle() {}, isDrawing: () => false, render() {}, addHandles() {}, startMove() {}, syncPanel() {}, drawCanvas() {} }) }).create({   // repli si annotation-trace.js n'est pas chargé (ancienne page en cache)
+    stage: () => stageEl || document.getElementById("editorStage"),
+    scale: () => scale,
+    size: () => ({ w: stageW, h: stageH }),
+    style: () => {
+      const owner = usesOwners() ? activeOwner : null;
+      const last = elements.slice().reverse().find(it => it.data && it.data.type === "polyline");
+      const thickness = last ? last.data.thickness : defaultThickness();
+      return {
+        owner,
+        color: owner ? activeColor() : (last ? last.data.color : FREE_COLOR),
+        thickness,
+        headSize: last && last.data.headSize ? last.data.headSize : Math.round(thickness * 3.2)
+      };
+    },
+    create: (data) => createPolylineElement(data, true),
+    select: (el) => select(el),
+    remove: (el) => deleteElement(el)
+  });
   const FREE_COLOR = "#FF0000";
   const BAIE_COLOR = "#1F3864";
 
@@ -70,7 +90,7 @@ const Editor = (function () {
     stageEl = document.getElementById("editorStage");
     bgPhotoEl = document.getElementById("editorBgPhoto");
 
-    cancelDraw();
+    trace.cancel();
     elements = [];
     selectedEl = null;
     [...stageEl.querySelectorAll(".editor-element")].forEach(e => e.remove());
@@ -96,7 +116,7 @@ const Editor = (function () {
   }
 
   function close() {
-    cancelDraw();
+    trace.cancel();
     document.getElementById("editorOverlay").classList.remove("shown");
     currentPhotoKey = null;
     pendingRemovals = [];
@@ -184,11 +204,7 @@ const Editor = (function () {
       btn.disabled = !isBorne;
       btn.textContent = isBorne ? `📶 Poser « ${o.nom} »` : "📶 Poser la borne (choisissez une borne)";
     }
-    if (draw) {
-      draw.owner = valid;
-      draw.color = o ? o.color : FREE_COLOR;
-      renderDrawPreview();
-    }
+    trace.setStyle({ owner: valid, color: o ? o.color : FREE_COLOR });
   }
 
   // ============================================================
@@ -411,105 +427,6 @@ const Editor = (function () {
   // ============================================================
   //  OUTIL TRACÉ (multi-points)
   // ============================================================
-  function startDraw() {
-    if (draw) return;
-    select(null);
-    const el = document.createElement("div");
-    el.className = "editor-element polyline-element draw-preview";
-    stageEl.appendChild(el);
-    const owner = usesOwners() ? activeOwner : null;
-    draw = {
-      points: [],
-      el,
-      owner,
-      color: owner ? activeColor() : FREE_COLOR,
-      thickness: defaultThickness()
-    };
-    stageEl.classList.add("drawing");
-    updateDrawBar();
-  }
-
-  function addDrawPoint(clientX, clientY) {
-    if (!draw) return;
-    const r = stageEl.getBoundingClientRect();
-    const x = clamp((clientX - r.left) / scale, 0, stageW);
-    const y = clamp((clientY - r.top) / scale, 0, stageH);
-    draw.points.push({ x, y });
-    renderDrawPreview();
-    updateDrawBar();
-  }
-
-  function undoDrawPoint() {
-    if (!draw || !draw.points.length) return;
-    draw.points.pop();
-    renderDrawPreview();
-    updateDrawBar();
-  }
-
-  function finishDraw() {
-    if (!draw) return;
-    if (draw.points.length < 2) {
-      alert("Touchez le plan à au moins 2 endroits pour créer un tracé.");
-      return;
-    }
-    const d = draw;
-    cancelDraw();
-    const data = {
-      type: "polyline",
-      points: d.points.map(p => ({ x: p.x, y: p.y })),
-      color: d.color,
-      thickness: d.thickness,
-      headSize: Math.round(d.thickness * 3.2),
-      owner: d.owner
-    };
-    createPolylineElement(data, true);
-  }
-
-  function cancelDraw() {
-    if (draw && draw.el) draw.el.remove();
-    draw = null;
-    if (stageEl) stageEl.classList.remove("drawing");
-    updateDrawBar();
-  }
-
-  function updateDrawBar() {
-    const bar = document.getElementById("drawBar");
-    if (!bar) return;
-    if (!draw) { bar.classList.remove("shown"); return; }
-    bar.classList.add("shown");
-    const n = draw.points.length;
-    const info = document.getElementById("drawBarInfo");
-    if (info) {
-      info.textContent = n === 0
-        ? "Tracé : touchez le plan pour placer le premier point (départ côté baie)."
-        : `Tracé : ${n} point${n > 1 ? "s" : ""} — continuez, puis « Terminer ».`;
-    }
-    const undo = document.getElementById("drawUndoBtn");
-    if (undo) undo.disabled = n === 0;
-    const fin = document.getElementById("drawFinishBtn");
-    if (fin) fin.disabled = n < 2;
-  }
-
-  function renderDrawPreview() {
-    if (!draw) return;
-    const el = draw.el;
-    const svg = prepareFullStageSvg(el);
-    const pts = draw.points;
-    if (pts.length >= 2) {
-      drawPolylineSvg(svg, { points: pts, color: draw.color, thickness: draw.thickness, headSize: Math.round(draw.thickness * 3.2) }, false);
-    }
-    pts.forEach((p, i) => {
-      const c = document.createElementNS(SVGNS, "circle");
-      c.setAttribute("cx", p.x);
-      c.setAttribute("cy", p.y);
-      c.setAttribute("r", Math.max(draw.thickness * 0.9, 6 / scale));
-      c.setAttribute("fill", i === 0 ? "#ffffff" : draw.color);
-      c.setAttribute("stroke", draw.color);
-      c.setAttribute("stroke-width", Math.max(2, draw.thickness * 0.4));
-      svg.appendChild(c);
-    });
-  }
-
   function createPolylineElement(data, doSelect) {
     const wrapper = document.createElement("div");
     wrapper.className = "editor-element polyline-element";
@@ -538,7 +455,7 @@ const Editor = (function () {
   function applyTransform(el, data) {
     switch (data.type) {
       case "arrow":    renderArrow(el, data); return;
-      case "polyline": renderPolyline(el, data); return;
+      case "polyline": trace.render(el, data); return;
       case "borne":    renderMarker(el, data); return;
       case "baie":     renderBaie(el, data); return;
     }
@@ -670,65 +587,6 @@ const Editor = (function () {
     }
   }
 
-  // ---- Tracé multi-points ----
-  function drawPolylineSvg(svg, d, interactive) {
-    const pts = d.points;
-    if (!pts || pts.length < 2) return;
-    const a = pts[pts.length - 2], b = pts[pts.length - 1];
-    const g = headGeom(a.x, a.y, b.x, b.y, d.thickness, d.headSize);
-    const body = pts.slice(0, -1).map(p => `${p.x},${p.y}`);
-    body.push(`${g.tx},${g.ty}`);
-
-    const line = document.createElementNS(SVGNS, "polyline");
-    line.setAttribute("points", body.join(" "));
-    line.setAttribute("fill", "none");
-    line.setAttribute("stroke", d.color);
-    line.setAttribute("stroke-width", d.thickness);
-    line.setAttribute("stroke-linecap", "round");
-    line.setAttribute("stroke-linejoin", "round");
-    if (interactive) {
-      line.style.pointerEvents = "stroke";
-      line.style.cursor = "grab";
-    }
-    svg.appendChild(line);
-
-    if (g.len >= 1) {
-      const tri = document.createElementNS(SVGNS, "polygon");
-      tri.setAttribute("points", g.tri.map(p => p.join(",")).join(" "));
-      tri.setAttribute("fill", d.color);
-      if (interactive) {
-        tri.style.pointerEvents = "auto";
-        tri.style.cursor = "grab";
-      }
-      svg.appendChild(tri);
-    }
-
-    if (interactive) {
-      const hit = document.createElementNS(SVGNS, "polyline");
-      hit.setAttribute("points", pts.map(p => `${p.x},${p.y}`).join(" "));
-      hit.setAttribute("fill", "none");
-      hit.setAttribute("stroke", "transparent");
-      hit.setAttribute("stroke-width", hitWidth(d.thickness));
-      hit.setAttribute("stroke-linecap", "round");
-      hit.setAttribute("stroke-linejoin", "round");
-      hit.style.pointerEvents = "stroke";
-      hit.style.cursor = "grab";
-      svg.appendChild(hit);
-    }
-    return g;
-  }
-
-  function renderPolyline(wrapper, d) {
-    const svg = prepareFullStageSvg(wrapper);
-    const g = drawPolylineSvg(svg, d, true);
-    if (wrapper.classList.contains("selected") && g) {
-      const xs = d.points.map(p => p.x), ys = d.points.map(p => p.y);
-      selectionBox(svg,
-        Math.min(...xs) - g.head, Math.min(...ys) - g.head,
-        Math.max(...xs) + g.head, Math.max(...ys) + g.head);
-    }
-  }
-
   // ---- Borne Wi-Fi ----
   function markerIconSvg(color) {
     const arc = (r) => {
@@ -817,8 +675,8 @@ const Editor = (function () {
       renderArrow(el, el._data);
       addArrowHandles(el);
     } else if (t === "polyline") {
-      renderPolyline(el, el._data);
-      addPolylineHandles(el);
+      trace.render(el, el._data);
+      trace.addHandles(el);
     } else {
       addHandles(el);
     }
@@ -900,27 +758,6 @@ const Editor = (function () {
     h2.addEventListener("pointerdown", (e) => startPointDrag(e, el, (x, y) => { data.x2 = x; data.y2 = y; }, [data.x2, data.y2]));
   }
 
-  function addPolylineHandles(el) {
-    const data = el._data;
-    const hs = data.points.map((p, i) => {
-      const h = makePointHandle(el, i === data.points.length - 1);
-      h.title = i === 0 ? "Départ du tracé" : (i === data.points.length - 1 ? "Arrivée (pointe)" : "Point du tracé");
-      h.addEventListener("pointerdown", (e) => {
-        startPointDrag(e, el, (x, y) => { data.points[i].x = x; data.points[i].y = y; }, [data.points[i].x, data.points[i].y]);
-      });
-      return h;
-    });
-    const del = makeDeleteHandle(el);
-    function placeHandles() {
-      data.points.forEach((p, i) => placeAt(hs[i], p.x, p.y));
-      const p0 = data.points[0];
-      del.style.left = (p0.x * scale + 12) + "px";
-      del.style.top = (p0.y * scale - 34) + "px";
-    }
-    placeHandles();
-    el._placeArrowHandles = placeHandles;
-  }
-
   function startPointDrag(e, el, setter, origin) {
     e.stopPropagation();
     e.preventDefault();
@@ -963,6 +800,7 @@ const Editor = (function () {
     panel.style.display = "block";
     show("selPanelImage", data.type === "image");
     show("selPanelArrow", isLineType(data.type));
+    trace.syncPanel(data);
     show("selPanelBaie", data.type === "baie");
     show("selPanelBorne", data.type === "borne");
     show("selOwnerRow", isLineType(data.type) && usesOwners());
@@ -998,12 +836,13 @@ const Editor = (function () {
   // ============================================================
   function attachHandlers(el) {
     el.addEventListener("pointerdown", (e) => {
-      if (draw) return;
+      if (trace.isDrawing()) return;
       if (e.target.classList && e.target.classList.contains("handle")) return;
       e.stopPropagation();
       e.preventDefault();
       select(el);
-      if (isLineType(el._data.type)) startLineDrag(e, el);
+      if (el._data.type === "polyline") trace.startMove(e, el);
+      else if (el._data.type === "arrow") startLineDrag(e, el);
       else startDrag(e, el);
     });
   }
@@ -1111,19 +950,11 @@ const Editor = (function () {
     window.addEventListener("pointerup", onUp);
   }
 
-  // ---- Clic sur la scène : désélection, ou ajout d'un point de tracé ----
+  // ---- Clic sur la scène : désélection (les points du tracé sont gérés par annotation-trace.js) ----
   function setupStageClick() {
     const stage = document.getElementById("editorStage");
-    // Phase de capture : en mode tracé, tout appui ajoute un point
-    // (même par-dessus un élément existant).
     stage.addEventListener("pointerdown", (e) => {
-      if (!draw) return;
-      e.stopPropagation();
-      e.preventDefault();
-      addDrawPoint(e.clientX, e.clientY);
-    }, true);
-    stage.addEventListener("pointerdown", (e) => {
-      if (draw) return;
+      if (trace.isDrawing()) return;
       if (e.target === stageEl || e.target === bgPhotoEl) select(null);
     });
   }
@@ -1132,12 +963,7 @@ const Editor = (function () {
     document.addEventListener("keydown", (e) => {
       if (!document.getElementById("editorOverlay").classList.contains("shown")) return;
       const typing = ["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName);
-      if (draw) {
-        if (e.key === "Escape") { e.preventDefault(); cancelDraw(); }
-        else if (e.key === "Enter") { e.preventDefault(); finishDraw(); }
-        else if ((e.key === "Backspace" || e.key === "Delete") && !typing) { e.preventDefault(); undoDrawPoint(); }
-        return;
-      }
+      if (trace.isDrawing()) return;   // Entrée / Échap / Retour arrière : gérés par l'outil Tracé
       if ((e.key === "Delete" || e.key === "Backspace") && selectedEl) {
         if (typing) return;
         e.preventDefault();
@@ -1185,7 +1011,7 @@ const Editor = (function () {
       if (d.type === "image") await drawImageEl(c, d);
       else if (d.type === "text") drawTextEl(c, d);
       else if (d.type === "arrow") drawArrowEl(c, d);
-      else if (d.type === "polyline") drawPolylineEl(c, d);
+      else if (d.type === "polyline") trace.drawCanvas(c, d);
       else if (d.type === "borne") drawMarkerEl(c, d);
       else if (d.type === "baie") drawBaieEl(c, d);
     }
@@ -1275,25 +1101,6 @@ const Editor = (function () {
     c.lineCap = "round";
     c.stroke();
     fillTriangle(c, g.tri, d.color);
-    c.restore();
-  }
-
-  function drawPolylineEl(c, d) {
-    const pts = d.points || [];
-    if (pts.length < 2) return;
-    const a = pts[pts.length - 2], b = pts[pts.length - 1];
-    const g = headGeom(a.x, a.y, b.x, b.y, d.thickness, d.headSize);
-    c.save();
-    c.beginPath();
-    c.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length - 1; i++) c.lineTo(pts[i].x, pts[i].y);
-    c.lineTo(g.tx, g.ty);
-    c.strokeStyle = d.color;
-    c.lineWidth = d.thickness;
-    c.lineCap = "round";
-    c.lineJoin = "round";
-    c.stroke();
-    if (g.len >= 1) fillTriangle(c, g.tri, d.color);
     c.restore();
   }
 
@@ -1399,10 +1206,7 @@ const Editor = (function () {
   // ============================================================
   async function save() {
     if (!currentPhotoKey) return;
-    if (draw) {
-      if (draw.points.length >= 2) finishDraw();
-      else cancelDraw();
-    }
+    trace.commit();   // un tracé en cours (≥ 2 points) est gardé
     const key = currentPhotoKey;
     const photo = photoStore[key];
     if (!photo) return;
@@ -1480,7 +1284,6 @@ const Editor = (function () {
 
     on("btnAddText", "click", addText);
     on("toolAddArrow", "click", addArrow);
-    on("toolAddPolyline", "click", startDraw);
     on("toolAddCircle", "click", addCircle);
     on("toolAddBorne", "click", addBorneMarker);
     on("toolAddBaieExist", "click", () => addBaie(true));
@@ -1494,10 +1297,6 @@ const Editor = (function () {
       }
     });
 
-    // Barre du tracé
-    on("drawUndoBtn", "click", undoDrawPoint);
-    on("drawFinishBtn", "click", finishDraw);
-    on("drawCancelBtn", "click", cancelDraw);
 
     // Borne active
     on("ownerSelect", "change", (e) => setActiveOwner(e.target.value));
@@ -1591,7 +1390,6 @@ const Editor = (function () {
           if (it.el._placeArrowHandles) it.el._placeArrowHandles();
         }
       });
-      if (draw) renderDrawPreview();
     });
   }
 

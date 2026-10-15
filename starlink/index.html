@@ -713,8 +713,10 @@
       padding: 8px;
     }
     .editor-canvas-wrap {
-      height: 60%;
-      min-height: 300px;
+      /* prend la place restante sous la barre d'outils (plus de débordement sous le pied) */
+      flex: 1 1 auto;
+      height: auto;
+      min-height: 0;
     }
     .tool-btn {
       padding: 10px 8px;
@@ -1700,6 +1702,10 @@
               </label>
             </div>
             <button class="tool-btn" id="btnAddArrow" style="background:#2e75b6; color:white; border-color:#1f4e79; justify-content:center; margin-top:4px;">➕ Ajouter une flèche</button>
+            <button type="button" class="tool-btn" id="toolAddPolyline" style="justify-content:center; margin-top:4px;">
+              <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="currentColor"/></svg>
+              Tracé (plusieurs points)
+            </button>
           </div>
         </div>
 
@@ -1797,6 +1803,7 @@
             • Pastille rouge : supprimer.<br>
             • <b>Sélectionnez une image</b> → boutons <b>Miroir H/V</b> en haut.<br>
             • <b>Flèche</b> : tirez l'extrémité bleue (pointe) pour l'orienter, le cercle blanc pour bouger la base.<br>
+            • <b>Tracé</b> : posez les points un par un (le point suit le doigt tant qu'il est posé), puis « Terminer » ou touchez deux fois le dernier point.<br>
             • Touche <b>Suppr</b> sur le clavier : supprime aussi.
           </p>
         </div>
@@ -1821,6 +1828,7 @@
 <script src="../client-config.js"></script>
 <script src="i18n.js"></script>
 <script src="assets.js"></script>
+<script src="../annotation-trace.js"></script>
 <script src="editor.js"></script>
 <script src="app.js"></script>
 

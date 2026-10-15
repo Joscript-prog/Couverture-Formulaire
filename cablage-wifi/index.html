@@ -777,8 +777,10 @@
                 padding: 8px;
             }
             .editor-canvas-wrap {
-                height: 60%;
-                min-height: 300px;
+                /* prend la place restante sous la barre d'outils (plus de débordement sous le pied) */
+                flex: 1 1 auto;
+                height: auto;
+                min-height: 0;
             }
             .tool-btn {
                 padding: 12px 8px;
@@ -2347,28 +2349,6 @@
             pointer-events: none; overflow: hidden;
         }
         .baie-element .baie-sub { font-style: italic; font-weight: normal; }
-        .draw-bar {
-            display: none;
-            position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
-            z-index: 1100; width: max-content; max-width: calc(100vw - 20px);
-            background: #1f4e79; color: #fff; border-radius: 8px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
-            padding: 8px 10px; align-items: center; gap: 8px; flex-wrap: wrap;
-            font-size: 0.88rem;
-        }
-        .draw-bar.shown { display: flex; }
-        @media (max-width: 700px) {
-            /* Sur téléphone : en bas, pour laisser visible « Je trace pour » */
-            .draw-bar { top: auto; bottom: calc(10px + env(safe-area-inset-bottom, 0px)); justify-content: center; }
-        }
-        .draw-bar span { padding: 0 4px; }
-        .draw-bar button {
-            border: 1px solid rgba(255, 255, 255, 0.6); background: rgba(255, 255, 255, 0.12);
-            color: #fff; border-radius: 5px; padding: 7px 12px; font-size: 0.85rem;
-            cursor: pointer; min-height: 36px;
-        }
-        .draw-bar #drawFinishBtn { background: #16a34a; border-color: #16a34a; font-weight: 700; }
-        .draw-bar button:disabled { opacity: 0.45; cursor: not-allowed; }
     </style>
 
     <header>
@@ -2710,7 +2690,7 @@
                     <div class="tool-group">
                         <h3>Cheminement</h3>
                         <button type="button" class="tool-btn" id="toolAddPolyline">
-                            <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="#1f4e79" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="#1f4e79"/></svg>
+                            <svg width="26" height="18" viewBox="0 0 26 18" aria-hidden="true"><polyline points="2,15 9,15 9,5 20,5" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><polygon points="25,5 19,1.5 19,8.5" fill="currentColor"/></svg>
                             Tracé (plusieurs points)
                         </button>
                         <button type="button" class="tool-btn" id="toolAddArrow">➡️ Flèche simple</button>
@@ -2781,7 +2761,7 @@
                     <div class="tool-group">
                         <h3>Conseils</h3>
                         <p style="font-size:0.78rem; color:#555; margin:4px 0;">
-                            • Tracé : touchez le plan point par point en partant de la baie, puis « Terminer ».<br>
+                            • Tracé : touchez le plan point par point en partant de la baie (le point suit le doigt tant qu'il est posé), puis « Terminer » ou touchez deux fois le dernier point.<br>
                             • Glissez un élément pour le déplacer.<br>
                             • Coin bleu (bas-droite) : redimensionner.<br>
                             • Pastille orange : pivoter. Pastille rouge : supprimer.<br>
@@ -2803,16 +2783,11 @@
                 </div>
             </div>
         </div>
-        <div class="draw-bar" id="drawBar" role="status" aria-live="polite">
-            <span id="drawBarInfo"></span>
-            <button type="button" id="drawUndoBtn">↶ Retirer le dernier point</button>
-            <button type="button" id="drawFinishBtn">✓ Terminer</button>
-            <button type="button" id="drawCancelBtn">✕ Abandonner</button>
-        </div>
     </div>
 
     <script src="logos.js"></script>
     <script src="../client-config.js"></script>
+    <script src="../annotation-trace.js"></script>
     <script src="editor.js"></script>
     <script src="app.js"></script>
 </body>

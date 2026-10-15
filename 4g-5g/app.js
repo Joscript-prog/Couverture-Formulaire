@@ -105,6 +105,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Première génération des pickers (vide tant qu'aucun plan n'est chargé)
     refreshAllEvacPickers();
 
+    // Bornes / répéteurs intérieurs (section 5)
+    setupBornesEvents();
+    renderBornes();
+
     // Photo d'installation du routeur (mode TRAVAUX)
     const routeurInput = document.getElementById("routeurPhotoInput");
     if (routeurInput) {
@@ -204,7 +208,9 @@ function handleGlobalClick(e) {
             return;
         }
         if (typeof window.Editor !== 'undefined' && window.Editor.open) {
-            window.Editor.open(key, "Photo " + key);
+            const info = bnPhotoInfo(key);
+            if (info) window.Editor.open(key, info.label, { kind: info.kind, borneId: info.borneId, key });
+            else window.Editor.open(key, "Photo " + key, { kind: "other", key });
         } else {
             alert("L'éditeur d'annotation n'est pas chargé.");
         }
@@ -235,6 +241,9 @@ function handleGlobalClick(e) {
                 _setOcrStatus(group, photoType, "", "info"); // effacer le message de statut
             }
         }
+
+        // Photo d'une borne / plan : positions et synthèse à jour
+        if (bnPhotoInfo(key)) bnRefreshDerived();
 
         // Recalcul de l'état des boutons (photo supprimée → peut bloquer la génération)
         if (typeof updateGenerateButtonState === "function") updateGenerateButtonState();
@@ -1360,6 +1369,7 @@ function removeEvacPlan(planId) {
     } else {
         refreshAllEvacPickers();
     }
+    bnRefreshDerived();
 
     if (typeof updateGenerateButtonState === "function") updateGenerateButtonState();
 }
@@ -1393,13 +1403,14 @@ function renderEvacPlanCard(plan) {
                 <img class="evac-bg-image" alt="Plan d'évacuation">
             </div>
             <div class="evac-actions-wrap" style="margin-top:10px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
-                <button type="button" class="annotate-btn travaux-only" data-annotate="evac_plan_${plan.id}">
-                    ✏ Annoter ce plan (flèches, cercles, texte, dessin libre)
+                <button type="button" class="annotate-btn" data-annotate="evac_plan_${plan.id}">
+                    ✏ Annoter ce plan (tracés des câbles, flèches, texte)
                 </button>
                 <button type="button" class="clear-btn evac-replace-photo-btn" title="Remplacer la photo de ce plan (les points placés sont conservés)">
                     🖼 Remplacer la photo
                 </button>
             </div>
+            <div class="bn-legend" data-legend="evac_plan_${plan.id}" hidden></div>
         </div>
 
         <div class="evac-points-picker-wrap audit-only" style="display:none; margin-top:14px;">
@@ -1422,6 +1433,7 @@ function renderEvacPlanCard(plan) {
     if (titleInput) {
         titleInput.addEventListener('input', () => {
             plan.title = titleInput.value;
+            bnRefreshDerived();
         });
     }
 
@@ -1473,6 +1485,7 @@ function renderEvacPlanCard(plan) {
             bgImg.addEventListener('load', renderAll, { once: true });
         }
     }
+    bnRefreshDerived();
 }
 
 // Affiche la zone d'image (et masque la zone d'upload) pour un plan donné
@@ -2181,6 +2194,563 @@ function addCheminementItem() {
     });
 }
 
+// ============================================================
+//  BORNES / RÉPÉTEURS INTÉRIEURS
+//  Une fiche par borne : nom, couleur, emplacement, câble, photos
+//  (emplacement, cheminement, percements). Sur les plans d'évacuation,
+//  l'éditeur trace le cheminement de chaque borne dans sa couleur
+//  (« Je trace pour », même principe que le formulaire Câblage Wi-Fi).
+//  Lien avec l'éditeur : window.BorneBridge.
+// ============================================================
+const BORNE_PALETTE = [
+    { hex: "#0072CE", nom: "Bleu" },
+    { hex: "#2E9E3E", nom: "Vert" },
+    { hex: "#F58231", nom: "Orange" },
+    { hex: "#911EB4", nom: "Violet" },
+    { hex: "#00A6B8", nom: "Turquoise" },
+    { hex: "#E022C9", nom: "Magenta" },
+    { hex: "#8B5A2B", nom: "Marron" },
+    { hex: "#C9A400", nom: "Jaune" },
+    { hex: "#1B2A8A", nom: "Bleu marine" },
+    { hex: "#7CB518", nom: "Vert clair" },
+    { hex: "#FF6F91", nom: "Rose" }
+];
+// Le câble principal garde le rouge du repère « Antenne »
+const CABLE_PRINCIPAL = { id: "commun", nom: "Câble antenne → routeur", hex: "#E6194B", colorName: "rouge" };
+const RACCORDEMENTS = {
+    routeur: { label: "Routeur 4G/5G", phrase: "depuis le routeur" },
+    antenne: { label: "Antenne", phrase: "depuis l'antenne" },
+    autre:   { label: "Autre", phrase: "" }
+};
+
+let BORNES = newBornesState();
+let syntheseBornesManuel = false;
+
+function newBornesState() { return { list: [], seq: { borne: 0, photo: 0 } }; }
+function bnNewKey(prefix) { BORNES.seq.photo++; return `${prefix}_${BORNES.seq.photo}`; }
+function bnGet(id) { return BORNES.list.find(b => b.id === id) || null; }
+function bnColor(b) { return BORNE_PALETTE[(b.colorIdx || 0) % BORNE_PALETTE.length].hex; }
+function bnColorName(b) { return BORNE_PALETTE[(b.colorIdx || 0) % BORNE_PALETTE.length].nom; }
+function bnSchedule() { if (window.__autosaveSchedule) window.__autosaveSchedule(); }
+
+function bnPickColor() {
+    const used = new Set(BORNES.list.map(b => b.colorIdx));
+    for (let i = 0; i < BORNE_PALETTE.length; i++) if (!used.has(i)) return i;
+    return BORNES.list.length % BORNE_PALETTE.length;
+}
+
+function bnAutoNames() {
+    BORNES.list.forEach((b, i) => { if (!b.nomManuel) b.nom = `Borne ${i + 1}`; });
+}
+
+function bnAdd() {
+    BORNES.seq.borne++;
+    const b = {
+        id: "b" + BORNES.seq.borne,
+        nom: "",
+        nomManuel: false,
+        colorIdx: bnPickColor(),
+        emplacement: "",
+        raccordement: "routeur",
+        metrage: "",
+        cheminement: "",
+        collapsed: false,
+        empKey: bnNewKey("bemp"),
+        chem: [],
+        perc: []
+    };
+    BORNES.list.push(b);
+    bnAutoNames();
+    return b;
+}
+
+function bnNormalize(st) {
+    const s = newBornesState();
+    if (!st || typeof st !== "object") return s;
+    s.seq = Object.assign(s.seq, st.seq || {});
+    s.list = (Array.isArray(st.list) ? st.list : []).filter(b => b && b.id).map(b => Object.assign({
+        nom: "", nomManuel: false, colorIdx: 0, emplacement: "", raccordement: "routeur", metrage: "",
+        cheminement: "", collapsed: false, empKey: `bemp_x${b.id}`, chem: [], perc: []
+    }, b));
+    return s;
+}
+
+function bnPhotoKeys(b) {
+    return [b.empKey, ...b.chem.map(i => i.key), ...b.perc.map(i => i.key)];
+}
+
+async function bnDelete(id) {
+    const b = bnGet(id);
+    if (!b) return;
+    bnPhotoKeys(b).forEach(k => delete photoStore[k]);
+    BORNES.list = BORNES.list.filter(x => x.id !== id);
+    bnAutoNames();
+    await bnPurgeOwner(id);
+}
+
+// ---------- Plans d'évacuation vus par les bornes ----------
+function bnPlanKeys() { return evacPlans.map(p => `evac_plan_${p.id}`); }
+
+function bnPlanLabel(key) {
+    const id = Number(String(key).replace("evac_plan_", ""));
+    const i = evacPlans.findIndex(p => p.id === id);
+    if (i < 0) return "Plan d'évacuation";
+    const t = (evacPlans[i].title || "").trim();
+    return t || `Plan d'évacuation ${i + 1}`;
+}
+
+// À quoi correspond une clé photo (plan / photo d'une borne) → contexte de l'éditeur
+function bnPhotoInfo(key) {
+    if (/^evac_plan_\d+$/.test(key)) return { kind: "plan", label: bnPlanLabel(key) };
+    for (const b of BORNES.list) {
+        if (b.empKey === key) return { kind: "borne", borneId: b.id, label: `${b.nom} — Emplacement` };
+        const ci = b.chem.findIndex(i => i.key === key);
+        if (ci >= 0) return { kind: "borne", borneId: b.id, label: `${b.nom} — Cheminement ${ci + 1}` };
+        const pi = b.perc.findIndex(i => i.key === key);
+        if (pi >= 0) return { kind: "borne", borneId: b.id, label: `${b.nom} — Percement ${pi + 1}` };
+    }
+    return null;
+}
+
+// Câble principal / bornes tracés sur un plan (câble principal d'abord, puis bornes dans l'ordre)
+function bnPlanOwners(key) {
+    const p = photoStore[key];
+    if (!p || !Array.isArray(p.annotations)) return [];
+    const set = new Set();
+    p.annotations.forEach(d => {
+        if (d && d.owner && (d.type === "borne" || d.type === "arrow" || d.type === "polyline")) set.add(d.owner);
+    });
+    const out = [];
+    if (set.has("commun")) out.push("commun");
+    BORNES.list.forEach(b => { if (set.has(b.id)) out.push(b.id); });
+    return out;
+}
+
+function bnFindPlacement(id, excludeKey) {
+    for (const key of bnPlanKeys()) {
+        if (key === excludeKey) continue;
+        const p = photoStore[key];
+        if (p && Array.isArray(p.annotations) &&
+            p.annotations.some(d => d && d.type === "borne" && d.owner === id)) {
+            return { key, label: bnPlanLabel(key) };
+        }
+    }
+    return null;
+}
+
+function bnTracedOn(id) {
+    return bnPlanKeys().filter(key => {
+        const p = photoStore[key];
+        return p && Array.isArray(p.annotations) &&
+            p.annotations.some(d => d && d.owner === id && (d.type === "polyline" || d.type === "arrow"));
+    });
+}
+
+function bnIsEmpty(b) {
+    const hasPhoto = bnPhotoKeys(b).some(k => photoStore[k]);
+    const hasComment = [...b.chem, ...b.perc].some(i => (i.comment || "").trim());
+    return !b.emplacement.trim() && !String(b.metrage).trim() && !b.cheminement.trim() &&
+        !hasPhoto && !hasComment && !bnFindPlacement(b.id, null) && !bnTracedOn(b.id).length;
+}
+
+// ---------- Mise à jour des photos annotées (noms des bornes, bornes supprimées) ----------
+async function bnRerenderPhoto(key) {
+    const p = photoStore[key];
+    if (!p || !p.annotations || !window.Editor || !window.Editor.renderPhoto) return;
+    try {
+        const r = await window.Editor.renderPhoto(p);
+        p.dataUrl = r.dataUrl;
+        p.data = dataUrlToUint8Array(r.dataUrl);
+        p.type = "jpg";
+        p.naturalWidth = r.width;
+        p.naturalHeight = r.height;
+        const prev = document.getElementById("preview_" + key);
+        if (prev) prev.src = r.dataUrl;
+        if (/^evac_plan_/.test(key) && typeof syncEvacBgImage === "function") syncEvacBgImage();
+    } catch (err) {
+        console.warn("Rendu de la photo impossible (" + key + ") :", err);
+    }
+}
+
+async function bnRerenderMarkerPhotos() {
+    const keys = Object.keys(photoStore).filter(k => {
+        const p = photoStore[k];
+        return p && Array.isArray(p.annotations) && p.annotations.some(d => d && d.type === "borne");
+    });
+    for (const k of keys) await bnRerenderPhoto(k);
+}
+
+let _bnMarkerTimer = null;
+function bnScheduleMarkerRerender() {
+    clearTimeout(_bnMarkerTimer);
+    _bnMarkerTimer = setTimeout(() => { bnRerenderMarkerPhotos(); }, 1200);
+}
+
+// Retire des photos tout ce qui appartient à une borne supprimée
+async function bnPurgeOwner(id) {
+    for (const key of Object.keys(photoStore)) {
+        const p = photoStore[key];
+        if (!p || !Array.isArray(p.annotations)) continue;
+        const kept = p.annotations.filter(d => !(d && d.owner === id &&
+            (d.type === "borne" || d.type === "arrow" || d.type === "polyline")));
+        if (kept.length !== p.annotations.length) {
+            p.annotations = kept;
+            await bnRerenderPhoto(key);
+        }
+    }
+}
+
+// ---------- Pont avec l'éditeur d'annotation ----------
+window.BorneBridge = {
+    // « Je trace pour » n'apparaît que s'il existe au moins une borne
+    active() { return BORNES.list.length > 0; },
+    getOwners() {
+        return BORNES.list.map(b => ({ id: b.id, nom: b.nom, color: bnColor(b), niveauNom: "Bornes / répéteurs" }));
+    },
+    getOwner(id) {
+        if (id === "commun") return { id, nom: CABLE_PRINCIPAL.nom, color: CABLE_PRINCIPAL.hex, colorName: CABLE_PRINCIPAL.colorName };
+        const b = bnGet(id);
+        return b ? { id, nom: b.nom, color: bnColor(b) } : null;
+    },
+    defaultOwner(ctx, last) {
+        if (ctx && ctx.kind === "borne" && bnGet(ctx.borneId)) return ctx.borneId;
+        if (last && this.getOwner(last)) return last;
+        return "commun";
+    },
+    findPlanPlacement(id, excludeKey) { return bnFindPlacement(id, excludeKey); },
+    async removeBorneMarker(key, id) {
+        const p = photoStore[key];
+        if (!p || !Array.isArray(p.annotations)) return;
+        p.annotations = p.annotations.filter(d => !(d && d.type === "borne" && d.owner === id));
+        await bnRerenderPhoto(key);
+        bnRefreshDerived();
+    },
+    afterSave() { bnRefreshDerived(); }
+};
+
+// ---------- Rendu des fiches ----------
+function bnPhotoBlockHtml(key) {
+    const has = !!photoStore[key];
+    return `
+        <input type="file" accept="image/*" data-bn-photo="${key}">
+        <img class="photo-preview${has ? " shown" : ""}" id="preview_${key}" alt=""${has ? ` src="${photoStore[key].dataUrl}"` : ""}>
+        <div class="chem-actions">
+            <button type="button" class="annotate-btn" data-annotate="${key}"${has ? "" : " disabled"}>✏ Annoter</button>
+            <button type="button" class="clear-btn" data-clear="${key}">🗑 Effacer</button>
+        </div>`;
+}
+
+function bnItemHtml(title, key, list, comment, placeholder) {
+    return `
+        <div class="cheminement-item" data-photo-key="${key}" data-list="${list}">
+            <div class="chem-header">
+                <strong>${title}</strong>
+                <button type="button" class="btn-delete" data-bn-act="del-item" title="Supprimer">🗑</button>
+            </div>
+            ${bnPhotoBlockHtml(key)}
+            <textarea class="cheminement-comment" data-bn-field="item-comment" placeholder="${escapeHtml(placeholder)}">${escapeHtml(comment || "")}</textarea>
+        </div>`;
+}
+
+function bnRaccOptions(b) {
+    return Object.keys(RACCORDEMENTS).map(k =>
+        `<option value="${k}"${b.raccordement === k ? " selected" : ""}>${RACCORDEMENTS[k].label}</option>`).join("");
+}
+
+function bnBuildCard(b) {
+    const div = document.createElement("div");
+    div.className = "bn-card" + (b.collapsed ? " collapsed" : "");
+    div.dataset.borne = b.id;
+    div.style.setProperty("--borne-color", bnColor(b));
+    div.innerHTML = `
+        <div class="bn-head">
+            <button type="button" class="bn-toggle" data-bn-act="toggle" aria-label="Replier / déplier">▾</button>
+            <span class="bn-dot" title="Couleur sur les plans : ${bnColorName(b)}"></span>
+            <input type="text" class="bn-nom" data-bn-field="nom" value="${escapeHtml(b.nom)}" aria-label="Nom de la borne">
+            <span class="bn-color-name">${bnColorName(b)}</span>
+            <button type="button" class="btn-delete" data-bn-act="del-borne" title="Supprimer la borne">🗑</button>
+        </div>
+        <div class="bn-body">
+            <div class="bn-placement"></div>
+            <div class="bn-grid">
+                <label>Emplacement
+                    <input type="text" data-bn-field="emplacement" value="${escapeHtml(b.emplacement)}" placeholder="Ex : 1er étage, open space côté fenêtres">
+                </label>
+                <label>Raccordée depuis
+                    <select data-bn-field="raccordement">${bnRaccOptions(b)}</select>
+                </label>
+                <label>Métrage de câble (m)
+                    <input type="number" inputmode="decimal" step="1" min="0" data-bn-field="metrage" value="${escapeHtml(b.metrage)}">
+                </label>
+            </div>
+            <label class="bn-full">Résumé du cheminement
+                <textarea data-bn-field="cheminement" placeholder="Ex : faux plafond du couloir, puis goulotte jusqu'au bureau">${escapeHtml(b.cheminement)}</textarea>
+            </label>
+
+            <div class="bn-photo-title">Emplacement de la borne</div>
+            <div class="mp-photo-block bn-single-photo">${bnPhotoBlockHtml(b.empKey)}</div>
+
+            <div class="bn-photo-title">Photos du cheminement</div>
+            <div class="bn-gallery">
+                ${b.chem.map((it, i) => bnItemHtml(`📷 Cheminement ${i + 1}`, it.key, "chem", it.comment, "Commentaire (passage de câble, support, traversée…)")).join("")}
+            </div>
+            <button type="button" class="btn-secondary" data-bn-act="add-chem">➕ Ajouter une photo de cheminement</button>
+
+            <div class="bn-photo-title">Percements</div>
+            <div class="bn-gallery">
+                ${b.perc.map((it, i) => bnItemHtml(`📷 Percement ${i + 1}`, it.key, "perc", it.comment, "Commentaire (emplacement, diamètre, rebouchage…)")).join("")}
+            </div>
+            <button type="button" class="btn-secondary" data-bn-act="add-perc">➕ Ajouter une photo de percement</button>
+        </div>`;
+    return div;
+}
+
+function renderBornes() {
+    const root = document.getElementById("bornesContainer");
+    if (!root) return;
+    root.innerHTML = "";
+    BORNES.list.forEach(b => root.appendChild(bnBuildCard(b)));
+    const empty = document.getElementById("bornesEmpty");
+    if (empty) empty.hidden = BORNES.list.length > 0;
+    const synth = document.getElementById("syntheseBornesWrap");
+    if (synth) synth.hidden = BORNES.list.length === 0;
+    bnRefreshDerived();
+}
+
+// Ce qui dépend des noms / des annotations, mis à jour sans tout reconstruire
+function bnRefreshDerived() {
+    // Légende sous chaque plan
+    document.querySelectorAll(".bn-legend[data-legend]").forEach(el => {
+        const owners = bnPlanOwners(el.dataset.legend);
+        if (!owners.length) { el.innerHTML = ""; el.hidden = true; return; }
+        el.hidden = false;
+        el.innerHTML = `<span class="bn-legend-title">Câbles tracés sur ce plan :</span>` + owners.map(id => {
+            const o = window.BorneBridge.getOwner(id);
+            return o ? `<span class="bn-chip" style="--chip:${o.color}">${escapeHtml(o.nom)}</span>` : "";
+        }).join("");
+    });
+    // Où en est chaque borne sur les plans
+    document.querySelectorAll(".bn-card[data-borne]").forEach(card => {
+        const el = card.querySelector(".bn-placement");
+        if (!el) return;
+        const id = card.dataset.borne;
+        const pl = bnFindPlacement(id, null);
+        const traced = bnTracedOn(id);
+        let txt;
+        if (pl && traced.length) txt = `Posée et câble tracé sur : ${pl.label}`;
+        else if (pl) txt = `Posée sur : ${pl.label} (câble pas encore tracé)`;
+        else if (traced.length) txt = `Câble tracé sur : ${traced.map(bnPlanLabel).join(", ")} (borne pas encore posée)`;
+        else txt = "Pas encore sur un plan : section 4, « ✏ Annoter ce plan », puis « Je trace pour » cette borne.";
+        el.textContent = txt;
+        el.classList.toggle("placed", !!(pl && traced.length));
+    });
+    scheduleSyntheseBornes();
+}
+
+function bnSyncNames() {
+    bnAutoNames();
+    document.querySelectorAll(".bn-card[data-borne]").forEach(card => {
+        const b = bnGet(card.dataset.borne);
+        const inp = card.querySelector(".bn-nom");
+        if (b && inp && document.activeElement !== inp && inp.value !== b.nom) inp.value = b.nom;
+    });
+    bnRefreshDerived();
+    bnScheduleMarkerRerender();
+}
+
+function setupBornesEvents() {
+    const addBtn = document.getElementById("addBorneBtn");
+    if (addBtn) addBtn.addEventListener("click", () => {
+        const b = bnAdd();
+        renderBornes();
+        const card = document.querySelector(`.bn-card[data-borne="${b.id}"]`);
+        if (card && card.scrollIntoView) card.scrollIntoView({ behavior: "smooth", block: "center" });
+        bnSchedule();
+    });
+
+    const root = document.getElementById("bornesContainer");
+    if (!root) return;
+
+    root.addEventListener("click", async (e) => {
+        const btn = e.target.closest("[data-bn-act]");
+        if (!btn) return;
+        const card = btn.closest(".bn-card");
+        const b = card ? bnGet(card.dataset.borne) : null;
+        if (!b) return;
+        const act = btn.dataset.bnAct;
+        if (act === "toggle") {
+            b.collapsed = !b.collapsed;
+            card.classList.toggle("collapsed", b.collapsed);
+        } else if (act === "del-borne") {
+            if (!confirm(`Supprimer « ${b.nom} », ses photos et ses tracés sur les plans ?`)) return;
+            await bnDelete(b.id);
+            renderBornes();
+            bnScheduleMarkerRerender();
+        } else if (act === "add-chem" || act === "add-perc") {
+            const list = act === "add-chem" ? b.chem : b.perc;
+            list.push({ key: bnNewKey(act === "add-chem" ? "bchem" : "bperc"), comment: "" });
+            renderBornes();
+        } else if (act === "del-item") {
+            const item = btn.closest(".cheminement-item");
+            if (!item || !confirm("Supprimer cette photo ?")) return;
+            const key = item.dataset.photoKey;
+            delete photoStore[key];
+            if (item.dataset.list === "chem") b.chem = b.chem.filter(p => p.key !== key);
+            else b.perc = b.perc.filter(p => p.key !== key);
+            renderBornes();
+        } else {
+            return;
+        }
+        bnSchedule();
+    });
+
+    const onField = (e, isChange) => {
+        const t = e.target;
+        const field = t.dataset ? t.dataset.bnField : null;
+        if (!field) return;
+        const card = t.closest(".bn-card");
+        const b = card ? bnGet(card.dataset.borne) : null;
+        if (!b) return;
+        if (field === "nom") {
+            if (isChange && !t.value.trim()) {
+                b.nomManuel = false;
+                bnAutoNames();
+                t.value = b.nom;
+            } else if (!isChange) {
+                b.nom = t.value;
+                b.nomManuel = true;
+            }
+            bnSyncNames();
+        } else if (field === "item-comment") {
+            const item = t.closest(".cheminement-item");
+            const list = item && item.dataset.list === "chem" ? b.chem : b.perc;
+            const entry = item ? list.find(p => p.key === item.dataset.photoKey) : null;
+            if (entry) entry.comment = t.value;
+            scheduleSyntheseBornes();
+        } else if (["emplacement", "raccordement", "metrage", "cheminement"].includes(field)) {
+            b[field] = t.value;
+            scheduleSyntheseBornes();
+        }
+    };
+    root.addEventListener("input", (e) => onField(e, false));
+    root.addEventListener("change", async (e) => {
+        const t = e.target;
+        if (t.matches && t.matches('input[type="file"][data-bn-photo]')) {
+            const key = t.dataset.bnPhoto;
+            const file = t.files && t.files[0];
+            if (!file) return;
+            await processPhoto(file, key);
+            const annBtn = document.querySelector(`[data-annotate="${key}"]`);
+            if (annBtn) annBtn.disabled = false;
+            t.value = "";
+            bnRefreshDerived();
+            return;
+        }
+        onField(e, true);
+    });
+
+    // Synthèse : modifiée à la main → on ne l'écrase plus
+    const ta = document.getElementById("synthese_bornes");
+    if (ta) ta.addEventListener("input", () => { syntheseBornesManuel = true; updateSyntheseBornesBadge(); });
+    const regen = document.getElementById("syntheseRegenBtn");
+    if (regen) regen.addEventListener("click", () => {
+        syntheseBornesManuel = false;
+        refreshSyntheseBornes(true);
+        bnSchedule();
+    });
+    // Audit / travaux : la synthèse change de formulation
+    ["modeAuditBtn", "modeTravauxBtn"].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener("click", () => setTimeout(() => refreshSyntheseBornes(false), 0));
+    });
+}
+
+// ---------- Synthèse par borne ----------
+function bnFmt(v) { return String(v).trim().replace(".", ","); }
+function bnOneLine(s) { return String(s || "").replace(/\s*\n+\s*/g, " ").trim(); }
+function bnUcFirst(s) { return s ? s[0].toUpperCase() + s.slice(1) : s; }
+
+function bnPercements(b) {
+    const items = b.perc.filter(i => photoStore[i.key] || (i.comment || "").trim());
+    return { count: items.length, comments: items.map(i => bnOneLine(i.comment)).filter(Boolean) };
+}
+
+function bnRaccPhrase(b) {
+    const r = RACCORDEMENTS[b.raccordement];
+    return r && r.phrase ? ` ${r.phrase}` : "";
+}
+
+function bnBuildSynthese() {
+    const travaux = (document.getElementById("modeIntervention")?.value) === "travaux";
+    const blocks = [];
+    BORNES.list.forEach(b => {
+        if (bnIsEmpty(b)) return;
+        const lines = [b.emplacement.trim() ? `${b.nom} — ${bnUcFirst(bnOneLine(b.emplacement))}` : b.nom];
+        if (String(b.metrage).trim()) {
+            const m = bnFmt(b.metrage);
+            lines.push(travaux ? `   • ${m} m de câble tirés${bnRaccPhrase(b)}` : `   • Prévoir ${m} m de câble${bnRaccPhrase(b)}`);
+        } else {
+            lines.push("   • Métrage de câble non renseigné");
+        }
+        if (b.cheminement.trim()) lines.push(`   • Cheminement : ${bnOneLine(b.cheminement)}`);
+        const perc = bnPercements(b);
+        if (perc.count) {
+            const s = perc.count > 1 ? "s" : "";
+            lines.push(`   • ${perc.count} percement${s}` + (perc.comments.length ? ` : ${perc.comments.join(" ; ")}` : " (voir photos)"));
+        }
+        blocks.push(lines.join("\n"));
+    });
+    return blocks.length ? blocks.join("\n\n") : "(Aucune borne renseignée.)";
+}
+
+function refreshSyntheseBornes(force) {
+    const ta = document.getElementById("synthese_bornes");
+    if (!ta) return;
+    if (!syntheseBornesManuel || force) ta.value = bnBuildSynthese();
+    updateSyntheseBornesBadge();
+}
+
+let _bnSynthTimer = null;
+function scheduleSyntheseBornes() {
+    clearTimeout(_bnSynthTimer);
+    _bnSynthTimer = setTimeout(() => refreshSyntheseBornes(false), 250);
+}
+
+function updateSyntheseBornesBadge() {
+    const badge = document.getElementById("syntheseBadge");
+    const btn = document.getElementById("syntheseRegenBtn");
+    if (badge) {
+        badge.textContent = syntheseBornesManuel ? "Modifiée à la main" : "Mise à jour automatique";
+        badge.className = "conf-badge " + (syntheseBornesManuel ? "ko" : "ok");
+    }
+    if (btn) btn.style.display = syntheseBornesManuel ? "inline-flex" : "none";
+}
+
+// ---------- Données pour le rapport PDF ----------
+window.__bornesReport = () => {
+    const bornes = BORNES.list.filter(b => !bnIsEmpty(b)).map(b => {
+        const perc = bnPercements(b);
+        const pl = bnFindPlacement(b.id, null);
+        const photos = [];
+        if (photoStore[b.empKey]) photos.push({ title: `${b.nom} — Emplacement`, dataUrl: photoStore[b.empKey].dataUrl, comment: "" });
+        b.chem.filter(i => photoStore[i.key]).forEach((it, i) =>
+            photos.push({ title: `${b.nom} — Cheminement ${i + 1}`, dataUrl: photoStore[it.key].dataUrl, comment: it.comment || "" }));
+        b.perc.filter(i => photoStore[i.key]).forEach((it, i) =>
+            photos.push({ title: `${b.nom} — Percement ${i + 1}`, dataUrl: photoStore[it.key].dataUrl, comment: it.comment || "" }));
+        return {
+            nom: b.nom, color: bnColor(b), colorName: bnColorName(b),
+            emplacement: bnOneLine(b.emplacement),
+            raccordement: (RACCORDEMENTS[b.raccordement] || {}).label || "",
+            metrage: String(b.metrage).trim() ? `${bnFmt(b.metrage)} m` : "Non renseigné",
+            cheminement: bnOneLine(b.cheminement),
+            percements: perc.count ? `${perc.count}` + (perc.comments.length ? ` — ${perc.comments.join(" ; ")}` : "") : "",
+            position: pl ? pl.label : "Non positionnée sur un plan",
+            photos
+        };
+    });
+    return { bornes, synthese: (document.getElementById("synthese_bornes")?.value || "").trim() };
+};
+
 // ---------- COMPOSER UN PLAN D'ÉVACUATION + SES POINTS POUR LE WORD ----------
 // Pour un plan donné (par son id), compose une image PNG = photo de fond + tous les
 // points placés sur ce plan, avec halo, dot central et label.
@@ -2494,6 +3064,10 @@ async function generateDocument() {
         updateGenerateButtonState();
         return;
     }
+
+    // Bornes : noms à jour sur les plans annotés, synthèse à jour
+    await bnRerenderMarkerPhotos();
+    refreshSyntheseBornes(false);
 
     const {
         Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell,
@@ -3057,6 +3631,81 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
     });
 }
 
+    // ---------- Bornes / répéteurs : aides de mise en page ----------
+    const _bnHex = (c) => String(c || "").replace("#", "").toUpperCase();
+    const _bornesWord = BORNES.list.filter(b => !bnIsEmpty(b));
+    const bnSwatchCell = (color, width) => new TableCell({
+        width: { size: width, type: WidthType.DXA },
+        verticalAlign: VerticalAlign.CENTER,
+        shading: { fill: _bnHex(color), type: ShadingType.CLEAR, color: "auto" },
+        margins: { top: 100, bottom: 100, left: 80, right: 80 },
+        borders: stdBorders,
+        children: [new Paragraph({ children: [] })]
+    });
+    // Légende « couleur → câble » sous un plan
+    const bnOwnersLegend = (owners) => new Table({
+        width: { size: 9360, type: WidthType.DXA },
+        columnWidths: [820, 8540],
+        rows: owners.map(id => {
+            if (id === "commun") {
+                return new TableRow({ cantSplit: true, children: [
+                    bnSwatchCell(CABLE_PRINCIPAL.hex, 820),
+                    valueCell(`${CABLE_PRINCIPAL.nom} (${CABLE_PRINCIPAL.colorName})`, 8540)
+                ] });
+            }
+            const b = bnGet(id);
+            const emp = b && b.emplacement.trim() ? ` — ${bnOneLine(b.emplacement)}` : "";
+            return new TableRow({ cantSplit: true, children: [
+                bnSwatchCell(b ? bnColor(b) : "#999999", 820),
+                valueCell(b ? `${b.nom} (${bnColorName(b).toLowerCase()})${emp}` : "Borne supprimée", 8540)
+            ] });
+        })
+    });
+    // Bandeau photo (proportions respectées) + commentaire éventuel
+    const bnPhotoBanner = (title, key, comment) => {
+        const w = 8400;
+        const photo = photoStore[key];
+        const pb = { style: BorderStyle.SINGLE, size: 6, color: COLOR_PHOTO_BORDER };
+        const nb = { style: BorderStyle.NONE, size: 0, color: "FFFFFF" };
+        const pw = photo ? (photo.naturalWidth || 4) : 4, ph = photo ? (photo.naturalHeight || 3) : 3;
+        const r = Math.min(400 / pw, 300 / ph);
+        const rows = [
+            new TableRow({ cantSplit: true, children: [new TableCell({
+                width: { size: w, type: WidthType.DXA },
+                shading: { fill: COLOR_PHOTO_BG, type: ShadingType.CLEAR, color: "auto" },
+                margins: { top: 100, bottom: 100, left: 200, right: 200 },
+                borders: { top: pb, bottom: pb, left: pb, right: pb },
+                children: [new Paragraph({ keepNext: true, children: [new TextRun({ text: `📷 ${title}`, bold: true, size: 22, color: COLOR_TITLE, font: "Calibri" })] })]
+            })] }),
+            new TableRow({ cantSplit: true, children: [new TableCell({
+                width: { size: w, type: WidthType.DXA },
+                margins: { top: 200, bottom: 200, left: 200, right: 200 },
+                verticalAlign: VerticalAlign.CENTER,
+                borders: { top: nb, bottom: pb, left: pb, right: pb },
+                children: [new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: photo ? [new ImageRun({
+                        data: photo.data,
+                        transformation: { width: Math.max(1, Math.round(pw * r)), height: Math.max(1, Math.round(ph * r)) },
+                        type: photo.type === "png" ? "png" : "jpg"
+                    })] : [new TextRun({ text: "(Photo non fournie)", italics: true, size: 18, color: "999999", font: "Calibri" })]
+                })]
+            })] })
+        ];
+        if (comment && comment.trim()) {
+            rows.push(new TableRow({ cantSplit: true, children: [new TableCell({
+                width: { size: w, type: WidthType.DXA },
+                margins: { top: 100, bottom: 100, left: 200, right: 200 },
+                borders: { top: nb, bottom: pb, left: pb, right: pb },
+                children: [new Paragraph({ children: [
+                    new TextRun({ text: "Commentaire : ", bold: true, size: 20, font: "Calibri" }),
+                    new TextRun({ text: comment.trim(), size: 20, font: "Calibri", italics: true })
+                ] })]
+            })] }));
+        }
+        return new Table({ width: { size: w, type: WidthType.DXA }, columnWidths: [w], rows });
+    };
+
      // === SECTION 4 : PLAN(S) D'ÉVACUATION (un sous-bloc par plan) ===
     const _modeS4 = (document.getElementById("modeIntervention")?.value) || "audit";
     const _titreS4 = (_modeS4 === "travaux")
@@ -3175,6 +3824,13 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
             } else {
                 children.push(P("(Aucun point/repère placé sur ce plan)", { italics: true, color: "999999" }));
             }
+
+            // Câbles tracés sur ce plan (câble principal + bornes), avec leur couleur
+            const _owners = bnPlanOwners(`evac_plan_${_plan.id}`);
+            if (_owners.length && BORNES.list.length) {
+                children.push(P("Câbles tracés sur ce plan :", { italics: true, color: "555555", spacing: { before: 100, after: 40 } }));
+                children.push(bnOwnersLegend(_owners));
+            }
         }
     } else {
         // Pas de plan importé : si le technicien a coché "aucun plan d'évacuation
@@ -3195,7 +3851,8 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
     }
     // === SECTION 5 : CHEMINEMENT (2 par ligne) ===
     children.push(sectionTitle(5, "Cheminement câble & installation"));
-    const chemItems = Array.from(document.querySelectorAll('.cheminement-item'));
+    if (_bornesWord.length) children.push(subTitle("5.1", "Câble antenne → routeur"));
+    const chemItems = Array.from(document.querySelectorAll('#cheminementContainer .cheminement-item'));
     if (chemItems.length === 0) {
         children.push(P("(Aucun cheminement renseigné)", { italics: true, color: "999999" }));
     }
@@ -3248,6 +3905,96 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
         }));
     }
 
+    // === 5.2 : BORNES / RÉPÉTEURS INTÉRIEURS ===
+    if (_bornesWord.length) {
+        children.push(subTitle("5.2", "Bornes / répéteurs intérieurs"));
+        const W = [700, 2060, 3100, 1800, 1700];
+        children.push(new Table({
+            width: { size: 9360, type: WidthType.DXA },
+            columnWidths: W,
+            rows: [
+                new TableRow({
+                    tableHeader: true,
+                    cantSplit: true,
+                    children: [labelCell("", W[0]), labelCell("Borne", W[1]), labelCell("Emplacement", W[2]),
+                        labelCell("Raccordée depuis", W[3]), labelCell("Métrage câble", W[4])]
+                }),
+                ..._bornesWord.map(b => new TableRow({
+                    cantSplit: true,
+                    children: [
+                        bnSwatchCell(bnColor(b), W[0]),
+                        valueCell(b.nom, W[1], { bold: true }),
+                        valueCell(bnOneLine(b.emplacement) || "—", W[2]),
+                        valueCell((RACCORDEMENTS[b.raccordement] || {}).label || "—", W[3]),
+                        valueCell(String(b.metrage).trim() ? `${bnFmt(b.metrage)} m` : "—", W[4])
+                    ]
+                }))
+            ]
+        }));
+        const _totalM = _bornesWord.reduce((t, b) => t + (parseFloat(String(b.metrage).replace(",", ".")) || 0), 0);
+        children.push(P(`${_bornesWord.length} borne${_bornesWord.length > 1 ? "s" : ""}` +
+            (_totalM ? ` — ${bnFmt(Math.round(_totalM * 10) / 10)} m de câble au total` : "") +
+            ". La couleur est celle du câble de la borne sur les plans d'évacuation.",
+            { italics: true, size: 18, color: "555555" }));
+
+        _bornesWord.forEach((b, i) => {
+            children.push(new Paragraph({
+                spacing: { before: 280, after: 80 },
+                keepNext: true,
+                keepLines: true,
+                children: [
+                    new TextRun({ text: `5.2.${i + 1} - `, italics: true, bold: true, size: 22, color: COLOR_SUBTITLE, font: "Calibri" }),
+                    new TextRun({ text: "● ", bold: true, size: 26, color: _bnHex(bnColor(b)), font: "Calibri" }),
+                    new TextRun({ text: b.nom, italics: true, bold: true, size: 22, color: COLOR_SUBTITLE, font: "Calibri" })
+                ]
+            }));
+            const rows = [["Couleur sur les plans", `● ${bnColorName(b)}`, { bold: true, color: _bnHex(bnColor(b)) }]];
+            if (b.emplacement.trim()) rows.push(["Emplacement", bnOneLine(b.emplacement)]);
+            rows.push(["Raccordée depuis", (RACCORDEMENTS[b.raccordement] || {}).label || "—"]);
+            rows.push(["Métrage de câble", String(b.metrage).trim() ? `${bnFmt(b.metrage)} m` : "Non renseigné", { bold: !!String(b.metrage).trim() }]);
+            rows.push(["Cheminement", b.cheminement.trim() ? bnUcFirst(bnOneLine(b.cheminement)) : "Non renseigné"]);
+            const perc = bnPercements(b);
+            if (perc.count) rows.push(["Percements", `${perc.count}` + (perc.comments.length ? ` — ${perc.comments.join(" ; ")}` : "")]);
+            const pl = bnFindPlacement(b.id, null);
+            const tr = bnTracedOn(b.id);
+            rows.push(["Sur les plans", pl
+                ? `Posée sur : ${pl.label}` + (tr.length ? "" : " (câble non tracé)")
+                : (tr.length ? `Câble tracé sur : ${tr.map(bnPlanLabel).join(", ")}` : "Non positionnée sur un plan")]);
+            // Fiche d'un seul tenant (keepNext sur toutes les lignes sauf la dernière)
+            const kvCell = (txt, width, isLabel, o, keepNext) => new TableCell({
+                width: { size: width, type: WidthType.DXA },
+                verticalAlign: VerticalAlign.CENTER,
+                shading: isLabel ? { fill: COLOR_TABLE_LABEL, type: ShadingType.CLEAR, color: "auto" } : undefined,
+                margins: { top: 100, bottom: 100, left: 140, right: 140 },
+                borders: stdBorders,
+                children: [new Paragraph({ keepNext, children: [new TextRun({
+                    text: txt || "", size: 20, font: "Calibri",
+                    bold: isLabel || !!(o && o.bold), color: (o && o.color) || "000000"
+                })] })]
+            });
+            children.push(new Table({
+                width: { size: 9360, type: WidthType.DXA },
+                columnWidths: [3120, 6240],
+                rows: rows.map((r, k) => {
+                    const kn = k < rows.length - 1;
+                    return new TableRow({ cantSplit: true, children: [kvCell(r[0], 3120, true, null, kn), kvCell(r[1], 6240, false, r[2], kn)] });
+                })
+            }));
+
+            const photos = [];
+            if (photoStore[b.empKey]) photos.push([`${b.nom} — Emplacement de la borne`, b.empKey, ""]);
+            b.chem.filter(it => photoStore[it.key]).forEach((it, k) => photos.push([`${b.nom} — Cheminement ${k + 1}`, it.key, it.comment]));
+            b.perc.filter(it => photoStore[it.key]).forEach((it, k) => photos.push([`${b.nom} — Percement ${k + 1}`, it.key, it.comment]));
+            if (!b.chem.some(it => photoStore[it.key])) {
+                children.push(P("(Aucune photo de cheminement.)", { italics: true, color: "888888", spacing: { before: 100, after: 40 } }));
+            }
+            photos.forEach(([title, key, comment]) => {
+                children.push(P("", { spacing: { before: 120, after: 0 } }));
+                children.push(bnPhotoBanner(title, key, comment));
+            });
+        });
+    }
+
     // === SECTION 6 : SYNTHÈSE ===
     children.push(sectionTitle(6, "Synthèse de l'intervention"));
     const _modeS6 = (document.getElementById("modeIntervention")?.value) || "audit";
@@ -3267,6 +4014,28 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
         s6Rows.push(["Échelle / échafaudage ?", _radioVal("echelle_prevoir")]);
     }
     children.push(kvTable(s6Rows));
+
+    // Synthèse par borne / répéteur (texte de la section 6 du formulaire)
+    if (_bornesWord.length) {
+        const _synth = (document.getElementById("synthese_bornes")?.value || "").trim();
+        children.push(P("", { spacing: { before: 160, after: 40 } }));
+        children.push(new Table({
+            width: { size: 9360, type: WidthType.DXA },
+            columnWidths: [9360],
+            rows: [
+                new TableRow({ cantSplit: true, children: [labelCell("Synthèse par borne / répéteur", 9360)] }),
+                new TableRow({ children: [new TableCell({
+                    width: { size: 9360, type: WidthType.DXA },
+                    margins: { top: 160, bottom: 160, left: 200, right: 200 },
+                    borders: stdBorders,
+                    children: (_synth ? _synth.split("\n") : ["(Aucune borne renseignée.)"]).map(line => new Paragraph({
+                        spacing: { before: 20, after: 20 },
+                        children: [new TextRun({ text: line, size: 20, font: "Calibri" })]
+                    }))
+                })] })
+            ]
+        }));
+    }
 
     children.push(P("", { spacing: { before: 200, after: 80 } }));
 
@@ -3647,7 +4416,8 @@ const AUTOSAVE = (() => {
         const hasPhoto = d.photos && Object.keys(d.photos).length > 0;
         const hasPoint = Array.isArray(d.measurePoints) && d.measurePoints.length > 0 &&
                          d.measurePoints.some(p => (p.lieu || p.rsrp || p.sinr || p.down));
-        return !hasField && !hasPhoto && !hasPoint;
+        const hasBorne = d.bornes && Array.isArray(d.bornes.list) && d.bornes.list.length > 0;
+        return !hasField && !hasPhoto && !hasPoint && !hasBorne;
     }
 
     // Sauvegarde immédiate (utilisée en interne par le debounce)
@@ -3797,7 +4567,7 @@ function collectFormData() {
     data.measureLevelCounter = measureLevelCounter;
 
     // Cheminements
-    document.querySelectorAll('.cheminement-item').forEach(item => {
+    document.querySelectorAll('#cheminementContainer .cheminement-item').forEach(item => {
         data.cheminements.push({
             idx: item.dataset.idx,
             comment: item.querySelector('.cheminement-comment')?.value || ""
@@ -3820,6 +4590,10 @@ function collectFormData() {
     if (window.CompteRendu && typeof window.CompteRendu.getState === "function") {
         data.compteRendu = window.CompteRendu.getState();
     }
+
+    // Bornes / répéteurs intérieurs
+    data.bornes = JSON.parse(JSON.stringify(BORNES));
+    data.syntheseBornesManuel = syntheseBornesManuel;
 
     return data;
 }
@@ -4157,6 +4931,12 @@ async function applyFormData(data) {
         // Aucun plan dans la sauvegarde → recréer une carte vide par défaut
         addEvacPlan();
     }
+
+    // Bornes / répéteurs intérieurs (après les photos et les plans)
+    BORNES = bnNormalize(data.bornes);
+    syntheseBornesManuel = !!data.syntheseBornesManuel;
+    renderBornes();
+    refreshSyntheseBornes(false);
 
     // Restaurer l'état du compte rendu principal (cases, quantités, etc.)
     if (data.compteRendu && window.CompteRendu && typeof window.CompteRendu.setState === "function") {

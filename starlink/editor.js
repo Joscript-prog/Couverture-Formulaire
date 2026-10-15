@@ -16,6 +16,42 @@ const Editor = (function () {
   let stageW = 0, stageH = 0;     // taille naturelle de la photo (px)
   let scale = 1;                  // facteur d'échelle d'affichage
 
+  // ---- Outil « Tracé » (flèche à plusieurs points) : ../annotation-trace.js ----
+  const isLine = (t) => t === "arrow" || t === "polyline";
+  const trace = (window.AnnotTrace || { create: () => ({ start() {}, cancel() {}, commit() {}, setStyle() {}, isDrawing: () => false, render() {}, addHandles() {}, startMove() {}, syncPanel() {}, drawCanvas() {} }) }).create({   // repli si annotation-trace.js n'est pas chargé (ancienne page en cache)
+    stage: () => stageEl || document.getElementById("editorStage"),
+    scale: () => scale,
+    size: () => ({ w: stageW, h: stageH }),
+    style: () => traceStyle(),
+    create: (data) => createPolylineElement(data, true),
+    select: (el) => select(el),
+    remove: (el) => deleteElement(el)
+  });
+
+  function traceStyle() {
+    // mêmes réglages que « Ajouter une flèche » (couleur, épaisseur, pointe)
+    const c = document.getElementById("arrowColor");
+    const t = document.getElementById("arrowThickness");
+    const h = document.getElementById("arrowHeadSize");
+    return {
+      color: (c && c.value) || "#FF0000",
+      thickness: parseInt(t && t.value, 10) || 6,
+      headSize: parseInt(h && h.value, 10) || 18
+    };
+  }
+
+  function createPolylineElement(data, doSelect) {
+    const wrapper = document.createElement("div");
+    wrapper.className = "editor-element polyline-element";
+    wrapper.dataset.uid = uid();
+    wrapper._data = data;
+    stageEl.appendChild(wrapper);
+    elements.push({ el: wrapper, data });
+    trace.render(wrapper, data);
+    attachHandlers(wrapper);
+    if (doSelect) select(wrapper);
+  }
+
   // ---- Initialisation des miniatures de la barre d'outils ----
   function initThumbnails() {
     Object.keys(ANNOTATION_ASSETS).forEach(key => {
@@ -26,6 +62,7 @@ const Editor = (function () {
 
   // ---- Ouvrir l'éditeur ----
   function open(photoKey, label) {
+    trace.cancel();
     currentPhotoKey = photoKey;
     document.getElementById("editorTitle").textContent = label;
 
@@ -91,6 +128,7 @@ const Editor = (function () {
 
   // ---- Fermer ----
   function close() {
+    trace.cancel();
     document.getElementById("editorOverlay").classList.remove("shown");
     currentPhotoKey = null;
   }
@@ -331,6 +369,7 @@ const Editor = (function () {
 
   // ---- Application du transform (position + taille + rotation + flip) ----
   function applyTransform(el, data) {
+    if (data.type === "polyline") { trace.render(el, data); return; }
     if (data.type === "arrow") {
       // les flèches gèrent leur propre rendu via renderArrow()
       renderArrow(el, data);
@@ -475,8 +514,8 @@ const Editor = (function () {
       selectedEl.classList.remove("selected");
       [...selectedEl.querySelectorAll(".handle")].forEach(h => h.remove());
       // Pour les flèches : redessiner sans le cadre de sélection
-      if (selectedEl._data && selectedEl._data.type === "arrow") {
-        renderArrow(selectedEl, selectedEl._data);
+      if (selectedEl._data && isLine(selectedEl._data.type)) {
+        applyTransform(selectedEl, selectedEl._data);
       }
     }
     selectedEl = el;
@@ -488,6 +527,9 @@ const Editor = (function () {
     if (el._data.type === "arrow") {
       renderArrow(el, el._data); // redessiner avec cadre
       addArrowHandles(el);
+    } else if (el._data.type === "polyline") {
+      trace.render(el, el._data);
+      trace.addHandles(el);
     } else {
       addHandles(el);
     }
@@ -615,13 +657,14 @@ const Editor = (function () {
     const cirPanel = document.getElementById("selPanelCircle");
     panel.style.display = "block";
     imgPanel.style.display = (data.type === "image") ? "block" : "none";
-    arrPanel.style.display = (data.type === "arrow") ? "block" : "none";
+    arrPanel.style.display = isLine(data.type) ? "block" : "none";
+    trace.syncPanel(data);
     if (cirPanel) cirPanel.style.display = (data.type === "circle") ? "block" : "none";
 
     if (data.type === "image") {
       document.getElementById("flipHBtn").classList.toggle("active", !!data.flipH);
       document.getElementById("flipVBtn").classList.toggle("active", !!data.flipV);
-    } else if (data.type === "arrow") {
+    } else if (isLine(data.type)) {
       document.getElementById("selArrowColor").value = data.color;
       document.getElementById("selArrowThickness").value = data.thickness;
       document.getElementById("selArrowHeadSize").value = data.headSize;
@@ -651,6 +694,14 @@ const Editor = (function () {
   function attachHandlers(el) {
     el.addEventListener("pointerdown", (e) => {
       if (e.target.classList.contains("handle")) return;
+      if (el._data.type === "polyline") {
+        if (trace.isDrawing()) return;
+        e.stopPropagation();
+        e.preventDefault();
+        select(el);
+        trace.startMove(e, el);   // bouge seulement après quelques pixels
+        return;
+      }
       if (e.target.tagName === "polygon" || e.target.tagName === "line") {
         // c'est une flèche : on sélectionne et on drag (translation entière)
         e.stopPropagation();
@@ -818,6 +869,7 @@ const Editor = (function () {
   function setupKeyboard() {
     document.addEventListener("keydown", (e) => {
       if (!document.getElementById("editorOverlay").classList.contains("shown")) return;
+      if (trace.isDrawing()) return;   // Entrée / Échap / Retour arrière : gérés par l'outil Tracé
       if ((e.key === "Delete" || e.key === "Backspace") && selectedEl) {
         if (["INPUT","TEXTAREA"].includes(document.activeElement.tagName)) return;
         e.preventDefault();
@@ -913,6 +965,8 @@ const Editor = (function () {
         elements.push({ el: wrapper, data });
         renderArrow(wrapper, data);
         attachHandlers(wrapper);
+      } else if (data.type === "polyline") {
+        createPolylineElement(data, false);
       } else if (data.type === "circle") {
         wrapper = document.createElement("div");
         wrapper.className = "editor-element circle-element";
@@ -957,6 +1011,8 @@ const Editor = (function () {
         drawTextEl(ctx, d);
       } else if (d.type === "arrow") {
         drawArrowEl(ctx, d);
+      } else if (d.type === "polyline") {
+        trace.drawCanvas(ctx, d);
       } else if (d.type === "circle") {
         drawCircleEl(ctx, d);
       }
@@ -1088,6 +1144,7 @@ const Editor = (function () {
   // ---- Sauvegarde (appelée depuis le bouton "Enregistrer") ----
   async function save() {
     if (!currentPhotoKey) return;
+    trace.commit();
     const photo = photoStore[currentPhotoKey];
     if (!photo) return;
 
@@ -1221,10 +1278,10 @@ const Editor = (function () {
     });
     document.querySelectorAll(".sel-arrow-swatch").forEach(s => {
       s.addEventListener("click", () => {
-        if (!selectedEl || selectedEl._data.type !== "arrow") return;
+        if (!selectedEl || !isLine(selectedEl._data.type)) return;
         selectedEl._data.color = s.dataset.color;
         document.getElementById("selArrowColor").value = s.dataset.color;
-        renderArrow(selectedEl, selectedEl._data);
+        applyTransform(selectedEl, selectedEl._data);
       });
     });
 
@@ -1249,19 +1306,19 @@ const Editor = (function () {
     const selThick = document.getElementById("selArrowThickness");
     const selHead  = document.getElementById("selArrowHeadSize");
     if (selColor) selColor.addEventListener("input", () => {
-      if (!selectedEl || selectedEl._data.type !== "arrow") return;
+      if (!selectedEl || !isLine(selectedEl._data.type)) return;
       selectedEl._data.color = selColor.value;
-      renderArrow(selectedEl, selectedEl._data);
+      applyTransform(selectedEl, selectedEl._data);
     });
     if (selThick) selThick.addEventListener("input", () => {
-      if (!selectedEl || selectedEl._data.type !== "arrow") return;
+      if (!selectedEl || !isLine(selectedEl._data.type)) return;
       selectedEl._data.thickness = parseInt(selThick.value, 10) || 6;
-      renderArrow(selectedEl, selectedEl._data);
+      applyTransform(selectedEl, selectedEl._data);
     });
     if (selHead) selHead.addEventListener("input", () => {
-      if (!selectedEl || selectedEl._data.type !== "arrow") return;
+      if (!selectedEl || !isLine(selectedEl._data.type)) return;
       selectedEl._data.headSize = parseInt(selHead.value, 10) || 18;
-      renderArrow(selectedEl, selectedEl._data);
+      applyTransform(selectedEl, selectedEl._data);
     });
 
     updateTextPreview();
@@ -1275,7 +1332,7 @@ const Editor = (function () {
             applyTextStyle(it.el, it.data);
           }
           applyTransform(it.el, it.data);
-          if (it.data.type === "arrow" && it.el === selectedEl && it.el._placeArrowHandles) {
+          if (isLine(it.data.type) && it.el === selectedEl && it.el._placeArrowHandles) {
             it.el._placeArrowHandles();
           }
           // Les cercles sont déjà redessinés par applyTransform, rien de plus à faire
