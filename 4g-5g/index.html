@@ -2708,6 +2708,7 @@
     <div id="validationBanner" style="max-width: 1200px; margin: 0 auto 10px auto; padding: 12px 16px; border-radius: 6px; display: none;"></div>
 
     <div class="actions">
+        <button type="button" class="more-toggle" aria-expanded="false" onclick="var a=this.parentNode,o=a.classList.toggle('show-more');this.setAttribute('aria-expanded',o);this.querySelector('span').textContent=o?'Moins':'Plus'"><span>Plus</span></button>
         <button class="btn-secondary" onclick="resetForm()">Réinitialiser</button>
         <button class="btn-secondary" id="btnExportJSON" onclick="exportJSON()">Export JSON</button>
         <button class="btn-secondary" onclick="document.getElementById('importJSONInput').click()">Import JSON</button>

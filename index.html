@@ -2,48 +2,50 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Outils d'audit et de travaux terrain IPKONEKT pour Bouygues Telecom et Bretagne Telecom">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="description" content="Outils d'audit et de travaux terrain IPKONEKT">
     <meta name="theme-color" content="#0A25EB">
     <title>Outils terrain IPKONEKT</title>
-    <link rel="icon" href="logo-ipkonekt.png">
     <link rel="preload" href="fonts/barlow-semi-condensed-600.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="preload" href="fonts/barlow-400.woff2" as="font" type="font/woff2" crossorigin>
     <link rel="stylesheet" href="theme.css">
     <style>
         * { box-sizing: border-box; }
         html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
-        body { margin: 0; min-height: 100vh; display: flex; flex-direction: column; }
+        body { margin: 0; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 
         .portal-head { background: var(--ipk); color: #fff; }
-        .portal-head-in {
-            max-width: 880px; margin: 0 auto;
-            padding: 36px 24px 34px;
-            display: flex; align-items: center; gap: 20px;
+        .portal-head-in,
+        main,
+        footer {
+            width: 100%;
+            max-width: 1180px;
+            margin: 0 auto;
+            padding-left: max(24px, env(safe-area-inset-left));
+            padding-right: max(24px, env(safe-area-inset-right));
         }
-        .portal-logo {
-            flex: none; width: 72px; height: 72px; border-radius: 16px;
-            background: #fff; display: grid; place-items: center;
-        }
-        .portal-logo img { width: 56px; height: auto; display: block; }
+        .portal-head-in { padding-top: 40px; padding-bottom: 36px; }
         .portal-head h1 {
-            margin: 0; font: 700 2.4rem/1.05 var(--font-title); letter-spacing: 0.005em;
+            margin: 0; font: 700 clamp(2rem, 1.4rem + 2.4vw, 2.9rem)/1.05 var(--font-title); letter-spacing: 0.005em;
         }
-        .portal-head p { margin: 8px 0 0; font-size: 1.05rem; line-height: 1.45; max-width: 60ch; opacity: 0.94; }
+        .portal-head p { margin: 10px 0 0; font-size: clamp(1rem, 0.95rem + 0.25vw, 1.12rem); line-height: 1.45; max-width: 52ch; opacity: 0.94; }
 
-        main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 8px 24px 40px; }
-        .tool-group h2 {
-            margin: 30px 0 10px; font: 600 1.2rem var(--font-title); color: var(--muted);
-        }
+        main { flex: 1; padding-top: 8px; padding-bottom: 40px; }
+        .tool-group h2 { margin: 30px 0 10px; font: 600 1.2rem var(--font-title); color: var(--muted); }
         .tool-list {
             list-style: none; margin: 0; padding: 0;
             background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
         }
         .tool-list li + li { border-top: 1px solid var(--line); }
         .tool {
-            display: flex; align-items: center; gap: 18px;
-            padding: 16px 18px; min-height: 84px;
+            position: relative;
+            display: flex; align-items: center; gap: 16px;
+            padding: 16px 18px 16px 30px; min-height: 84px;
             color: var(--ink); text-decoration: none;
+        }
+        /* la couleur de l'outil, sur le bord de la ligne */
+        .tool::before {
+            content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: var(--tile);
         }
         .tool[data-tool="4g"]       { --tile: #0091D5; --tile-ink: #006FA6; --tile-tint: #E6F4FB; }
         .tool[data-tool="starlink"] { --tile: #E86F00; --tile-ink: #B85300; --tile-tint: #FDF0E4; }
@@ -51,127 +53,122 @@
         .tool[data-tool="cablage"]  { --tile: #8B3DFF; --tile-ink: #6B21E0; --tile-tint: #F3ECFF; }
         .tool[data-tool="wifi"]     { --tile: #009E7E; --tile-ink: #007A62; --tile-tint: #E5F5F1; }
         .tool[data-tool="camera"]   { --tile: #E5282F; --tile-ink: #C81E25; --tile-tint: #FDECEC; }
-        .tool-tile {
-            flex: none; width: 56px; height: 56px; border-radius: 12px;
-            background: var(--tile); color: #fff; display: grid; place-items: center;
-        }
-        .tool-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+        .tool-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
         .tool-name { font: 600 1.4rem/1.15 var(--font-title); }
         .tool-desc { color: var(--muted); font-size: 0.98rem; line-height: 1.4; }
         .tool-go { flex: none; color: var(--line-strong); }
         .tool:hover { background: var(--tile-tint); }
-        .tool:hover .tool-name { color: var(--tile-ink); }
-        .tool:hover .tool-go { color: var(--tile-ink); }
+        .tool:hover .tool-name, .tool:hover .tool-go { color: var(--tile-ink); }
         .tool:focus-visible { outline: 3px solid var(--tile-ink); outline-offset: -3px; }
 
-        footer {
-            max-width: 880px; width: 100%; margin: 0 auto;
-            padding: 8px 24px calc(24px + env(safe-area-inset-bottom, 0px));
-            color: var(--muted); font-size: 0.88rem;
-        }
+        footer { padding-top: 8px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); color: var(--muted); font-size: 0.88rem; }
 
+        /* Grand écran : deux colonnes (Couverture à gauche, Câblage et Sûreté à droite) */
+        @media (min-width: 980px) {
+            main {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-template-areas: "couv cab" "couv sur";
+                grid-template-rows: auto 1fr;
+                align-items: start;
+                column-gap: 32px;
+            }
+            .g-couv { grid-area: couv; }
+            .g-cab { grid-area: cab; }
+            .g-sur { grid-area: sur; }
+        }
+        /* Téléphone */
         @media (max-width: 560px) {
-            .portal-head-in { padding: 24px 16px 22px; gap: 14px; align-items: flex-start; }
-            .portal-logo { width: 56px; height: 56px; border-radius: 12px; }
-            .portal-logo img { width: 44px; }
-            .portal-head h1 { font-size: 1.9rem; }
-            .portal-head p { font-size: 0.98rem; }
-            main { padding: 0 16px 28px; }
-            .tool-group h2 { margin-top: 24px; }
-            .tool { gap: 14px; padding: 14px; }
-            .tool-tile { width: 48px; height: 48px; border-radius: 10px; }
-            .tool-tile svg { width: 26px; height: 26px; }
+            .portal-head-in, main, footer {
+                padding-left: max(14px, env(safe-area-inset-left));
+                padding-right: max(14px, env(safe-area-inset-right));
+            }
+            .portal-head-in { padding-top: 26px; padding-bottom: 22px; }
+            .tool-group h2 { margin-top: 22px; font-size: 1.1rem; }
+            .tool { gap: 10px; padding: 14px 12px 14px 22px; min-height: 76px; }
+            .tool::before { width: 8px; }
             .tool-name { font-size: 1.25rem; }
-            .tool-desc { font-size: 0.92rem; }
-            footer { padding-left: 16px; padding-right: 16px; }
+            .tool-desc { font-size: 0.93rem; }
+            .tool-go { width: 18px; height: 18px; }
         }
     </style>
 </head>
 <body>
     <header class="portal-head">
         <div class="portal-head-in">
-            <span class="portal-logo"><img src="logo-ipkonekt.png" alt="IPKONEKT" width="147" height="129"></span>
-            <div>
-                <h1>Outils terrain</h1>
-                <p>Audits et travaux pour Bouygues Telecom et Bretagne Telecom. Ouvrez l'outil de l'intervention : vous choisirez audit ou travaux dans le formulaire.</p>
-            </div>
+            <h1>Outils terrain</h1>
+            <p>Ouvrez l'outil de l'intervention. Vous choisirez audit ou travaux dans le formulaire.</p>
         </div>
     </header>
 
     <main>
-        <section class="tool-group" aria-labelledby="g-couv">
+        <section class="tool-group g-couv" aria-labelledby="g-couv">
             <h2 id="g-couv">Couverture</h2>
             <ul class="tool-list">
                 <li>
                     <a class="tool" href="4g-5g/" data-tool="4g">
-                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 4v8" /> <path d="M16 4.5v7" /> <path d="M12 5v16" /> <path d="M8 5.5v5" /> <path d="M4 6v4" /> <path d="M20 8h-16" /></svg></span>
                         <span class="tool-text">
                             <span class="tool-name">Antenne 4G / 5G</span>
                             <span class="tool-desc">Mesures radio interprétées, plan d'évacuation, routeur et bornes intérieures.</span>
                         </span>
-                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
                     </a>
                 </li>
                 <li>
                     <a class="tool" href="starlink/" data-tool="starlink">
-                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.707 6.293l2.586 -2.586a1 1 0 0 1 1.414 0l5.586 5.586a1 1 0 0 1 0 1.414l-2.586 2.586a1 1 0 0 1 -1.414 0l-5.586 -5.586a1 1 0 0 1 0 -1.414z" /> <path d="M6 10l-3 3l3 3l3 -3" /> <path d="M10 6l3 -3l3 3l-3 3" /> <path d="M12 12l1.5 1.5" /> <path d="M14.5 17a2.5 2.5 0 0 0 2.5 -2.5" /> <path d="M15 21a6 6 0 0 0 6 -6" /></svg></span>
                         <span class="tool-text">
                             <span class="tool-name">Antenne Starlink</span>
                             <span class="tool-desc">Emplacement de l'antenne, test d'obstruction, cheminement du câble et EPI.</span>
                         </span>
-                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
                     </a>
                 </li>
                 <li>
                     <a class="tool" href="pico-quatra/" data-tool="pico">
-                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" /> <path d="M16.616 13.924a5 5 0 1 0 -9.23 0" /> <path d="M20.307 15.469a9 9 0 1 0 -16.615 0" /> <path d="M9 21l3 -9l3 9" /> <path d="M10 19h4" /></svg></span>
                         <span class="tool-text">
                             <span class="tool-name">PICO BTS / Cel-Fi Quatra</span>
                             <span class="tool-desc">Mesures radio et speedtest, forfait BPU, plan d'implantation et fournitures.</span>
                         </span>
-                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
                     </a>
                 </li>
             </ul>
         </section>
 
-        <section class="tool-group" aria-labelledby="g-cab">
+        <section class="tool-group g-cab" aria-labelledby="g-cab">
             <h2 id="g-cab">Câblage</h2>
             <ul class="tool-list">
                 <li>
                     <a class="tool" href="cablage/" data-tool="cablage">
-                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /> <path d="M3 12m0 3a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v2a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3z" /> <path d="M7 8l0 .01" /> <path d="M7 16l0 .01" /> <path d="M11 8h6" /> <path d="M11 16h6" /></svg></span>
                         <span class="tool-text">
                             <span class="tool-name">Câblage</span>
                             <span class="tool-desc">Baie informatique, adductions, cheminements, percements et blocages éventuels.</span>
                         </span>
-                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
                     </a>
                 </li>
                 <li>
                     <a class="tool" href="cablage-wifi/" data-tool="wifi">
-                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 18l.01 0" /> <path d="M9.172 15.172a4 4 0 0 1 5.656 0" /> <path d="M6.343 12.343a8 8 0 0 1 11.314 0" /> <path d="M3.515 9.515c4.686 -4.687 12.284 -4.687 17 0" /></svg></span>
                         <span class="tool-text">
                             <span class="tool-name">Câblage Wi-Fi</span>
                             <span class="tool-desc">Bornes par niveau, une couleur par borne sur les plans, métrage et synthèse.</span>
                         </span>
-                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
                     </a>
                 </li>
             </ul>
         </section>
 
-        <section class="tool-group" aria-labelledby="g-sur">
+        <section class="tool-group g-sur" aria-labelledby="g-sur">
             <h2 id="g-sur">Sûreté</h2>
             <ul class="tool-list">
                 <li>
                     <a class="tool" href="camera-alarme/" data-tool="camera">
-                        <span class="tool-tile"><svg class="" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3m0 1a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v2a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1z" /> <path d="M12 14m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0" /> <path d="M19 7v7a7 7 0 0 1 -14 0v-7" /> <path d="M12 14l.01 0" /></svg></span>
                         <span class="tool-text">
                             <span class="tool-name">Caméras et alarme</span>
                             <span class="tool-desc">Équipements par niveau, champ de vision des caméras, câbles jusqu'à la baie.</span>
                         </span>
-                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6" /></svg>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
                     </a>
                 </li>
             </ul>

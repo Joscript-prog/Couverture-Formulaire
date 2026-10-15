@@ -1404,6 +1404,7 @@
     </div>
 
     <div class="actions">
+        <button type="button" class="more-toggle" aria-expanded="false" onclick="var a=this.parentNode,o=a.classList.toggle('show-more');this.setAttribute('aria-expanded',o);this.querySelector('span').textContent=o?'Moins':'Plus'"><span>Plus</span></button>
         <button type="button" class="btn-secondary" onclick="resetForm()">Réinitialiser</button>
         <button type="button" class="btn-secondary" onclick="exportToJSON()">Export JSON</button>
         <button type="button" class="btn-secondary" onclick="document.getElementById('importJsonInput').click()">Import JSON</button>

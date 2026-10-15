@@ -1544,6 +1544,7 @@
 </div>
 
 <div class="actions">
+  <button type="button" class="more-toggle" aria-expanded="false" onclick="var a=this.parentNode,o=a.classList.toggle('show-more');this.setAttribute('aria-expanded',o);this.querySelector('span').textContent=o?'Moins':'Plus'"><span>Plus</span></button>
   <button class="btn-secondary" onclick="resetForm()">Réinitialiser</button>
   <button class="btn-secondary" onclick="exportToJSON()">Exporter JSON</button>
   <input type="file" id="importJsonInput" accept=".json,application/json" style="display:none" onchange="importFromJSON(this.files[0])">
