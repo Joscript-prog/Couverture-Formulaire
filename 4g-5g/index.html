@@ -1687,6 +1687,11 @@
         /* Liseré coloré à gauche de chaque sous-bloc pour distinguer 4G / 5G */
         .mp-location-techs .measure-point-group.mp-container-4g { border-left: 4px solid var(--accent-ink); }
         .mp-location-techs .measure-point-group.mp-container-5g { border-left: 4px solid var(--ink); }
+        /* Case « Pas de test de couverture 4G » cochée : blocs 4G et repères 4G masqués
+           (les données restent conservées si on décoche la case). */
+        body.no-4g .measure-point-group.mp-container-4g,
+        body.no-4g .evac-point[data-pid^="4g-"],
+        body.no-4g .evac-point[data-pid="travaux-mesure_4g_post"] { display: none !important; }
 
         /* --- Plan d'évacuation : label CENTRÉ près du cercle --- */
         .evac-pin {
@@ -2480,6 +2485,20 @@
                 Effectuer <b>une mesure 4G</b> et <b>une mesure 5G</b> après installation, à l'emplacement définitif du routeur.
             </div>
 
+            <!-- Cas particulier : site sans test de couverture 4G (5G uniquement) -->
+            <div class="no-4g-wrap" style="margin: 8px 0 14px 0; padding: 10px 12px; background: #fff8e1; border: 1px solid #ffe0a3; border-radius: 6px;">
+                <label style="display:flex; align-items:flex-start; gap:8px; cursor:pointer; font-weight:500;">
+                    <input type="checkbox" id="no4GTest" style="margin-top:3px; flex-shrink:0;">
+                    <span>
+                        <strong>Pas de test de couverture 4G sur ce site</strong><br>
+                        <span style="font-weight:400; font-size:0.9em; color:#666;">
+                            Cochez cette case si le test 4G n'est pas demandé sur ce site. Les blocs 4G sont alors masqués, seules les mesures 5G sont exigées pour générer le rapport, et le rapport indique « Test de couverture 4G non réalisé ».
+                        </span>
+                    </span>
+                </label>
+                <textarea id="no4GTestComment" placeholder="Optionnel : précisez la raison (ex : test 4G non demandé pour ce site...)" style="margin-top:8px; width:100%; min-height:50px; padding:6px; display:none;"></textarea>
+            </div>
+
             <!-- Matrice d'interprétation officielle -->
             <div class="matrix-title">Matrice d'interprétation des résultats</div>
             <p class="matrix-caption">Grille de lecture officielle appliquée automatiquement dans le rapport.</p>
@@ -2580,7 +2599,7 @@
                     <span>
                         <strong>Aucun plan d'évacuation disponible sur le site</strong><br>
                         <span style="font-weight:400; font-size:0.9em; color:#666;">
-                            Cochez cette case si le site ne dispose pas de plan d'évacuation. Dans ce cas, la génération du rapport ne nécessitera pas le positionnement des points sur un plan, mais les 12 photos (6 lieux + 6 écrans) restent obligatoires.
+                            Cochez cette case si le site ne dispose pas de plan d'évacuation. Dans ce cas, la génération du rapport ne nécessitera pas le positionnement des points sur un plan, mais les photos des mesures (section 3) restent obligatoires.
                         </span>
                     </span>
                 </label>

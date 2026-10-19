@@ -294,7 +294,7 @@
             <div class="no-break" style="margin:12px 0; border:1px solid ${COL_BORDER}; border-radius:4px;">
                 <div style="background:${COL_PHOTO_BG}; color:${COL_TITLE}; padding:6px 10px; font-weight:600; font-size:11px;">
                     ${htmlEscape(plan.title || ("Plan " + plan.id))}
-                    &nbsp;·&nbsp; <span style="font-weight:400;">${plan.points.length} point(s) placé(s)</span>
+                    &nbsp;·&nbsp; <span style="font-weight:400;">${(typeof window.__getReportPlanPoints === "function" ? window.__getReportPlanPoints(plan) : plan.points).length} point(s) placé(s)</span>
                 </div>
                 <div style="padding:6px;">${imgTag}</div>
             </div>`;
@@ -368,16 +368,23 @@
 
         // === Section 4 : Points de mesure 4G ===
         const mps = collectMeasurePoints();
-        const mps4g = mps.filter(m => m.tech === "4g");
+        // Case « Pas de test de couverture 4G » : pas de points 4G, une mention à la place
+        const skip4G = (typeof window.__isNo4GTest === "function") && window.__isNo4GTest();
+        const mps4g = skip4G ? [] : mps.filter(m => m.tech === "4g");
         const mps5g = mps.filter(m => m.tech === "5g");
-        if (mps4g.length) {
+        if (skip4G) {
+            const c4 = ($("no4GTestComment")?.value || "").trim();
+            html += pageBreak();
+            html += sectionTitle(4, "Points de mesure 4G");
+            html += `<p style="font-size:11px;"><i>Test de couverture 4G non réalisé sur ce site.</i>${c4 ? "<br><b>Motif :</b> " + nl2br(c4) : ""}</p>`;
+        } else if (mps4g.length) {
             html += pageBreak();
             html += sectionTitle(4, "Points de mesure 4G");
             mps4g.forEach(mp => { html += measurePointBlock(mp, photos); });
         }
         if (mps5g.length) {
             html += pageBreak();
-            html += sectionTitle(mps4g.length ? 5 : 4, "Points de mesure 5G");
+            html += sectionTitle((mps4g.length || skip4G) ? 5 : 4, "Points de mesure 5G");
             mps5g.forEach(mp => { html += measurePointBlock(mp, photos); });
         }
 

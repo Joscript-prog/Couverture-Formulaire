@@ -170,6 +170,15 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    // ----- Case "Pas de test de couverture 4G sur ce site" -----
+    const no4G = document.getElementById("no4GTest");
+    if (no4G) {
+        no4G.addEventListener("change", () => {
+            applyNo4GState();
+            if (window.__autosaveSchedule) window.__autosaveSchedule();
+        });
+    }
+
     // ----- Recalculer l'état des boutons à chaque interaction pertinente -----
     // Capture en bouillon : tout changement de fichier ou de texte recalcule.
     document.body.addEventListener("change", (e) => {
@@ -1657,6 +1666,45 @@ function getMeasureGroupByPid(pid) {
     return document.querySelector(`.measure-point-group[data-point-id="${pid}"]`);
 }
 
+// ============================================================
+//  TEST 4G FACULTATIF — case « Pas de test de couverture 4G sur ce site »
+//  Quand elle est cochée :
+//    - les blocs 4G sont masqués dans le formulaire (données conservées) ;
+//    - la validation n'exige plus aucune mesure / photo 4G ;
+//    - les points 4G ne sont plus proposés ni dessinés sur les plans ;
+//    - le Word / PDF indique « Test de couverture 4G non réalisé ».
+// ============================================================
+function isNo4GTest() {
+    const cb = document.getElementById("no4GTest");
+    return !!(cb && cb.checked);
+}
+
+// Point de plan correspondant à une mesure 4G (point d'audit "4g-N" ou repère
+// travaux "Mesure 4G après installation"). Les repères Antenne / Routeur ne
+// sont PAS concernés (leur tech "4g" ne sert qu'à la couleur).
+function isPoint4GMeasure(pointId) {
+    const s = String(pointId || "");
+    return s.startsWith("4g-") || s === "travaux-mesure_4g_post";
+}
+
+// Points d'un plan à afficher dans le rapport (sans les mesures 4G si le test 4G
+// n'a pas été réalisé).
+function getReportPlanPoints(plan) {
+    const pts = (plan && plan.points) || [];
+    return isNo4GTest() ? pts.filter(p => !isPoint4GMeasure(p.pointId)) : pts;
+}
+
+// Applique l'état de la case 4G à l'interface (classe CSS, commentaire, pickers, validation)
+function applyNo4GState() {
+    const on = isNo4GTest();
+    document.body.classList.toggle("no-4g", on);
+    const com = document.getElementById("no4GTestComment");
+    if (com) com.style.display = on ? "block" : "none";
+    if (typeof refreshAllEvacPickers === "function") refreshAllEvacPickers();
+    if (typeof updateGenerateButtonState === "function") updateGenerateButtonState();
+}
+window.applyNo4GState = applyNo4GState;
+
 // Récupérer tous les points existants dans l'ordre 4G puis 5G
 function getAllMeasurePoints() {
     // MOD 1 : agrège les points 4G puis 5G de TOUS les niveaux (ordre : tous les
@@ -1701,7 +1749,8 @@ function refreshEvacPickerForPlan(planId) {
         if (planLoaded) {
             const placedAllIds = getAllPlacedEvacPointIds();
             const placedHerePids = new Set((getEvacPlan(planId)?.points || []).map(p => p.pointId));
-            const groups = getAllMeasurePoints();
+            // Sans test 4G : seuls les points 5G sont proposés
+            const groups = getAllMeasurePoints().filter(g => !(isNo4GTest() && (g.dataset.tech || "4g") === "4g"));
 
             auditPicker.innerHTML = "";
             if (groups.length === 0) {
@@ -1765,6 +1814,7 @@ function refreshEvacPickerForPlan(planId) {
             travauxPicker.innerHTML = "";
             EVAC_TRAVAUX_MARKERS.forEach(m => {
                 const pid = `travaux-${m.id}`;
+                if (isNo4GTest() && isPoint4GMeasure(pid)) return; // pas de repère « Mesure 4G » sans test 4G
                 const placedHere = placedHerePids.has(pid);
                 const placedElsewhere = placedAllIds.has(pid) && !placedHere;
                 const placed = placedHere || placedElsewhere;
@@ -2775,7 +2825,8 @@ async function composeEvacPlanWithPoints(planId) {
             const scaleX = img.naturalWidth  / Math.max(1, wrapRect.width);
             const scaleY = img.naturalHeight / Math.max(1, wrapRect.height);
 
-            plan.points.forEach((state) => {
+            // Sans test 4G : les points de mesure 4G ne sont pas dessinés sur le plan
+            getReportPlanPoints(plan).forEach((state) => {
                 const isTravaux = !!state.travauxLabel;
                 const grp = isTravaux ? null : getMeasureGroupByPid(state.pointId);
                 let colorHex;
@@ -2920,10 +2971,15 @@ function validateMeasurementPoints() {
         points5G = points5G.filter(visible);
     }
 
+    // Case « Pas de test de couverture 4G sur ce site » : la partie 4G n'est plus
+    // exigée (ni quota, ni photos, ni positionnement sur le plan).
+    const skip4G = isNo4GTest();
+    if (skip4G) points4G = [];
+
     // ----- Quota minimum de points par techno (cumul tous niveaux) -----
     const minPoints = (mode === "travaux") ? 1 : 3;
-    if (points4G.length < minPoints) {
-        errors.push(`Il faut au moins ${minPoints} mesure${minPoints>1?"s":""} 4G (actuellement : ${points4G.length}).`);
+    if (!skip4G && points4G.length < minPoints) {
+        errors.push(`Il faut au moins ${minPoints} mesure${minPoints>1?"s":""} 4G (actuellement : ${points4G.length}) — ou cochez « Pas de test de couverture 4G sur ce site » si le test 4G n'est pas demandé.`);
     }
     if (points5G.length < minPoints) {
         errors.push(`Il faut au moins ${minPoints} mesure${minPoints>1?"s":""} 5G (actuellement : ${points5G.length}).`);
@@ -2956,9 +3012,13 @@ function validateMeasurementPoints() {
         if (mode === "travaux") {
             errors.push(`Il faut ${minPhotos} photos dans la section 3 — Mesures radio 4G/5G (actuellement : ${photoCount}/${minPhotos}). Chaque mesure doit avoir sa photo du lieu ET sa copie d'écran.`);
         } else {
-            errors.push(`Il faut au moins 12 photos dans la section 3 — Mesures radio 4G/5G (actuellement : ${photoCount}/12). Chaque point doit avoir sa photo du lieu ET sa copie d'écran.`);
+            const minAudit = Math.max(minPhotos, skip4G ? 6 : 12);
+            errors.push(`Il faut au moins ${minAudit} photos dans la section 3 — Mesures radio ${skip4G ? "5G" : "4G/5G"} (actuellement : ${photoCount}/${minAudit}). Chaque point doit avoir sa photo du lieu ET sa copie d'écran.`);
         }
         missingPhotos.slice(0, 6).forEach(m => errors.push("• " + m));
+        if (!skip4G && missingPhotos.some(m => m.startsWith("Mesure 4G"))) {
+            errors.push("Si le test 4G n'est pas demandé sur ce site, cochez « Pas de test de couverture 4G sur ce site » en haut de la section 3.");
+        }
     }
 
     // ----- En mode TRAVAUX : photo de l'installation du routeur 4G obligatoire -----
@@ -3014,6 +3074,7 @@ function validateMeasurementPoints() {
         points4GCount: points4G.length,
         points5GCount: points5G.length,
         noPlan: noPlan,
+        skip4G: skip4G,
         mode: mode
     };
 }
@@ -3039,7 +3100,7 @@ function updateGenerateButtonState() {
             : "Audit complet — Génération autorisée";
         banner.innerHTML = `
             <div class="vb-title">${_titre}</div>
-            <div style="font-size:0.9em;">${v.photoCount} photos relevées${v.noPlan ? " — site sans plan d'évacuation (déclaré par le technicien)" : (v.mode === "travaux" ? " — antenne et routeur positionnés sur le plan" : " — tous les points sont positionnés sur le plan")}.</div>
+            <div style="font-size:0.9em;">${v.photoCount} photos relevées${v.skip4G ? " — test 4G non réalisé (5G uniquement)" : ""}${v.noPlan ? " — site sans plan d'évacuation (déclaré par le technicien)" : (v.mode === "travaux" ? " — antenne et routeur positionnés sur le plan" : " — tous les points sont positionnés sur le plan")}.</div>
         `;
     } else {
         banner.className = "banner-error";
@@ -3052,6 +3113,67 @@ function updateGenerateButtonState() {
     }
 }
 window.updateGenerateButtonState = updateGenerateButtonState;
+
+// ============================================================
+//  PHOTOS DU RAPPORT WORD — CADRES DE TAILLE FIXE
+//  Les photos n'ont pas toutes la même taille selon le téléphone du technicien
+//  (678×1507, 1080×2400, 1080×1920...). Avant, la hauteur dans le Word suivait
+//  la photo : un bloc de mesure pouvait dépasser la hauteur d'une page, ce qui
+//  créait des pages vides et obligeait à tout recadrer à la main.
+//  Désormais chaque photo est ajustée DANS un cadre de taille fixe (en pixels
+//  Word, 96 dpi) en gardant ses proportions : jamais étirée, jamais rognée.
+//  Toutes les captures d'un même type ont donc la même taille, et un bloc de
+//  mesure complet tient toujours sur une seule page.
+// ============================================================
+const WORD_PHOTO_BOX = {
+    mesure:      { w: 270, h: 520 }, // copies d'écran Jauge / Débit (2 côte à côte, ~5,4 in de haut)
+    cheminement: { w: 280, h: 320 }, // photos de cheminement (2 côte à côte, 2 rangées par page)
+    routeur:     { w: 440, h: 520 }, // photo de l'installation du routeur (mode travaux)
+    plan:        { w: 420, h: 560 }  // plan d'évacuation (hauteur max, = plan portrait 3:4 actuel)
+};
+
+// Dimensions en pixels d'une photo du photoStore. Utilise naturalWidth/Height,
+// sinon lit l'en-tête JPEG/PNG des octets (cas des anciennes sauvegardes).
+function _photoPixelSize(photo) {
+    if (photo && photo.naturalWidth > 0 && photo.naturalHeight > 0) {
+        return { w: photo.naturalWidth, h: photo.naturalHeight };
+    }
+    const b = photo && photo.data;
+    if (b && b.length > 24) {
+        // PNG : largeur / hauteur dans le bloc IHDR
+        if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4E && b[3] === 0x47) {
+            const w = (b[16] << 24 | b[17] << 16 | b[18] << 8 | b[19]) >>> 0;
+            const h = (b[20] << 24 | b[21] << 16 | b[22] << 8 | b[23]) >>> 0;
+            if (w && h) return { w, h };
+        }
+        // JPEG : parcours des marqueurs jusqu'au SOFn
+        if (b[0] === 0xFF && b[1] === 0xD8) {
+            let i = 2;
+            while (i + 9 < b.length) {
+                if (b[i] !== 0xFF) { i++; continue; }
+                const m = b[i + 1];
+                if (m >= 0xC0 && m <= 0xCF && m !== 0xC4 && m !== 0xC8 && m !== 0xCC) {
+                    const h = b[i + 5] << 8 | b[i + 6];
+                    const w = b[i + 7] << 8 | b[i + 8];
+                    if (w && h) return { w, h };
+                    break;
+                }
+                i += 2 + (b[i + 2] << 8 | b[i + 3]);
+            }
+        }
+    }
+    return { w: 3, h: 4 }; // valeur par défaut (portrait)
+}
+
+// Taille d'affichage d'une photo ajustée dans un cadre boxW × boxH (proportions conservées)
+function fitPhotoInBox(photo, box) {
+    const s = _photoPixelSize(photo);
+    const r = Math.min(box.w / s.w, box.h / s.h);
+    return {
+        width:  Math.max(1, Math.round(s.w * r)),
+        height: Math.max(1, Math.round(s.h * r))
+    };
+}
 
 async function generateDocument() {
     // Valider l'ensemble des règles avant de générer
@@ -3105,6 +3227,7 @@ async function generateDocument() {
     const P = (txt, opts = {}) => new Paragraph({
         alignment: opts.align || AlignmentType.LEFT,
         spacing: opts.spacing || { before: 60, after: 60 },
+        keepNext: !!opts.keepNext,
         children: [new TextRun({
             text: txt || "",
             bold: opts.bold || false,
@@ -3367,6 +3490,14 @@ async function generateDocument() {
     children.push(buildMatrixTable(window.docx));
     children.push(P("", { spacing: { before: 120, after: 60 } }));
 
+    // Case « Pas de test de couverture 4G » : pas de section 4G. La mention est
+    // portée par le titre de la section 5G (aucune ligne / page supplémentaire).
+    const _skip4G = isNo4GTest();
+    const _no4GCom = _skip4G ? (document.getElementById("no4GTestComment")?.value || "").trim() : "";
+    const _no4GNote = _skip4G
+        ? "  —  test de couverture 4G non réalisé sur ce site" + (_no4GCom ? ` (${_no4GCom})` : "")
+        : "";
+
     // ---------- Helper bloc d'un point (section insécable) ----------
     // Construit un bloc complet pour un point de mesure (titre + tableau + analyse + photos)
     // et l'enveloppe dans un Table à 1 cellule avec cantSplit=true → la section ne sera
@@ -3474,13 +3605,13 @@ async function generateDocument() {
                             width: { size: 4560, type: WidthType.DXA },
                             margins: { top: 0, bottom: 0, left: 60, right: 60 },
                             borders: noBorders,
-                            children: [hasL ? photoBannerInner("Copie écran Jauge", keyLieu, 4440) : P("(Pas de copie écran jauge)", { italics: true, color: "999999" })]
+                            children: [hasL ? photoBannerInner("Copie écran Jauge", keyLieu, 4440, WORD_PHOTO_BOX.mesure, WORD_PHOTO_BOX.mesure.h) : P("(Pas de copie écran jauge)", { italics: true, color: "999999" })]
                         }),
                         new TableCell({
                             width: { size: 4560, type: WidthType.DXA },
                             margins: { top: 0, bottom: 0, left: 60, right: 60 },
                             borders: noBorders,
-                            children: [hasS ? photoBannerInner("Copie écran Débit", keyScreen, 4440) : P("(Pas de copie écran débit)", { italics: true, color: "999999" })]
+                            children: [hasS ? photoBannerInner("Copie écran Débit", keyScreen, 4440, WORD_PHOTO_BOX.mesure, WORD_PHOTO_BOX.mesure.h) : P("(Pas de copie écran débit)", { italics: true, color: "999999" })]
                         })
                     ]
                 })]
@@ -3506,7 +3637,7 @@ async function generateDocument() {
     }
 
     // ---------- Helper : sous-titre techno (3.A 4G — 3.B 5G) ----------
-    const techSubTitle = (label, accentColor) => new Paragraph({
+    const techSubTitle = (label, accentColor, note) => new Paragraph({
         spacing: { before: 280, after: 120 },
         keepNext: true,
         keepLines: true,
@@ -3514,7 +3645,8 @@ async function generateDocument() {
             bottom: { style: BorderStyle.SINGLE, size: 8, color: accentColor, space: 4 }
         },
         children: [
-            new TextRun({ text: label, bold: true, size: 24, color: accentColor, font: "Calibri" })
+            new TextRun({ text: label, bold: true, size: 24, color: accentColor, font: "Calibri" }),
+            ...(note ? [new TextRun({ text: note, italics: true, size: 20, color: "666666", font: "Calibri" })] : [])
         ]
     });
 
@@ -3526,7 +3658,9 @@ const _isVisible = (el) => {
     if (!el) return false;
     return el.offsetParent !== null && el.style.display !== "none";
 };
-const groups4G = Array.from(document.querySelectorAll('.measure-point-group.mp-container-4g')).filter(_isVisible);
+// Case « Pas de test de couverture 4G » : aucune mesure 4G dans le rapport
+// (la mention figure sous la matrice) et la 5G devient la sous-section 3.A.
+const groups4G = _skip4G ? [] : Array.from(document.querySelectorAll('.measure-point-group.mp-container-4g')).filter(_isVisible);
 if (groups4G.length > 0) {
     const _titre4G = (_modeS3 === "travaux") ? "3.A — Mesure 4G" : "3.A — Mesures 4G";
     children.push(techSubTitle(_titre4G, TECH_COLOR_4G));
@@ -3539,10 +3673,11 @@ if (groups4G.length > 0) {
 // ---------- 3.B — 5G ----------
 const groups5G = Array.from(document.querySelectorAll('.measure-point-group.mp-container-5g')).filter(_isVisible);
 if (groups5G.length > 0) {
-    const _titre5G = (_modeS3 === "travaux") ? "3.B — Mesure 5G" : "3.B — Mesures 5G";
-    children.push(techSubTitle(_titre5G, TECH_COLOR_5G));
+    const _num5G = _skip4G ? "3.A" : "3.B"; // sans test 4G, la 5G est la 1re sous-section
+    const _titre5G = `${_num5G} — ${(_modeS3 === "travaux") ? "Mesure 5G" : "Mesures 5G"}`;
+    children.push(techSubTitle(_titre5G, TECH_COLOR_5G, _no4GNote));
     groups5G.forEach((group, idx) => {
-        children.push(buildMeasureSectionBlock(group, "3.B", idx + 1));
+        children.push(buildMeasureSectionBlock(group, _num5G, idx + 1));
         children.push(P("", { spacing: { before: 10, after: 10 } })); // espace réduit
     });
 }
@@ -3553,21 +3688,16 @@ if (groups4G.length === 0 && groups5G.length === 0) {
 
 // ---------- 3.C — Photo de l'installation du routeur (mode TRAVAUX uniquement) ----------
 if (_modeS3 === "travaux" && photoStore['routeur_install']) {
-    children.push(techSubTitle("3.C — Photo de l'installation du routeur 4G", TECH_COLOR_4G));
+    children.push(techSubTitle(`${_skip4G ? "3.B" : "3.C"} — Photo de l'installation du routeur 4G`, TECH_COLOR_4G));
     const _routeurPhoto = photoStore['routeur_install'];
-    // Calcul de dimensions raisonnables (max 480 px de large)
-    let _rw = _routeurPhoto.naturalWidth || 800;
-    let _rh = _routeurPhoto.naturalHeight || 600;
-    const _maxW = 480;
-    if (_rw > _maxW) {
-        const _ratio = _maxW / _rw;
-        _rw = _maxW;
-        _rh = Math.round(_rh * _ratio);
-    }
+    // Photo ajustée dans un cadre fixe (proportions gardées) : une photo portrait
+    // ne peut plus dépasser la hauteur de la page.
+    const { width: _rw, height: _rh } = fitPhotoInBox(_routeurPhoto, WORD_PHOTO_BOX.routeur);
     children.push(new Paragraph({
         alignment: AlignmentType.CENTER,
         spacing: { before: 100, after: 120 },
-        keepNext: true,
+        // Pas de keepNext ici : sinon la photo est « chaînée » au titre de la
+        // section 4 + au plan, chaîne trop haute pour une page → titre orphelin.
         keepLines: true,
         children: [new ImageRun({
             data: _routeurPhoto.data,
@@ -3578,17 +3708,18 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
 }
 
     // Helper : bandeau photo "intérieur" (utilisé pour côte à côte)
-   function photoBannerInner(title, key, maxWidthTwips) {
+    //   box    : cadre {w, h} en px dans lequel la photo est ajustée (proportions gardées)
+    //   frameH : hauteur (px) réservée à la zone image. Les cadres côte à côte — et
+    //            d'un bloc à l'autre — ont ainsi exactement la même hauteur.
+   function photoBannerInner(title, key, maxWidthTwips, box, frameH) {
     const photo = photoStore[key];
     if (!photo) return new Paragraph({ text: "(Photo non fournie)", italics: true, color: "999999" });
 
-    // Convertir la largeur max de twips en pixels approximatifs (1 pixel ≈ 15 twips)
-    // La largeur max en pixels sera limitée à 400 pour éviter des images énormes
-    let maxWidthPx = Math.min(400, maxWidthTwips / 15);
-    // Largeur réelle de l'image (ne peut pas dépasser maxWidthPx)
-    const width = Math.min(maxWidthPx, photo.naturalWidth);
-    // Hauteur proportionnelle
-    const height = (width / photo.naturalWidth) * photo.naturalHeight;
+    // 1 px ≈ 15 twips ; on retire les marges de la cellule image (2 × 120 twips)
+    const availW = Math.floor((maxWidthTwips - 240) / 15);
+    const frame = { w: Math.min((box && box.w) || availW, availW), h: (box && box.h) || 400 };
+    const { width, height } = fitPhotoInBox(photo, frame);
+    const zoneH = Math.max(frameH || frame.h, height);
 
     return new Table({
         width: { size: maxWidthTwips, type: WidthType.DXA },
@@ -3608,7 +3739,11 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
                     children: [new TextRun({ text: `📷 ${title}`, bold: true, size: 20, color: COLOR_TITLE, font: "Calibri" })]
                 })]
             })]}),
-            new TableRow({ children: [new TableCell({
+            new TableRow({
+                cantSplit: true,
+                // Zone image de hauteur fixe (cadre identique pour toutes les photos)
+                height: { value: zoneH * 15 + 360, rule: HeightRule.ATLEAST },
+                children: [new TableCell({
                 width: { size: maxWidthTwips, type: WidthType.DXA },
                 margins: { top: 120, bottom: 120, left: 120, right: 120 },
                 verticalAlign: VerticalAlign.CENTER,
@@ -3620,6 +3755,7 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
                 },
                 children: [new Paragraph({
                     alignment: AlignmentType.CENTER,
+                    spacing: { before: 0, after: 0 },
                     children: [new ImageRun({
                         data: photo.data,
                         transformation: { width: width, height: height },
@@ -3727,8 +3863,8 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
                 ? `Plan ${_planIdx + 1} – ${_plan.title || "Plan d'évacuation"}`
                 : (_plan.title || "Plan d'évacuation");
 
-            children.push(new Paragraph({
-                spacing: { before: _planIdx === 0 ? 80 : 240, after: 60 },
+            const _planTitlePara = new Paragraph({
+                spacing: { before: 80, after: 60 },
                 keepNext: true,
                 children: [new TextRun({
                     text: _planTitle,
@@ -3736,7 +3872,7 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
                     size: 24,
                     color: COLOR_SUBTITLE
                 })]
-            }));
+            });
 
             const composed = await composeEvacPlanWithPoints(_plan.id);
             const planData = composed ? composed.data : _planPhoto.data;
@@ -3754,6 +3890,12 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
                              (_planPhoto.naturalWidth || 1000);
                 displayHeight = Math.round(MAX_WIDTH_PX * ratio);
             }
+            // Plan très haut (format portrait allongé) : on limite la hauteur pour qu'il
+            // tienne sur une page avec son titre, sans déformation (proportions gardées).
+            if (displayHeight > WORD_PHOTO_BOX.plan.h) {
+                displayWidth = Math.max(1, Math.round(displayWidth * WORD_PHOTO_BOX.plan.h / displayHeight));
+                displayHeight = WORD_PHOTO_BOX.plan.h;
+            }
 
             const planParagraph = new Paragraph({
                 alignment: AlignmentType.CENTER,
@@ -3766,11 +3908,28 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
                     type: "png"
                 })]
             });
-            children.push(planParagraph);
+            // Titre du plan + plan dans un bloc insécable (tableau 1 cellule, cantSplit) :
+            // le titre ne peut plus rester seul en bas de page, séparé de son plan.
+            children.push(P("", { spacing: { before: _planIdx === 0 ? 0 : 160, after: 0 }, keepNext: true }));
+            children.push(new Table({
+                width: { size: 9360, type: WidthType.DXA },
+                columnWidths: [9360],
+                borders: noBorders,
+                rows: [new TableRow({
+                    cantSplit: true,
+                    children: [new TableCell({
+                        width: { size: 9360, type: WidthType.DXA },
+                        margins: { top: 0, bottom: 0, left: 0, right: 0 },
+                        borders: noBorders,
+                        children: [_planTitlePara, planParagraph]
+                    })]
+                })]
+            }));
 
-            // Légende propre à ce plan
-            if (_plan.points.length > 0) {
-                const legendRows = _plan.points.map(p => {
+            // Légende propre à ce plan (sans les mesures 4G si le test 4G n'a pas été réalisé)
+            const _planPts = getReportPlanPoints(_plan);
+            if (_planPts.length > 0) {
+                const legendRows = _planPts.map(p => {
                     if (p.travauxLabel) {
                         return {
                             lieu: p.travauxLabel,
@@ -3793,7 +3952,8 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
                 children.push(P(_legendeTitre, {
                     italics: true,
                     color: "555555",
-                    spacing: { before: 60, after: 40 }
+                    spacing: { before: 60, after: 40 },
+                    keepNext: true // reste avec le tableau de légende
                 }));
 
                 children.push(new Table({
@@ -3861,6 +4021,12 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
         const left = chemItems[i];
         const right = chemItems[i + 1] || null;
 
+        // Hauteur de cadre commune aux 2 photos de la rangée (la plus haute des
+        // deux une fois ajustées) → les deux cadres sont alignés et de même taille.
+        const _chemPhoto = (item) => item ? photoStore[`cheminement_${item.dataset.idx}`] : null;
+        const _rowFrameH = Math.max(0, ...[left, right].map(_chemPhoto).filter(Boolean)
+            .map(ph => fitPhotoInBox(ph, WORD_PHOTO_BOX.cheminement).height));
+
         const buildChemCell = (item) => {
             if (!item) {
                 return [P("", {})]; // cellule vide
@@ -3870,7 +4036,7 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
             const comm = item.querySelector('.cheminement-comment')?.value || "";
             const blocks = [];
             if (photoStore[key]) {
-                blocks.push(photoBannerInner(`Cheminement ${idx}`, key, 4560));
+                blocks.push(photoBannerInner(`Cheminement ${idx}`, key, 4560, WORD_PHOTO_BOX.cheminement, _rowFrameH));
             } else {
                 blocks.push(P(`(Cheminement ${idx} - pas de photo)`, { italics: true, color: "999999" }));
             }
@@ -3880,7 +4046,9 @@ if (_modeS3 === "travaux" && photoStore['routeur_install']) {
             return blocks;
         };
 
-        children.push(P("", { spacing: { before: 200, after: 60 } }));
+        // keepNext : l'espace (et donc le titre « 5. Cheminement » qui précède la
+        // 1re rangée) reste sur la même page que la rangée de photos.
+        children.push(P("", { spacing: { before: 160, after: 0 }, keepNext: true }));
         children.push(new Table({
             width: { size: 9360, type: WidthType.DXA },
             columnWidths: [4680, 4680],
@@ -4334,6 +4502,8 @@ window.__classifyRSRP = classifyRSRP;
 window.__classifySNR  = classifySNR;
 window.__QUALITY_MATRIX = QUALITY_MATRIX;
 window.__validateMeasurementPoints = () => validateMeasurementPoints();
+window.__isNo4GTest = isNo4GTest;
+window.__getReportPlanPoints = getReportPlanPoints;
 
 // ============================================================
 //  MOD 6 — SAUVEGARDE AUTOMATIQUE DANS LE NAVIGATEUR
@@ -4520,6 +4690,8 @@ function collectFormData() {
         evacPlanCounter: evacPlanCounter,
         noEvacPlan: !!(document.getElementById("noEvacPlan") && document.getElementById("noEvacPlan").checked),
         noEvacPlanComment: (document.getElementById("noEvacPlanComment") || {}).value || "",
+        no4GTest: isNo4GTest(),
+        no4GTestComment: (document.getElementById("no4GTestComment") || {}).value || "",
         photos: {}       // dataUrl pour pouvoir restaurer (optionnel et lourd)
     };
 
@@ -4953,6 +5125,15 @@ async function applyFormData(data) {
             noEvacComment.value = data.noEvacPlanComment || "";
             noEvacComment.style.display = noEvac.checked ? "block" : "none";
         }
+    }
+
+    // Restaurer la case "Pas de test de couverture 4G" et son commentaire
+    const no4G = document.getElementById("no4GTest");
+    if (no4G) {
+        no4G.checked = !!data.no4GTest;
+        const no4GCom = document.getElementById("no4GTestComment");
+        if (no4GCom) no4GCom.value = data.no4GTestComment || "";
+        applyNo4GState();
     }
 
     // Recalculer l'état des boutons après import complet
