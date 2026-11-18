@@ -52,11 +52,8 @@ const COLOR_PHOTO_BORDER = "BDD7EE";
 const COLOR_BORDER       = "BFBFBF";
 const COLOR_FOOTER       = "808080";
 const COLOR_WHITE        = "FFFFFF";
-const COLOR_OK           = "16A34A"; // vert (conforme)
-const COLOR_KO           = "C0392B"; // rouge (non conforme)
-
-// Conformité de la baie : true si l'utilisateur a modifié manuellement le résultat
-let baieConformeManuel = false;
+const COLOR_OK           = "16A34A"; // vert
+const COLOR_KO           = "C0392B"; // rouge
 
 // ---------- CLIENT FINAL — surcouche "sans donneur d'ordre" ----------
 // client-config.js n'est PAS modifié : getClientFinal() retombe sur Bouygues
@@ -118,6 +115,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     bindGalleryButton("addBaieFermeeBtn", "baie_fermee");
     bindGalleryButton("addBlocageBtn",    "blocage");
     bindGalleryButton("addSolutionBtn",   "solution");
+    setupCuivre();
 
     // Inputs des photos fixes
     document.querySelectorAll("input[data-photo-input]").forEach(input => {
@@ -140,24 +138,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    // Conformité de la baie : recalcul auto quand U / prises changent
-    ["nb_u_dispo", "nb_prises_baie"].forEach(id => {
-        const el = document.getElementById(id);
-        if (el) el.addEventListener("input", () => updateBaieConformite(false));
-    });
-    // Clic manuel sur les radios → on fige la valeur (mode manuel)
-    document.querySelectorAll('input[name="baie_conforme"]').forEach(r => {
-        r.addEventListener("click", () => {
-            baieConformeManuel = true;
-            updateConfBadge();
-        });
-    });
-    const confAutoBtn = document.getElementById("confAutoBtn");
-    if (confAutoBtn) confAutoBtn.addEventListener("click", () => {
-        baieConformeManuel = false;
-        updateBaieConformite(true);
-    });
-
     // Restauration de la sauvegarde automatique (si présente),
     // sinon un item par défaut dans les galeries principales pour l'ergonomie.
     const restored = await AUTOSAVE.restore();
@@ -168,7 +148,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     AUTOSAVE.attach();
-    updateBaieConformite(false);
+    updateSectionNumbers();
 });
 
 function bindGalleryButton(btnId, kind) {
@@ -194,9 +174,265 @@ window.setMode = function (mode) {
     if (window.__autosaveSchedule) window.__autosaveSchedule();
 };
 
+// ============================================================
+//  CÂBLAGE CUIVRE (RJ45) — téléphones et autres équipements
+//  Une fiche par type d'équipement : repère, niveau, quantité de
+//  prises, longueur jusqu'à la baie, catégorie de câble, pose,
+//  percements. Le cheminement est celui des photos (section
+//  « Photos ») sauf si la fiche indique un trajet spécifique.
+//  Les fiches ne portent pas d'id : elles sont lues/écrites par
+//  collectCuivre() / applyCuivre() (JSON + autosave).
+// ============================================================
+const CUIVRE_TYPES = {
+    tel_ip:      "Téléphone IP (PoE)",
+    tel_num:     "Téléphone numérique / analogique",
+    dect:        "Base DECT / borne téléphonique",
+    imprimante:  "Imprimante / copieur",
+    badgeuse:    "Badgeuse / contrôle d'accès",
+    interphone:  "Interphone / visiophone",
+    caisse:      "Caisse / terminal de paiement",
+    pc:          "Poste informatique",
+    affichage:   "Écran / affichage dynamique",
+    prise:       "Prise RJ45 seule (attente)",
+    autre:       "Autre équipement RJ45"
+};
+const CUIVRE_CATS   = ["Cat 6A F/UTP", "Cat 6 U/UTP", "Cat 5e", "Autre"];
+const CUIVRE_ALIMS  = ["PoE via le switch", "Bloc secteur", "Sans objet"];
+const CUIVRE_POSES  = ["Goulotte", "Chemin de câble", "Faux-plafond", "Apparent / moulure", "Encastré", "Sous plancher technique", "Autre"];
+const CUIVRE_PERCS  = ["Aucun", "Cloison", "Dalle / plancher", "Mur porteur"];
+let cuivreCounter = 0;
+
+function isCuivreEnabled() {
+    const cb = document.getElementById("cuivreEnabled");
+    return !!(cb && cb.checked);
+}
+
+function applyCuivreVisibility(enabled) {
+    document.body.setAttribute("data-cuivre", enabled ? "on" : "off");
+    const cb = document.getElementById("cuivreEnabled");
+    if (cb) cb.checked = !!enabled;
+    updateSectionNumbers();
+}
+
+// Renumérote à l'écran les sections : une section optionnelle masquée n'est pas comptée
+// (comme dans le rapport Word).
+function updateSectionNumbers() {
+    let n = 0;
+    document.querySelectorAll(".section").forEach(sec => {
+        const span = sec.querySelector("h2 .sec-num");
+        if (!span) return;
+        const opt = sec.dataset.optional;
+        const active = !opt
+            || (opt === "cuivre"  && isCuivreEnabled())
+            || (opt === "blocage" && isBlocageEnabled());
+        if (active) { n++; span.textContent = n + "."; }
+        else        { span.textContent = ""; }
+    });
+}
+
+function cuivreOptions(list, selected) {
+    return list.map(v => `<option value="${v}"${v === selected ? " selected" : ""}>${v}</option>`).join("");
+}
+
+function cuivreCardHtml(id, d) {
+    const typeOpts = Object.keys(CUIVRE_TYPES)
+        .map(k => `<option value="${k}"${k === d.type ? " selected" : ""}>${CUIVRE_TYPES[k]}</option>`).join("");
+    const esc = (v) => String(v == null ? "" : v).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
+    const kEmp = `cuivre_${id}_emp`, kChem = `cuivre_${id}_chem`;
+    return `
+        <div class="cuivre-card-head">
+            <strong class="cuivre-title">Équipement cuivre</strong>
+            <button type="button" class="btn-delete" data-del-cuivre title="Supprimer cet équipement"></button>
+        </div>
+        <div class="cuivre-grid">
+            <label>Type d'équipement
+                <select data-f="type">${typeOpts}</select>
+            </label>
+            <label>Repère / précision
+                <input type="text" data-f="repere" value="${esc(d.repere)}" placeholder="Ex : accueil, bureau 12, nom du modèle">
+            </label>
+            <label>Niveau / zone
+                <input type="text" data-f="niveau" value="${esc(d.niveau)}" placeholder="Ex : RDC, étage 1, atelier">
+            </label>
+            <label>Emplacement précis
+                <input type="text" data-f="emplacement" value="${esc(d.emplacement)}" placeholder="Ex : mur à gauche de la porte">
+            </label>
+            <label>Nombre de prises RJ45
+                <input type="number" data-f="qte" min="1" step="1" inputmode="numeric" value="${esc(d.qte || 1)}">
+            </label>
+            <label>Longueur par prise jusqu'à la baie (m)
+                <input type="number" data-f="longueur" min="0" step="0.5" inputmode="decimal" value="${esc(d.longueur)}">
+            </label>
+            <label>Catégorie de câble
+                <select data-f="cat">${cuivreOptions(CUIVRE_CATS, d.cat || CUIVRE_CATS[0])}</select>
+            </label>
+            <label>Alimentation de l'équipement
+                <select data-f="alim">${cuivreOptions(CUIVRE_ALIMS, d.alim || CUIVRE_ALIMS[0])}</select>
+            </label>
+            <label>Port de switch à prévoir
+                <select data-f="port_switch">${cuivreOptions(["Oui", "Non", "À confirmer"], d.port_switch || "À confirmer")}</select>
+            </label>
+            <label>Mode de pose
+                <select data-f="pose">${cuivreOptions(CUIVRE_POSES, d.pose || CUIVRE_POSES[0])}</select>
+            </label>
+            <label>Percements nécessaires
+                <select data-f="percement">${cuivreOptions(CUIVRE_PERCS, d.percement || CUIVRE_PERCS[0])}</select>
+            </label>
+            <label>Cheminement
+                <select data-f="chem">
+                    <option value="principal"${d.chem !== "specifique" ? " selected" : ""}>Identique au cheminement des photos</option>
+                    <option value="specifique"${d.chem === "specifique" ? " selected" : ""}>Cheminement spécifique</option>
+                </select>
+            </label>
+            <label class="wide">Commentaire
+                <textarea data-f="comment" style="min-height:70px;" placeholder="Contraintes, accès, longueur de jarretière, remarques...">${esc(d.comment)}</textarea>
+            </label>
+        </div>
+        <div class="cuivre-photos">
+            <div class="cuivre-photo-block">
+                <div class="cuivre-photo-title">Photo de l'emplacement</div>
+                <input type="file" accept="image/*" data-cuivre-photo="${kEmp}">
+                <img class="photo-preview" id="preview_${kEmp}" alt="">
+                <div class="chem-actions">
+                    <button type="button" class="annotate-btn" data-annotate="${kEmp}" disabled>Annoter</button>
+                    <button type="button" class="clear-btn" data-clear="${kEmp}">Effacer</button>
+                </div>
+            </div>
+            <div class="cuivre-photo-block cuivre-chem-only">
+                <div class="cuivre-photo-title">Photo du cheminement spécifique</div>
+                <input type="file" accept="image/*" data-cuivre-photo="${kChem}">
+                <img class="photo-preview" id="preview_${kChem}" alt="">
+                <div class="chem-actions">
+                    <button type="button" class="annotate-btn" data-annotate="${kChem}" disabled>Annoter</button>
+                    <button type="button" class="clear-btn" data-clear="${kChem}">Effacer</button>
+                </div>
+            </div>
+        </div>`;
+}
+
+function addCuivreItem(d = {}, forcedId) {
+    const container = document.getElementById("cuivreContainer");
+    if (!container) return null;
+    let id;
+    if (forcedId != null) { id = parseInt(forcedId, 10); if (id > cuivreCounter) cuivreCounter = id; }
+    else { cuivreCounter++; id = cuivreCounter; }
+    const card = document.createElement("div");
+    card.className = "cuivre-card";
+    card.dataset.id = id;
+    card.dataset.chem = d.chem === "specifique" ? "specifique" : "principal";
+    card.innerHTML = cuivreCardHtml(id, d);
+    container.appendChild(card);
+    renumberCuivre();
+    return card;
+}
+
+function renumberCuivre() {
+    document.querySelectorAll("#cuivreContainer .cuivre-card").forEach((card, i) => {
+        const t = card.querySelector(".cuivre-title");
+        const type = card.querySelector('[data-f="type"]');
+        const label = type ? CUIVRE_TYPES[type.value] : "Équipement cuivre";
+        if (t) t.textContent = `${i + 1}. ${label}`;
+    });
+}
+
+function readCuivreCard(card) {
+    const d = { id: card.dataset.id };
+    card.querySelectorAll("[data-f]").forEach(el => { d[el.dataset.f] = el.value; });
+    return d;
+}
+
+// Fiches dans l'ordre d'affichage (utilisé par le JSON, l'autosave et le Word)
+function collectCuivre() {
+    return Array.from(document.querySelectorAll("#cuivreContainer .cuivre-card")).map(readCuivreCard);
+}
+
+function applyCuivre(list, enabled) {
+    const container = document.getElementById("cuivreContainer");
+    if (container) container.innerHTML = "";
+    cuivreCounter = 0;
+    (list || []).forEach(d => addCuivreItem(d, d.id));
+    applyCuivreVisibility(enabled);
+    refreshCuivreRecap();
+}
+
+function cuivreTotals(list) {
+    const toNum = (v) => { const n = parseFloat(String(v || "").replace(",", ".")); return isNaN(n) ? 0 : n; };
+    let prises = 0, metres = 0;
+    list.forEach(d => {
+        const q = Math.max(1, parseInt(d.qte, 10) || 1);
+        prises += q;
+        metres += q * toNum(d.longueur);
+    });
+    return { equipements: list.length, prises, metres };
+}
+
+function fmtMetres(m) { return (Math.round(m * 10) / 10).toString().replace(".", ","); }
+
+function refreshCuivreRecap() {
+    const el = document.getElementById("cuivreRecap");
+    if (!el) return;
+    const list = collectCuivre();
+    if (!list.length) { el.classList.remove("shown"); el.textContent = ""; return; }
+    const t = cuivreTotals(list);
+    el.textContent = `${t.equipements} fiche(s) · ${t.prises} prise(s) RJ45 · ≈ ${fmtMetres(t.metres)} m de câble (longueur par prise × nombre de prises)`;
+    el.classList.add("shown");
+}
+
+function setupCuivre() {
+    const cb = document.getElementById("cuivreEnabled");
+    if (cb) cb.addEventListener("change", () => {
+        applyCuivreVisibility(cb.checked);
+        if (cb.checked && !document.querySelector("#cuivreContainer .cuivre-card")) addCuivreItem();
+        if (window.__autosaveSchedule) window.__autosaveSchedule();
+    });
+    const add = document.getElementById("addCuivreBtn");
+    if (add) add.addEventListener("click", () => {
+        addCuivreItem();
+        refreshCuivreRecap();
+        if (window.__autosaveSchedule) window.__autosaveSchedule();
+    });
+    const container = document.getElementById("cuivreContainer");
+    if (!container) return;
+    container.addEventListener("change", async (e) => {
+        const t = e.target;
+        const card = t.closest(".cuivre-card");
+        if (!card) return;
+        if (t.matches('input[type="file"][data-cuivre-photo]')) {
+            const file = t.files && t.files[0];
+            if (!file) return;
+            const key = t.dataset.cuivrePhoto;
+            await processPhoto(file, key);
+            const ann = card.querySelector(`[data-annotate="${key}"]`);
+            if (ann) ann.disabled = false;
+            return;
+        }
+        if (t.dataset.f === "chem") card.dataset.chem = t.value === "specifique" ? "specifique" : "principal";
+        if (t.dataset.f === "type") renumberCuivre();
+        refreshCuivreRecap();
+    });
+    container.addEventListener("input", (e) => {
+        if (e.target.dataset && e.target.dataset.f) refreshCuivreRecap();
+    });
+    container.addEventListener("click", (e) => {
+        const del = e.target.closest("[data-del-cuivre]");
+        if (!del) return;
+        const card = del.closest(".cuivre-card");
+        if (card && confirm("Supprimer cet équipement cuivre ?")) {
+            delete photoStore[`cuivre_${card.dataset.id}_emp`];
+            delete photoStore[`cuivre_${card.dataset.id}_chem`];
+            card.remove();
+            renumberCuivre();
+            refreshCuivreRecap();
+            if (window.__autosaveSchedule) window.__autosaveSchedule();
+        }
+    });
+    applyCuivreVisibility(isCuivreEnabled());
+}
+
 // ---------- SECTION BLOCAGE ----------
 function applyBlocageVisibility(enabled) {
     document.body.setAttribute("data-blocage", enabled ? "on" : "off");
+    updateSectionNumbers();
     if (enabled) {
         // Ergonomie : un item vierge par galerie si elles sont vides
         if (!document.querySelector("#blocagesContainer .cheminement-item")) addGalleryItem("blocage");
@@ -207,45 +443,6 @@ function applyBlocageVisibility(enabled) {
 function isBlocageEnabled() {
     const cb = document.getElementById("blocageEnabled");
     return !!(cb && cb.checked);
-}
-
-// ---------- CONFORMITÉ DE LA BAIE ----------
-function computeBaieConformite() {
-    const u = parseInt(document.getElementById("nb_u_dispo")?.value, 10);
-    const p = parseInt(document.getElementById("nb_prises_baie")?.value, 10);
-    if (isNaN(u) && isNaN(p)) return null; // rien de saisi → pas de calcul
-    return (u >= 2 && p >= 2) ? "Oui" : "Non";
-}
-
-function updateBaieConformite(force) {
-    if (baieConformeManuel && !force) { updateConfBadge(); return; }
-    const auto = computeBaieConformite();
-    if (auto !== null) {
-        const radio = document.querySelector(`input[name="baie_conforme"][value="${auto}"]`);
-        if (radio) radio.checked = true;
-    }
-    updateConfBadge();
-}
-
-function getBaieConformeValue() {
-    const checked = document.querySelector('input[name="baie_conforme"]:checked');
-    return checked ? checked.value : "";
-}
-
-function updateConfBadge() {
-    const badge = document.getElementById("confBadge");
-    const autoBtn = document.getElementById("confAutoBtn");
-    const v = getBaieConformeValue();
-    if (badge) {
-        if (v) {
-            badge.style.display = "inline-block";
-            badge.textContent = baieConformeManuel ? `${v} (manuel)` : `${v} (auto)`;
-            badge.className = "conf-badge " + (v === "Oui" ? "ok" : "ko");
-        } else {
-            badge.style.display = "none";
-        }
-    }
-    if (autoBtn) autoBtn.style.display = baieConformeManuel ? "inline" : "none";
 }
 
 // ---------- GESTION GLOBALE DES CLICS (annoter / effacer / supprimer) ----------
@@ -502,7 +699,8 @@ function collectFormData() {
         galleries: {},          // kind -> [{idx, comment}]
         galleryCounters: { ...galleryCounters },
         blocageEnabled: isBlocageEnabled(),
-        baieConformeManuel: baieConformeManuel,
+        cuivreEnabled: isCuivreEnabled(),
+        cuivre: collectCuivre(),
         photos: {}
     };
 
@@ -582,9 +780,6 @@ async function applyFormData(data) {
     const mode = data.fields && data.fields.modeIntervention === "travaux" ? "travaux" : "audit";
     if (typeof window.setMode === "function") window.setMode(mode);
 
-    // État manuel de la conformité de la baie
-    baieConformeManuel = !!data.baieConformeManuel;
-
     // Reconstruction des galeries dynamiques
     Object.keys(GALLERIES).forEach(kind => {
         const container = document.getElementById(GALLERIES[kind].containerId);
@@ -612,6 +807,10 @@ async function applyFormData(data) {
     // Section blocage
     applyBlocageVisibility(!!data.blocageEnabled ||
         !!(data.checkboxes && data.checkboxes.blocageEnabled));
+
+    // Section câblage cuivre (les fiches sont recréées AVANT les photos pour retrouver leurs aperçus)
+    applyCuivre(data.cuivre || [], !!data.cuivreEnabled ||
+        !!(data.checkboxes && data.checkboxes.cuivreEnabled));
 
     // Photos (restauration + re-normalisation JPEG pour un docx toujours valide)
     Object.keys(photoStore).forEach(k => delete photoStore[k]);
@@ -652,7 +851,7 @@ async function applyFormData(data) {
         }));
     }
 
-    updateConfBadge();
+    refreshCuivreRecap();
 }
 
 // ---------- EXPORT / IMPORT JSON ----------
@@ -976,128 +1175,121 @@ async function generateDocument() {
         ["Mail du contact", val("contact_mail")]
     ]));
 
-    // === SECTION 2 - BAIE INFORMATIQUE ===
-    children.push(sectionTitle(2, "Baie informatique"));
-    children.push(kvTable([
-        ["Type de baie", val("type_baie")],
-        ["Nombre de U disponibles", val("nb_u_dispo")],
-        ["Taille (L x P x H)", val("taille_baie")],
-        ["Marque de la baie", val("marque_baie")],
-        ["Nombre de prises disponibles", val("nb_prises_baie")]
-    ]));
+    // Numérotation dynamique : la section cuivre est optionnelle
+    let secNum = 2;
 
-    // Équipements cochés
-    children.push(subTitle("2.1", "Équipements présents dans la baie"));
-    const EQUIP_LIST = [
-        ["eq_bandeau", "Bandeau de brassage"],
-        ["eq_pdu", "PDU / Multiprise"],
-        ["eq_livebox", "Livebox"],
-        ["eq_tiroir_optique", "Tiroir optique"],
-        ["eq_routeur", "Routeur"],
-        ["eq_switch", "Switch"],
-        ["eq_firewall", "Firewall"],
-        ["eq_ampli", "Amplificateur"],
-        ["eq_nvr", "NVR / Enregistreur"],
-        ["eq_barix", "Barix"],
-        ["eq_blackbox", "BlackBox"],
-        ["eq_tourpc", "Tour PC"],
-        ["eq_wifi", "Borne Wi-Fi"],
-        ["eq_onduleur", "Onduleur"],
-        ["eq_autres", "Autres équipements"]
-    ];
-    const equipRows = EQUIP_LIST.map(([id, label]) => {
-        const checked = !!document.getElementById(id)?.checked;
-        return new TableRow({
-            cantSplit: true,
-            children: [
-                valueCell(label, 6240),
-                valueCell(checked ? "☑ Présent" : "☐ Absent", 3120, {
-                    bold: checked,
-                    color: checked ? COLOR_OK : "888888"
-                })
-            ]
-        });
-    });
-    children.push(new Table({
-        width: { size: 9360, type: WidthType.DXA },
-        columnWidths: [6240, 3120],
-        rows: [
-            new TableRow({ cantSplit: true, children: [labelCell("Équipement", 6240), labelCell("Présence", 3120)] }),
-            ...equipRows
-        ]
-    }));
-    if (val("autres_equipements").trim()) {
-        children.push(P("", { spacing: { before: 80, after: 40 } }));
-        children.push(kvTable([["Autres équipements (détail)", val("autres_equipements")]]));
-    }
-
-    // Conformité de la baie
-    children.push(subTitle("2.2", "Contrôle de conformité"));
-    const conf = getBaieConformeValue();
-    children.push(kvTable([
-        ["Baie conforme", conf || "Non renseigné", {
-            bold: true,
-            color: conf === "Oui" ? COLOR_OK : (conf === "Non" ? COLOR_KO : "888888")
-        }],
-        ["Règle appliquée", "Conforme si au moins 2 U disponibles et au moins 2 prises électriques disponibles" +
-            (baieConformeManuel ? " (résultat ajusté manuellement par le technicien)" : " (calcul automatique)")]
-    ]));
-    if (val("commentaire_baie").trim()) {
-        children.push(P("", { spacing: { before: 80, after: 40 } }));
-        children.push(new Table({
-            width: { size: 9360, type: WidthType.DXA },
-            columnWidths: [9360],
-            rows: [
-                new TableRow({ cantSplit: true, children: [labelCell("Commentaire de la baie", 9360)] }),
-                new TableRow({ children: [valueCell(val("commentaire_baie"), 9360)] })
-            ]
-        }));
+    // === SECTION 2 - CÂBLAGE CUIVRE (RJ45) — uniquement si activée ===
+    if (isCuivreEnabled()) {
+        const cuivre = collectCuivre();
+        const sn = secNum++;
+        children.push(sectionTitle(sn, "Câblage cuivre (RJ45)"));
+        const tot = cuivreTotals(cuivre);
+        children.push(kvTable([
+            ["Baie / coffret de départ", val("cuivre_baie_depart")],
+            ["Nombre de fiches équipement", String(tot.equipements)],
+            ["Nombre total de prises RJ45", String(tot.prises)],
+            ["Longueur de câble estimée", `${fmtMetres(tot.metres)} m (longueur par prise × nombre de prises)`]
+        ]));
+        if (!cuivre.length) {
+            children.push(P("(Aucun équipement cuivre renseigné.)", { italics: true, color: "888888" }));
+        } else {
+            // Tableau récapitulatif
+            const W = [600, 2760, 2400, 800, 1000, 1800];
+            const head = ["N°", "Équipement", "Niveau / emplacement", "Prises", "Long. (m)", "Câble"];
+            children.push(P("", { spacing: { before: 120, after: 40 } }));
+            children.push(new Table({
+                width: { size: 9360, type: WidthType.DXA },
+                columnWidths: W,
+                rows: [
+                    new TableRow({ cantSplit: true, tableHeader: true, children: head.map((h, i) => labelCell(h, W[i])) }),
+                    ...cuivre.map((d, i) => new TableRow({
+                        cantSplit: true,
+                        children: [
+                            valueCell(String(i + 1), W[0]),
+                            valueCell([CUIVRE_TYPES[d.type] || "Autre", d.repere].filter(Boolean).join(" — "), W[1]),
+                            valueCell([d.niveau, d.emplacement].filter(Boolean).join(" — "), W[2]),
+                            valueCell(String(Math.max(1, parseInt(d.qte, 10) || 1)), W[3]),
+                            valueCell(d.longueur ? String(d.longueur).replace(".", ",") : "", W[4]),
+                            valueCell(d.cat || "", W[5])
+                        ]
+                    }))
+                ]
+            }));
+            // Une fiche détaillée par équipement
+            cuivre.forEach((d, i) => {
+                children.push(subTitle(`${sn}.${i + 1}`, [CUIVRE_TYPES[d.type] || "Équipement", d.repere].filter(Boolean).join(" — ")));
+                children.push(kvTable([
+                    ["Niveau / zone", d.niveau],
+                    ["Emplacement", d.emplacement],
+                    ["Nombre de prises RJ45", String(Math.max(1, parseInt(d.qte, 10) || 1))],
+                    ["Longueur par prise jusqu'à la baie", d.longueur ? `${String(d.longueur).replace(".", ",")} m` : ""],
+                    ["Catégorie de câble", d.cat],
+                    ["Alimentation de l'équipement", d.alim],
+                    ["Port de switch à prévoir", d.port_switch],
+                    ["Mode de pose", d.pose],
+                    ["Percements nécessaires", d.percement],
+                    ["Cheminement", d.chem === "specifique" ? "Cheminement spécifique (voir photo)" : "Identique au cheminement des photos"],
+                    ...(d.comment && d.comment.trim() ? [["Commentaire", d.comment.trim()]] : [])
+                ]));
+                children.push(P("", { spacing: { before: 80, after: 40 } }));
+                const kEmp = `cuivre_${d.id}_emp`, kChem = `cuivre_${d.id}_chem`;
+                if (photoStore[kEmp]) {
+                    children.push(photoBanner("Emplacement", kEmp));
+                    children.push(P("", { spacing: { before: 80, after: 80 } }));
+                }
+                if (d.chem === "specifique" && photoStore[kChem]) {
+                    children.push(photoBanner("Cheminement spécifique", kChem));
+                    children.push(P("", { spacing: { before: 80, after: 80 } }));
+                }
+            });
+        }
     }
 
     // === SECTION 3 - PHOTOS ===
-    children.push(sectionTitle(3, "Photos"));
+    const photosNum = secNum++;
+    children.push(sectionTitle(photosNum, "Photos"));
 
     // Photos fixes
     let sub = 0;
     FIXED_PHOTOS.slice(0, 5).forEach(fp => {           // Devanture → Adduction client
         sub++;
-        children.push(subTitle(`3.${sub}`, fp.title));
+        children.push(subTitle(`${photosNum}.${sub}`, fp.title));
         children.push(photoBanner(fp.title, fp.key));
         children.push(P("", { spacing: { before: 80, after: 80 } }));
     });
 
     // Galerie Cheminement
     sub++;
-    children.push(subTitle(`3.${sub}`, "Cheminement"));
+    children.push(subTitle(`${photosNum}.${sub}`, "Cheminement"));
     pushGallery(children, "cheminement");
 
     // Galerie Percements
     sub++;
-    children.push(subTitle(`3.${sub}`, "Percements"));
+    children.push(subTitle(`${photosNum}.${sub}`, "Percements"));
     pushGallery(children, "percement");
 
     // Travaux en hauteur + Plan d'évacuation
     FIXED_PHOTOS.slice(5).forEach(fp => {
         sub++;
-        children.push(subTitle(`3.${sub}`, fp.title));
+        children.push(subTitle(`${photosNum}.${sub}`, fp.title));
         children.push(photoBanner(fp.title, fp.key));
         children.push(P("", { spacing: { before: 80, after: 80 } }));
     });
 
     // Galerie Baie fermée
     sub++;
-    children.push(subTitle(`3.${sub}`, "Baie fermée"));
+    children.push(subTitle(`${photosNum}.${sub}`, "Baie fermée"));
     pushGallery(children, "baie_fermee");
 
     // === SECTION 4 - BLOCAGE (uniquement si la section est affichée) ===
-    let nextSection = 4;
+    let nextSection = secNum;
     if (isBlocageEnabled()) {
-        children.push(sectionTitle(4, "Blocage"));
-        children.push(subTitle("4.1", "Photos des blocages"));
+        const bn = nextSection++;
+        children.push(sectionTitle(bn, "Blocage"));
+        children.push(subTitle(`${bn}.1`, "Photos des blocages"));
         pushGallery(children, "blocage");
-        children.push(subTitle("4.2", "Photos de la solution proposée"));
+        children.push(subTitle(`${bn}.2`, "Photos de la solution proposée"));
         pushGallery(children, "solution");
-        nextSection = 5;
     }
 
     // === COMPTE RENDU GLOBAL ===
@@ -1298,7 +1490,8 @@ const AUTOSAVE = (() => {
         const hasField = d.fields && Object.values(d.fields).some(v => String(v || "").trim() !== "");
         const hasPhoto = d.photos && Object.keys(d.photos).length > 0;
         const hasEquip = d.checkboxes && Object.values(d.checkboxes).some(Boolean);
-        return !hasField && !hasPhoto && !hasEquip;
+        const hasCuivre = Array.isArray(d.cuivre) && d.cuivre.length > 0;
+        return !hasField && !hasPhoto && !hasEquip && !hasCuivre;
     }
 
     async function _saveNow() {

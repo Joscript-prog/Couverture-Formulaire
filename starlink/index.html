@@ -1459,18 +1459,22 @@
 
   <!-- ========== 6. SYNTHESE ========== -->
   <div class="section">
-    <h2><span id="syntheseSectionNum">6.</span> Synthèse de l'intervention</h2>
-    <div class="field-row">
+    <h2><span id="syntheseSectionNum">6.</span> <span class="mode-travaux-only">Synthèse de l'intervention</span><span class="mode-audit-only">Synthèse — à prévoir pour les travaux</span></h2>
+    <div class="info-box mode-audit-only">
+      Ces informations ne décrivent pas la visite d'audit : elles indiquent ce qu'il faudra <b>prévoir pour réaliser les travaux</b> (durée, nombre de techniciens, nacelle, échelle / échafaudage, câblage supplémentaire).
+    </div>
+    <!-- Heures réelles : mode TRAVAUX uniquement (en audit, elles prêtaient à confusion) -->
+    <div class="field-row mode-travaux-only">
       <label>Heure de début d'intervention</label>
       <input type="time" id="heure_debut">
     </div>
-    <div class="field-row">
+    <div class="field-row mode-travaux-only">
       <label>Heure de fin d'intervention</label>
       <input type="time" id="heure_fin">
     </div>
     <!-- Durée : libellé "à prévoir" en mode AUDIT, "de l'intervention" + calcul auto en mode TRAVAUX -->
     <div class="field-row mode-audit-only">
-      <label>Durée totale à prévoir</label>
+      <label>Durée totale à prévoir pour les travaux</label>
       <input type="text" id="duree_totale" placeholder="ex: 4h30">
     </div>
     <div class="field-row mode-travaux-only">
@@ -1478,12 +1482,13 @@
       <input type="text" id="duree_intervention" placeholder="Calculée automatiquement" readonly style="background:#f5f5f5;">
     </div>
     <div class="field-row">
-      <label>Nombre de techniciens</label>
+      <label class="mode-audit-only">Nombre de techniciens à prévoir</label>
+      <label class="mode-travaux-only">Nombre de techniciens</label>
       <input type="number" id="nb_techniciens" min="1" max="10">
     </div>
     <!-- Nacelle : "à prévoir" en AUDIT, "utilisée" en TRAVAUX -->
     <div class="field-row mode-audit-only">
-      <label>Nacelle à prévoir</label>
+      <label>Nacelle à prévoir pour les travaux</label>
       <div class="checkbox-group">
         <label><input type="radio" name="nacelle_prevoir" value="Oui"> Oui</label>
         <label><input type="radio" name="nacelle_prevoir" value="Non"> Non</label>
@@ -1496,7 +1501,14 @@
         <label><input type="radio" name="nacelle_utilisee" value="Non"> Non</label>
       </div>
     </div>
-    <!-- Échelle / Échafaud : TRAVAUX uniquement -->
+    <!-- Échelle / Échafaudage : « à prévoir » en AUDIT, « utilisé » en TRAVAUX -->
+    <div class="field-row mode-audit-only">
+      <label>Échelle / Échafaudage à prévoir</label>
+      <div class="checkbox-group">
+        <label><input type="radio" name="echelle_prevoir" value="Oui"> Oui</label>
+        <label><input type="radio" name="echelle_prevoir" value="Non"> Non</label>
+      </div>
+    </div>
     <div class="field-row mode-travaux-only">
       <label>Échelle / Échafaud utilisé</label>
       <div class="checkbox-group">
@@ -1505,7 +1517,8 @@
       </div>
     </div>
     <div class="field-row">
-      <label>Câblage supplémentaire</label>
+      <label class="mode-audit-only">Câblage supplémentaire à prévoir</label>
+      <label class="mode-travaux-only">Câblage supplémentaire</label>
       <div class="checkbox-group">
         <label><input type="radio" name="cablage_supp" value="Oui"> Oui</label>
         <label><input type="radio" name="cablage_supp" value="Non"> Non</label>

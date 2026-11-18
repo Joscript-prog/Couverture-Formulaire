@@ -129,6 +129,12 @@ const EN_DICT = {
 
   // ---- Section 6/7 : Synthèse ----
   "Synthèse de l'intervention": "Intervention summary",
+  "Synthèse — à prévoir pour les travaux": "Summary — to plan for the works",
+  "Durée totale à prévoir pour les travaux": "Total estimated duration of the works",
+  "Nombre de techniciens à prévoir": "Number of technicians to plan",
+  "Nacelle à prévoir pour les travaux": "Aerial lift to plan for the works",
+  "Échelle / Échafaudage à prévoir": "Ladder / Scaffold to plan",
+  "Câblage supplémentaire à prévoir": "Additional cabling to plan",
   "Heure de début d'intervention": "Start time",
   "Heure de fin d'intervention": "End time",
   "Durée totale à prévoir": "Total estimated duration",

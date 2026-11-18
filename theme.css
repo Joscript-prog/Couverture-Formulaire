@@ -2,7 +2,7 @@
    THÈME COMMUN — Outils terrain IPKONEKT
    Chargé APRÈS les styles propres à chaque page.
    • Bleu IPKONEKT en aplat (#0A25EB, couleur du logo).
-   • Une couleur vive par outil : <html data-tool="4g|starlink|pico|cablage|wifi|camera">.
+   • Une couleur vive par outil : <html data-tool="4g|starlink|pico|cablage|wifi|camera|qos">.
    • Pas de dégradés, des bordures plutôt que des ombres.
    • Police Barlow (auto-hébergée dans /fonts, licence OFL).
    ============================================================= */
@@ -37,6 +37,7 @@ html[data-tool="pico"]     { --accent: #4E9F00; --accent-ink: #3B7A00; --accent-
 html[data-tool="cablage"]  { --accent: #8B3DFF; --accent-ink: #6B21E0; --accent-tint: #F3ECFF; }
 html[data-tool="wifi"]     { --accent: #009E7E; --accent-ink: #007A62; --accent-tint: #E5F5F1; }
 html[data-tool="camera"]   { --accent: #E5282F; --accent-ink: #C81E25; --accent-tint: #FDECEC; }
+html[data-tool="qos"]      { --accent: #C2185B; --accent-ink: #9C1049; --accent-tint: #FCE8F0; }
 
 /* ---------- Base ---------- */
 html body {
@@ -759,4 +760,158 @@ html body .quality-matrix-wrapper { -webkit-overflow-scrolling: touch; }
     html body .editor-footer .hint { text-align: center; }
     html body .editor-footer > div { display: flex; gap: 10px; width: 100%; }
     html body .editor-footer > div button { flex: 1 1 0; min-height: 44px; margin: 0; }
+}
+
+/* =============================================================
+   V2 — Interface plus moderne et responsive (nov. 2026)
+   Rayons plus doux, ombres légères, champs plus confortables
+   au doigt, en-tête dégradé, barre d'actions flottante,
+   mise en page fluide du téléphone à l'écran large.
+   Ajouté en fin de fichier : surcharge les règles précédentes.
+   ============================================================= */
+:root {
+    --r-sm: 10px;
+    --r-md: 14px;
+    --r-lg: 18px;
+    --sh-1: 0 1px 2px rgba(25, 32, 58, 0.05), 0 2px 8px rgba(25, 32, 58, 0.04);
+    --sh-2: 0 2px 4px rgba(25, 32, 58, 0.06), 0 12px 32px rgba(25, 32, 58, 0.08);
+    --ring: 0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent);
+    --gutter: clamp(12px, 3.2vw, 28px);
+}
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html body { line-height: 1.5; background: linear-gradient(180deg, #E9EDF7 0, var(--paper) 280px) no-repeat, var(--paper); }
+html body img, html body svg { max-width: 100%; }
+
+/* ---------- En-tête ---------- */
+html body header.app-header {
+    background: linear-gradient(135deg, var(--ipk) 0%, var(--ipk-deep) 100%);
+    border-bottom: 0;
+    position: relative;
+}
+html body header.app-header::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: var(--accent);
+}
+.app-header-in { padding: clamp(14px, 2.4vw, 22px) var(--gutter) clamp(18px, 2.8vw, 26px); max-width: 1180px; }
+.app-home { border-radius: var(--r-md); box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18); transition: transform .18s ease; }
+.app-home:hover { transform: translateY(-1px) scale(1.03); }
+html body .app-title h1 { font-size: clamp(1.5rem, 1.15rem + 1.4vw, 2.1rem); }
+html body .app-back, html body header.app-header #logoutBtn {
+    border-radius: 999px; background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(4px);
+    transition: background .18s, border-color .18s;
+}
+
+/* ---------- Page et sections ---------- */
+html body .container { max-width: 1180px; padding-left: var(--gutter); padding-right: var(--gutter); }
+html body .section {
+    border-radius: var(--r-lg);
+    border-color: color-mix(in srgb, var(--line) 80%, transparent);
+    box-shadow: var(--sh-1);
+    padding: clamp(16px, 2.6vw, 28px);
+    margin-bottom: clamp(14px, 2.4vw, 24px);
+}
+html body .section h2 {
+    position: relative; border-bottom: 0; padding: 2px 0 2px 16px; margin-bottom: 18px;
+    font-size: clamp(1.25rem, 1.1rem + 0.7vw, 1.6rem);
+}
+html body .section h2::before {
+    content: ""; position: absolute; left: 0; top: 4px; bottom: 4px; width: 6px; border-radius: 6px; background: var(--accent);
+}
+html body .section h3 { margin-top: 22px; }
+
+/* ---------- Lignes de champs : fluides ---------- */
+html body .field-row {
+    grid-template-columns: minmax(150px, 240px) minmax(0, 1fr);
+    gap: 8px 16px;
+}
+html body .field-row.full { grid-template-columns: minmax(0, 1fr); }
+@media (max-width: 760px) {
+    html body .field-row { grid-template-columns: minmax(0, 1fr) !important; gap: 6px; margin-bottom: 14px; }
+}
+
+/* ---------- Champs ---------- */
+html body input[type="text"], html body input[type="date"], html body input[type="time"],
+html body input[type="number"], html body input[type="email"], html body input[type="tel"],
+html body input[type="password"], html body textarea, html body select {
+    border-radius: var(--r-sm);
+    min-height: 46px;
+    padding: 10px 14px;
+    border-color: var(--line-strong);
+    transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+}
+html body textarea { min-height: 96px; line-height: 1.45; }
+html body input:hover:not(:focus), html body textarea:hover:not(:focus), html body select:hover:not(:focus) { border-color: var(--ink); }
+html body input:focus, html body textarea:focus, html body select:focus { border-color: var(--accent); box-shadow: var(--ring); outline: none; }
+html body input[type="checkbox"], html body input[type="radio"] { width: 20px; height: 20px; }
+html body .checkbox-group label { border-radius: var(--r-sm); min-height: 44px; transition: background .15s, border-color .15s; }
+
+/* ---------- Encadrés, photos ---------- */
+html body .info-box { border-radius: var(--r-md); }
+html body .photo-upload, html body .cheminement-item, html body .mp-photo-block {
+    border-radius: var(--r-md); transition: border-color .15s, box-shadow .15s;
+}
+html body .cheminement-item:hover, html body .mp-photo-block:hover { box-shadow: var(--sh-1); }
+html body .photo-preview { border-radius: var(--r-sm); }
+html body .gallery-grid { gap: clamp(10px, 1.6vw, 18px); }
+
+/* ---------- Boutons ---------- */
+html body button { border-radius: var(--r-sm); transition: background .15s, border-color .15s, box-shadow .15s, transform .15s; }
+html body .btn-primary, html body .btn-secondary, html body .btn-success, html body #sendToServerBtn {
+    min-height: 46px; padding-inline: 20px; font-weight: 600;
+}
+html body .btn-primary { box-shadow: 0 2px 8px color-mix(in srgb, var(--ipk) 35%, transparent); }
+html body .btn-success, html body #sendToServerBtn { box-shadow: 0 2px 8px color-mix(in srgb, var(--ok) 32%, transparent); }
+html body .btn-primary:hover, html body .btn-success:hover, html body #sendToServerBtn:hover { transform: translateY(-1px); }
+html body .btn-primary:active, html body .btn-success:active, html body .btn-secondary:active { transform: translateY(0); }
+html body .btn-secondary:hover { border-color: var(--accent); color: var(--accent-ink); background: var(--accent-tint); }
+html body .annotate-btn, html body .clear-btn, html body .clear-photo { border-radius: var(--r-sm); }
+html body .btn-delete { border-radius: var(--r-sm); }
+
+/* ---------- Barre d'actions flottante ---------- */
+html body div.actions {
+    background: rgba(255, 255, 255, 0.92);
+    -webkit-backdrop-filter: saturate(1.4) blur(12px);
+    backdrop-filter: saturate(1.4) blur(12px);
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -8px 28px rgba(25, 32, 58, 0.08);
+}
+@media (min-width: 1101px) and (min-height: 501px) {
+    html body div.actions {
+        left: 50%; right: auto; transform: translateX(-50%);
+        width: min(1180px, calc(100% - 2 * var(--gutter)));
+        bottom: 12px; border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh-2);
+    }
+}
+html body .status { border-radius: var(--r-md); }
+
+/* ---------- Connexion, éditeur ---------- */
+html body #loginOverlay { background: linear-gradient(135deg, var(--ipk) 0%, var(--ipk-deep) 100%); }
+html body #loginOverlay .login-card { border-radius: 20px; box-shadow: var(--sh-2); }
+html body #loginOverlay select, html body #loginOverlay input, html body #loginOverlay #loginBtn { border-radius: var(--r-sm); min-height: 46px; }
+html body .editor-modal { border-radius: var(--r-lg); overflow: hidden; }
+html body .tool-btn { border-radius: var(--r-sm); }
+
+/* ---------- Administration ---------- */
+html body .stat-card, html body .filters-card, html body .table-card { border-radius: var(--r-md); box-shadow: var(--sh-1); }
+html body .admin-login-card { border-radius: 20px; box-shadow: var(--sh-2); }
+html body .admin-header { background: linear-gradient(135deg, var(--ipk) 0%, var(--ipk-deep) 100%); }
+
+/* ---------- Tableaux larges : défilement horizontal ---------- */
+html body .table-card, html body .quality-matrix-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------- Téléphone ---------- */
+@media (max-width: 600px) {
+    html body .section { border-radius: var(--r-md); }
+    html body .container { padding-left: 10px; padding-right: 10px; }
+    html body .btn-primary, html body .btn-secondary, html body .btn-success { padding-inline: 14px; }
+}
+
+/* ---------- Grands écrans ---------- */
+@media (min-width: 1500px) {
+    html body .container, .app-header-in { max-width: 1280px; }
+}
+
+/* ---------- Accessibilité : moins d'animations si demandé ---------- */
+@media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
 }

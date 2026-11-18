@@ -1178,31 +1178,41 @@ async function generateDocument() {
     const isBW = (val("client_final") === "bluewireless");
 
     // Libellés et valeurs qui changent selon le mode
-    const labelDuree   = isTravaux ? "Durée de l'intervention"  : "Durée totale à prévoir";
+    const labelDuree   = isTravaux ? "Durée de l'intervention"  : "Durée totale à prévoir pour les travaux";
     const valueDuree   = isTravaux ? val("duree_intervention")  : val("duree_totale");
-    const labelNacelle = isTravaux ? "Nacelle utilisée"         : "Nacelle à prévoir";
+    const labelNacelle = isTravaux ? "Nacelle utilisée"         : "Nacelle à prévoir pour les travaux";
+    const labelTechs   = isTravaux ? "Nombre de techniciens"    : "Nombre de techniciens à prévoir";
+    const labelEchelle = isTravaux ? "Échelle / Échafaud utilisé" : "Échelle / Échafaudage à prévoir";
+    const labelCablage = isTravaux ? "Câblage supplémentaire"   : "Câblage supplémentaire à prévoir";
     const nacelleRadio = isTravaux ? radioValue("nacelle_utilisee") : radioValue("nacelle_prevoir");
-    const echelleRadio = radioValue("echelle_echafaud");
+    const echelleRadio = isTravaux ? radioValue("echelle_echafaud") : radioValue("echelle_prevoir");
 
-    const syntheseRows = [
+    // Heures réelles : mode TRAVAUX uniquement (en audit, la synthèse décrit ce qui est
+    // à prévoir pour les travaux, pas la visite d'audit)
+    const syntheseRows = [];
+    if (isTravaux) {
+      syntheseRows.push(
+        new TableRow({ children: [
+          cell(tr("Heure de début d'intervention"), { width: 3120, textOpts: { bold: true } }),
+          cell(val("heure_debut"), { width: 6240 })
+        ]}),
+        new TableRow({ children: [
+          cell(tr("Heure de fin d'intervention"), { width: 3120, textOpts: { bold: true } }),
+          cell(val("heure_fin"), { width: 6240 })
+        ]})
+      );
+    }
+    syntheseRows.push(
       new TableRow({ children: [
-        cell(tr("Heure de début d'intervention"), { width: 3120, textOpts: { bold: true } }),
-        cell(val("heure_debut"), { width: 6240 })
-      ]}),
-      new TableRow({ children: [
-        cell(tr("Heure de fin d'intervention"), { width: 3120, textOpts: { bold: true } }),
-        cell(val("heure_fin"), { width: 6240 })
-      ]}),
-      new TableRow({ children: [
-        cell(labelDuree, { width: 3120, textOpts: { bold: true } }),
+        cell(tr(labelDuree), { width: 3120, textOpts: { bold: true } }),
         cell(valueDuree, { width: 6240 })
       ]}),
       new TableRow({ children: [
-        cell(tr("Nombre de techniciens"), { width: 3120, textOpts: { bold: true } }),
+        cell(tr(labelTechs), { width: 3120, textOpts: { bold: true } }),
         cell(val("nb_techniciens"), { width: 6240 })
       ]}),
       new TableRow({ children: [
-        cell(labelNacelle, { width: 3120, textOpts: { bold: true } }),
+        cell(tr(labelNacelle), { width: 3120, textOpts: { bold: true } }),
         new TableCell({
           borders, width: { size: 6240, type: WidthType.DXA },
           margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -1212,28 +1222,26 @@ async function generateDocument() {
           ]) ]
         })
       ]})
-    ];
+    );
 
-    // Ligne supplémentaire « Échelle / Échafaud utilisé » : mode TRAVAUX uniquement
-    if (isTravaux) {
-      syntheseRows.push(
-        new TableRow({ children: [
-          cell(tr("Échelle / Échafaud utilisé"), { width: 3120, textOpts: { bold: true } }),
-          new TableCell({
-            borders, width: { size: 6240, type: WidthType.DXA },
-            margins: { top: 80, bottom: 80, left: 120, right: 120 },
-            children: [ checkboxParagraph([
-              { label: "Oui", checked: echelleRadio === "Oui" },
-              { label: "Non", checked: echelleRadio === "Non" }
-            ]) ]
-          })
-        ]})
-      );
-    }
+    // Échelle / Échafaud : « utilisé » en TRAVAUX, « à prévoir » en AUDIT
+    syntheseRows.push(
+      new TableRow({ children: [
+        cell(tr(labelEchelle), { width: 3120, textOpts: { bold: true } }),
+        new TableCell({
+          borders, width: { size: 6240, type: WidthType.DXA },
+          margins: { top: 80, bottom: 80, left: 120, right: 120 },
+          children: [ checkboxParagraph([
+            { label: "Oui", checked: echelleRadio === "Oui" },
+            { label: "Non", checked: echelleRadio === "Non" }
+          ]) ]
+        })
+      ]})
+    );
 
     syntheseRows.push(
       new TableRow({ children: [
-        cell(tr("Câblage supplémentaire"), { width: 3120, textOpts: { bold: true } }),
+        cell(tr(labelCablage), { width: 3120, textOpts: { bold: true } }),
         new TableCell({
           borders, width: { size: 6240, type: WidthType.DXA },
           margins: { top: 80, bottom: 80, left: 120, right: 120 },
@@ -1658,7 +1666,7 @@ async function generateDocument() {
 
     // Synthèse de l'intervention (numéro qui suit la section BW si présente)
     const syntheseNum = String(nextNum);
-    children.push(sectionHeading(syntheseNum, "Synthèse de l'intervention"));
+    children.push(sectionHeading(syntheseNum, isTravaux ? "Synthèse de l'intervention" : "Synthèse — à prévoir pour les travaux"));
     children.push(tableSynthese);
     children.push(emptyP());
     children.push(tableObservations);
@@ -1779,6 +1787,7 @@ function buildExportData() {
       nacelle_prevoir: radioValue("nacelle_prevoir"),
       nacelle_utilisee: radioValue("nacelle_utilisee"),
       echelle_echafaud: radioValue("echelle_echafaud"),
+      echelle_prevoir: radioValue("echelle_prevoir"),
       cablage_supp: radioValue("cablage_supp"),
       // EPI (radios dynamiques)
       epi: EPI_LIST.map(epi => ({ key: epi.key, value: radioValue("epi_" + epi.key) })),
@@ -1981,6 +1990,7 @@ async function applyImportedData(data) {
       if (formData.nacelle_prevoir)  setRadio("nacelle_prevoir",  formData.nacelle_prevoir);
       if (formData.nacelle_utilisee) setRadio("nacelle_utilisee", formData.nacelle_utilisee);
       if (formData.echelle_echafaud) setRadio("echelle_echafaud", formData.echelle_echafaud);
+      if (formData.echelle_prevoir)  setRadio("echelle_prevoir",  formData.echelle_prevoir);
       if (formData.cablage_supp)     setRadio("cablage_supp",     formData.cablage_supp);
 
       // 4-bis) Restaurer les radios spécifiques BLUEWIRELESS

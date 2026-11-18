@@ -2252,33 +2252,28 @@
             margin-bottom: 14px;
         }
         @media (max-width: 640px) { .gallery-grid { grid-template-columns: 1fr; } }
-        .equip-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-            gap: 8px 18px;
-            margin: 10px 0 6px 0;
+        /* --- Câblage cuivre (RJ45) --- */
+        #cuivreContent { display: none; }
+        body[data-cuivre="on"] #cuivreContent { display: block; }
+        .cuivre-list { display: grid; gap: 14px; margin: 14px 0; }
+        .cuivre-card {
+            border: 1px solid var(--line, #d6dce8); border-radius: 12px; background: #fff;
+            padding: 14px 16px 16px; position: relative;
         }
-        .equip-grid label {
-            display: flex; align-items: center; gap: 8px;
-            background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 6px;
-            padding: 9px 12px; cursor: pointer; font-size: 0.93rem; min-height: 44px;
-        }
-        .equip-grid label:hover { background: #edf2f7; }
-        .equip-sub {
-            margin: 4px 0 10px 26px; display: flex; align-items: center; gap: 10px;
-            font-size: 0.9rem; color: #444;
-        }
-        .equip-sub input[type="number"] { width: 110px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
-        .conf-badge {
-            display: inline-block; padding: 5px 14px; border-radius: 16px;
-            font-weight: 700; font-size: 0.85rem; margin-left: 8px;
-        }
-        .conf-badge.ok { background: #dcfce7; color: #166534; }
-        .conf-badge.ko { background: #fee2e2; color: #991b1b; }
-        .conf-auto-link {
-            background: none; border: none; color: var(--accent-ink); cursor: pointer;
-            font-size: 0.82rem; text-decoration: underline; padding: 4px 0;
-        }
+        .cuivre-card-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+        .cuivre-card-head strong { font-size: 1.05rem; }
+        .cuivre-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 10px 14px; }
+        .cuivre-grid label { display: flex; flex-direction: column; gap: 4px; font-size: 0.86rem; font-weight: 600; color: var(--muted, #5b6478); }
+        .cuivre-grid input, .cuivre-grid select, .cuivre-grid textarea { width: 100%; font-weight: 400; color: var(--ink, #19203a); }
+        .cuivre-grid .wide { grid-column: 1 / -1; }
+        .cuivre-photos { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 12px; }
+        .cuivre-photo-block { border: 1px dashed var(--line-strong, #b4bed1); border-radius: 10px; padding: 10px; }
+        .cuivre-photo-block .cuivre-photo-title { font-weight: 600; font-size: 0.9rem; margin-bottom: 6px; }
+        .cuivre-photo-block input[type="file"] { width: 100%; }
+        .cuivre-photo-block .photo-preview { max-width: 100%; max-height: 240px; object-fit: contain; margin-top: 8px; }
+        .cuivre-card[data-chem="principal"] .cuivre-chem-only { display: none; }
+        .cuivre-recap { margin-top: 12px; padding: 10px 14px; border-radius: 10px; background: #edf0fe; color: #19203a; font-size: 0.95rem; display: none; }
+        .cuivre-recap.shown { display: block; }
         .blocage-toggle-wrap {
             padding: 12px 14px; background: #fff8e1; border: 1px solid #ffe0a3;
             border-radius: 6px; margin-bottom: 14px;
@@ -2345,7 +2340,7 @@
 
         <!-- ===== SECTION 1 - INFOS GÉNÉRALES (identiques aux formulaires Couverture) ===== -->
         <div class="section">
-            <h2>1. Informations générales du client</h2>
+            <h2><span class="sec-num">1.</span> Informations générales du client</h2>
             <div class="field-row">
                 <label>Raison sociale du site</label>
                 <input type="text" id="raison_sociale">
@@ -2392,81 +2387,37 @@
             </div>
         </div>
 
-        <!-- ===== SECTION 2 - BAIE INFORMATIQUE ===== -->
-        <div class="section">
-            <h2>2. Baie informatique</h2>
-            <div class="field-row">
-                <label>Type de baie</label>
-                <input type="text" id="type_baie" placeholder="Ex : baie 19 pouces murale, baie serveur au sol...">
-            </div>
-            <div class="field-row">
-                <label>Nombre de U disponibles</label>
-                <input type="number" id="nb_u_dispo" min="0" step="1">
-            </div>
-            <div class="field-row">
-                <label>Taille (Largeur x Profondeur x Hauteur)</label>
-                <input type="text" id="taille_baie" placeholder="Ex : 600 x 600 x 1200 mm">
-            </div>
-            <div class="field-row">
-                <label>Marque de la baie</label>
-                <input type="text" id="marque_baie">
-            </div>
-
-            <div class="field-row full">
-                <label style="font-size:1rem; color:var(--ink);">Équipements présents dans la baie</label>
-                <div class="equip-grid">
-                    <label><input type="checkbox" id="eq_bandeau"> Bandeau de brassage</label>
-                    <label><input type="checkbox" id="eq_pdu"> PDU / Multiprise</label>
-                    <label><input type="checkbox" id="eq_livebox"> Livebox</label>
-                    <label><input type="checkbox" id="eq_tiroir_optique"> Tiroir optique</label>
-                    <label><input type="checkbox" id="eq_routeur"> Routeur</label>
-                    <label><input type="checkbox" id="eq_switch"> Switch</label>
-                    <label><input type="checkbox" id="eq_firewall"> Firewall</label>
-                    <label><input type="checkbox" id="eq_ampli"> Amplificateur</label>
-                    <label><input type="checkbox" id="eq_nvr"> NVR / Enregistreur</label>
-                    <label><input type="checkbox" id="eq_barix"> Barix</label>
-                    <label><input type="checkbox" id="eq_blackbox"> BlackBox</label>
-                    <label><input type="checkbox" id="eq_tourpc"> Tour PC</label>
-                    <label><input type="checkbox" id="eq_wifi"> Borne Wi-Fi</label>
-                    <label><input type="checkbox" id="eq_onduleur"> Onduleur</label>
-                    <label><input type="checkbox" id="eq_autres"> Autres équipements</label>
-                </div>
-                <div class="equip-sub">
-                    <span>Nombre de prises disponibles (électriques) :</span>
-                    <input type="number" id="nb_prises_baie" min="0" step="1">
-                </div>
-            </div>
-
-            <div class="field-row full">
-                <label>Autres équipements (précisez)</label>
-                <input type="text" id="autres_equipements" placeholder="Liste libre des autres équipements présents">
-            </div>
-
-            <div class="field-row">
-                <label>Baie conforme
-                    <span id="confBadge" class="conf-badge" style="display:none;"></span>
+        <!-- ===== SECTION 2 - CÂBLAGE CUIVRE RJ45 (OPTIONNELLE) ===== -->
+        <div class="section" id="cuivreSection" data-optional="cuivre">
+            <h2><span class="sec-num">2.</span> Câblage cuivre (RJ45)</h2>
+            <div class="blocage-toggle-wrap">
+                <label>
+                    <input type="checkbox" id="cuivreEnabled" style="margin-top:3px; flex-shrink:0;">
+                    <span>
+                        Ajouter du <strong>câblage cuivre</strong> (téléphones, imprimantes, badgeuses et autres équipements en RJ45)<br>
+                        <span style="font-weight:400; font-size:0.9em; color:#666;">
+                            Si la section est masquée, elle n'apparaît pas dans le rapport Word.
+                        </span>
+                    </span>
                 </label>
-                <div>
-                    <div class="checkbox-group">
-                        <label><input type="radio" name="baie_conforme" value="Oui"> Oui</label>
-                        <label><input type="radio" name="baie_conforme" value="Non"> Non</label>
-                    </div>
-                    <div style="font-size:0.82rem; color:#666; margin-top:4px;">
-                        Calcul automatique : conforme si <b>≥ 2 U disponibles</b> et <b>≥ 2 prises électriques</b>. Vous pouvez modifier manuellement le résultat.
-                        <button type="button" class="conf-auto-link" id="confAutoBtn" style="display:none;">↺ Recalculer automatiquement</button>
-                    </div>
-                </div>
             </div>
-
-            <div class="field-row full">
-                <label>Commentaire de la baie</label>
-                <textarea id="commentaire_baie" style="min-height:90px;" placeholder="Observations sur la baie (état, câblage existant, accessibilité...)"></textarea>
+            <div id="cuivreContent">
+                <div class="info-box">
+                    Ajoutez une fiche par type d'équipement à raccorder en RJ45. Le cheminement est celui des photos (section suivante) : cochez « Cheminement spécifique » seulement si le trajet diffère. La longueur se compte <b>par prise, jusqu'à la baie</b>.
+                </div>
+                <div class="field-row">
+                    <label>Baie / coffret de départ</label>
+                    <input type="text" id="cuivre_baie_depart" placeholder="Ex : baie principale local technique RDC">
+                </div>
+                <div id="cuivreContainer" class="cuivre-list"></div>
+                <button type="button" class="btn-secondary" id="addCuivreBtn">+ Ajouter un équipement cuivre</button>
+                <div id="cuivreRecap" class="cuivre-recap" aria-live="polite"></div>
             </div>
         </div>
 
         <!-- ===== SECTION 3 - PHOTOS ===== -->
         <div class="section">
-            <h2>3. Photos</h2>
+            <h2><span class="sec-num">3.</span> Photos</h2>
             <div class="info-box">
                 Importez les photos de l'intervention. Toutes les photos sont <b>annotables</b> (flèches, cercles, texte) sauf la photo de devanture. Les galeries <b>Cheminement</b> et <b>Percements</b> acceptent un nombre illimité de photos, chacune avec son commentaire (repris dans le rapport Word).
             </div>
@@ -2492,7 +2443,7 @@
             </div>
 
             <div class="photo-cat-title">Baie ouverte</div>
-            <p class="photo-cat-note">Annotez la photo afin de lister les équipements présents dans la baie.</p>
+            <p class="photo-cat-note">Photo de la baie ouverte, au point d'arrivée des câbles (annotable).</p>
             <div class="mp-photo-block" style="max-width:520px;">
                 <input type="file" accept="image/*" data-photo-input="photo_baie_ouverte">
                 <img id="preview_photo_baie_ouverte" class="photo-preview">
@@ -2561,8 +2512,8 @@
         </div>
 
         <!-- ===== SECTION 4 - BLOCAGE (OPTIONNELLE) ===== -->
-        <div class="section">
-            <h2>4. Blocage (section optionnelle)</h2>
+        <div class="section" data-optional="blocage">
+            <h2><span class="sec-num">4.</span> Blocage (section optionnelle)</h2>
             <div class="blocage-toggle-wrap">
                 <label>
                     <input type="checkbox" id="blocageEnabled" style="margin-top:3px; flex-shrink:0;">
@@ -2589,7 +2540,7 @@
 
         <!-- ===== SECTION 5 - COMPTE RENDU GLOBAL ===== -->
         <div class="section">
-            <h2>5. Compte rendu global</h2>
+            <h2><span class="sec-num">5.</span> Compte rendu global</h2>
             <div class="field-row full">
                 <label>Compte rendu global de l'intervention</label>
                 <textarea id="compte_rendu_global" style="min-height:180px;" placeholder="Rédigez ici le compte rendu global (repris intégralement dans le rapport Word)..."></textarea>

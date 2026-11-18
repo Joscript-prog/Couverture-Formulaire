@@ -14,36 +14,36 @@
         html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
         body { margin: 0; min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column; }
 
-        .portal-head { background: var(--ipk); color: #fff; }
+        .portal-head { background: linear-gradient(135deg, var(--ipk) 0%, var(--ipk-deep) 100%); color: #fff; position: relative; }
+        .portal-head::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: linear-gradient(90deg, #0091D5, #E86F00, #4E9F00, #8B3DFF, #009E7E, #E5282F, #C2185B); }
         .portal-head-in,
         main,
         footer {
             width: 100%;
             max-width: 1180px;
             margin: 0 auto;
-            padding-left: max(24px, env(safe-area-inset-left));
-            padding-right: max(24px, env(safe-area-inset-right));
+            padding-left: max(var(--gutter, 24px), env(safe-area-inset-left));
+            padding-right: max(var(--gutter, 24px), env(safe-area-inset-right));
         }
-        .portal-head-in { padding-top: 40px; padding-bottom: 36px; }
+        .portal-head-in { padding-top: clamp(28px, 5vw, 48px); padding-bottom: clamp(28px, 4.6vw, 44px); }
         .portal-head h1 {
             margin: 0; font: 700 clamp(2rem, 1.4rem + 2.4vw, 2.9rem)/1.05 var(--font-title); letter-spacing: 0.005em;
         }
         .portal-head p { margin: 10px 0 0; font-size: clamp(1rem, 0.95rem + 0.25vw, 1.12rem); line-height: 1.45; max-width: 52ch; opacity: 0.94; }
 
-        main { flex: 1; padding-top: 8px; padding-bottom: 40px; }
-        .tool-group h2 { margin: 30px 0 10px; font: 600 1.2rem var(--font-title); color: var(--muted); }
-        .tool-list {
-            list-style: none; margin: 0; padding: 0;
-            background: #fff; border: 1px solid var(--line); border-radius: 10px; overflow: hidden;
-        }
-        .tool-list li + li { border-top: 1px solid var(--line); }
+        main { flex: 1; padding-top: 4px; padding-bottom: 48px; display: grid; gap: 0 28px; grid-template-columns: 1fr; align-content: start; }
+        .tool-group h2 { margin: 30px 0 12px; font: 700 0.95rem var(--font-title); letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+        .tool-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
         .tool {
             position: relative;
             display: flex; align-items: center; gap: 16px;
-            padding: 16px 18px 16px 30px; min-height: 84px;
+            padding: 18px 18px 18px 28px; min-height: 88px;
             color: var(--ink); text-decoration: none;
+            background: #fff; border: 1px solid var(--line); border-radius: 16px; overflow: hidden;
+            box-shadow: 0 1px 2px rgba(25,32,58,.05), 0 2px 8px rgba(25,32,58,.04);
+            transition: transform .16s ease, box-shadow .16s ease, border-color .16s ease, background .16s ease;
         }
-        /* la couleur de l'outil, sur le bord de la ligne */
+        /* la couleur de l'outil, sur le bord de la carte */
         .tool::before {
             content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 10px; background: var(--tile);
         }
@@ -53,13 +53,16 @@
         .tool[data-tool="cablage"]  { --tile: #8B3DFF; --tile-ink: #6B21E0; --tile-tint: #F3ECFF; }
         .tool[data-tool="wifi"]     { --tile: #009E7E; --tile-ink: #007A62; --tile-tint: #E5F5F1; }
         .tool[data-tool="camera"]   { --tile: #E5282F; --tile-ink: #C81E25; --tile-tint: #FDECEC; }
+        .tool[data-tool="qos"]      { --tile: #C2185B; --tile-ink: #9C1049; --tile-tint: #FCE8F0; }
         .tool-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
         .tool-name { font: 600 1.4rem/1.15 var(--font-title); }
         .tool-desc { color: var(--muted); font-size: 0.98rem; line-height: 1.4; }
-        .tool-go { flex: none; color: var(--line-strong); }
-        .tool:hover { background: var(--tile-tint); }
+        .tool-go { flex: none; color: var(--line-strong); transition: transform .16s ease, color .16s ease; }
+        .tool:hover { background: var(--tile-tint); border-color: var(--tile); transform: translateY(-2px); box-shadow: 0 4px 6px rgba(25,32,58,.06), 0 14px 30px rgba(25,32,58,.10); }
         .tool:hover .tool-name, .tool:hover .tool-go { color: var(--tile-ink); }
-        .tool:focus-visible { outline: 3px solid var(--tile-ink); outline-offset: -3px; }
+        .tool:hover .tool-go { transform: translateX(3px); }
+        .tool:focus-visible { outline: 3px solid var(--tile-ink); outline-offset: 2px; }
+        @media (prefers-reduced-motion: reduce) { .tool, .tool-go { transition: none; } .tool:hover { transform: none; } }
 
         footer { padding-top: 8px; padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px)); color: var(--muted); font-size: 0.88rem; }
 
@@ -142,7 +145,7 @@
                     <a class="tool" href="cablage/" data-tool="cablage">
                         <span class="tool-text">
                             <span class="tool-name">Câblage</span>
-                            <span class="tool-desc">Baie informatique, adductions, cheminements, percements et blocages éventuels.</span>
+                            <span class="tool-desc">Adductions, cheminements, câblage cuivre RJ45, percements et blocages éventuels.</span>
                         </span>
                         <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
                     </a>
@@ -152,6 +155,15 @@
                         <span class="tool-text">
                             <span class="tool-name">Câblage Wi-Fi</span>
                             <span class="tool-desc">Bornes par niveau, une couleur par borne sur les plans, métrage et synthèse.</span>
+                        </span>
+                        <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
+                    </a>
+                </li>
+                <li>
+                    <a class="tool" href="qos/" data-tool="qos">
+                        <span class="tool-text">
+                            <span class="tool-name">Audit QOS</span>
+                            <span class="tool-desc">Locaux techniques, baies, switchs et onduleurs, locaux secondaires, coffrets et rocades.</span>
                         </span>
                         <svg class="tool-go" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6l-6 6"/></svg>
                     </a>
